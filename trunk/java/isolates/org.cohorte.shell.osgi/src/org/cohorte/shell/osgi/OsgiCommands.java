@@ -5,6 +5,7 @@
  */
 package org.cohorte.shell.osgi;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -16,7 +17,7 @@ import org.osgi.framework.ServiceReference;
 
 /**
  * Implementations of Gogo shell commands to simplify OSGi debugging
- * 
+ *
  * @author Thomas Calmant
  */
 public class OsgiCommands {
@@ -26,7 +27,7 @@ public class OsgiCommands {
 
     /**
      * Sets up the members
-     * 
+     *
      * @param aContext
      *            The bundle context
      */
@@ -36,9 +37,86 @@ public class OsgiCommands {
     }
 
     /**
+     * Prints the details of the given service reference
+     *
+     * @param aServiceReference
+     *            A service reference
+     */
+    private void printReference(final ServiceReference<?> aServiceReference) {
+
+        // Extract main properties
+        final Long svcId = (Long) aServiceReference
+                .getProperty(Constants.SERVICE_ID);
+        final String[] specs = (String[]) aServiceReference
+                .getProperty(Constants.OBJECTCLASS);
+        final Bundle bundle = aServiceReference.getBundle();
+
+        // Print'em
+        System.out.println("Service ID: " + svcId);
+        System.out.println("Bundle: " + bundle.getSymbolicName() + " ("
+                + bundle.getBundleId() + ")");
+        System.out.println("Specifications:");
+        for (final String spec : specs) {
+            System.out.println("\t* " + spec);
+        }
+
+        // Print other properties
+        System.out.println("Properties:");
+        for (final String key : aServiceReference.getPropertyKeys()) {
+            System.out.println("\t* " + key);
+
+            // Convert value to a string
+            String strValue;
+            String strClass;
+            final Object rawValue = aServiceReference.getProperty(key);
+            if (rawValue == null) {
+                // No value
+                strClass = "(null)";
+                strValue = "null";
+
+            } else {
+                // Keep class name
+                strClass = rawValue.getClass().getName();
+                if (rawValue.getClass().isArray()) {
+                    // Convert the array to an array of Object
+                    Object[] rawArray;
+                    if (rawValue.getClass().getComponentType().isPrimitive()) {
+                        // Primitive can't be cast to Object
+                        final int length = Array.getLength(rawValue);
+                        rawArray = new Object[length];
+                        for (int i = 0; i < length; i++) {
+                            rawArray[i] = Array.get(rawValue, i);
+                        }
+
+                    } else {
+                        // Nothing to do
+                        rawArray = (Object[]) rawValue;
+                    }
+
+                    // Convert the array to strings
+                    strValue = Arrays.deepToString(rawArray);
+
+                } else {
+                    // Get the string value as is
+                    strValue = rawValue.toString();
+                }
+            }
+
+            System.out.println("\t\t-> " + strValue + " (" + strClass + ")");
+        }
+
+        // Service usage
+        System.out.println("Service used by:");
+        for (final Bundle usingBundle : aServiceReference.getUsingBundles()) {
+            System.out.println("\t* " + usingBundle.getSymbolicName() + " ("
+                    + usingBundle.getBundleId() + ")");
+        }
+    }
+
+    /**
      * Prints the ID and the specifications of the given service references on
      * the standard output
-     * 
+     *
      * @param aServiceReferences
      *            Some service references
      */
@@ -85,7 +163,7 @@ public class OsgiCommands {
 
     /**
      * Prints the references that matches the given specification
-     * 
+     *
      * @param aSpecification
      *            A service specification
      */
@@ -109,6 +187,36 @@ public class OsgiCommands {
 
         // Print'em
         printReferences(serviceReferences);
+    }
+
+    /**
+     * Prints the details of the given service
+     */
+    public void service(final int aServiceId) {
+
+        // Get the matching references
+        ServiceReference<?>[] serviceReferences;
+        try {
+            serviceReferences = pContext.getServiceReferences((String) null,
+                    "(" + Constants.SERVICE_ID + "=" + aServiceId + ")");
+
+        } catch (final InvalidSyntaxException ex) {
+            System.err.println("Error retrieving services: " + ex);
+            return;
+        }
+
+        // Check results
+        if (serviceReferences == null || serviceReferences.length == 0) {
+            System.out.println("Unknown service");
+            return;
+
+        } else if (serviceReferences.length > 1) {
+            System.out.println("WARNING: too many references found, "
+                    + "only the first one will be printed");
+        }
+
+        // Print details
+        printReference(serviceReferences[0]);
     }
 
     /**
@@ -138,7 +246,7 @@ public class OsgiCommands {
 
     /**
      * Prints the services registered by the given bundle
-     * 
+     *
      * @param aBundle
      *            A bundle
      */

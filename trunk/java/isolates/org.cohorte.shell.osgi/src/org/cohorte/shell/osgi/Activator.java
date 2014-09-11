@@ -14,7 +14,7 @@ import org.osgi.framework.ServiceRegistration;
 
 /**
  * Registers the OSGi utility commands
- * 
+ *
  * @author Thomas Calmant
  */
 public class Activator implements BundleActivator {
@@ -24,7 +24,7 @@ public class Activator implements BundleActivator {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
      * )
@@ -36,7 +36,7 @@ public class Activator implements BundleActivator {
         final Dictionary<String, Object> properties = new Hashtable<String, Object>();
         properties.put("osgi.command.scope", "cohorte");
         properties.put("osgi.command.function", new String[] { "services",
-                "providers" });
+                "providers", "service" });
 
         // Register the service
         pRegistration = aContext.registerService(OsgiCommands.class,
@@ -45,7 +45,7 @@ public class Activator implements BundleActivator {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
      */
