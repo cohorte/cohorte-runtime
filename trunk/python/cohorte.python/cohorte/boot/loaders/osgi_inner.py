@@ -21,6 +21,9 @@ __version__ = '1.0.0'
 # COHORTE constants
 import cohorte.repositories
 
+# Herald
+import herald
+
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
     Invalidate, Property, Requires
@@ -349,11 +352,19 @@ class JavaOsgiLoader(object):
         for key in (cohorte.PROP_HOME, cohorte.PROP_BASE,
                     cohorte.PROP_UID, cohorte.PROP_NAME,
                     cohorte.PROP_NODE_UID, cohorte.PROP_NODE_NAME,
-                    cohorte.PROP_DUMPER_PORT):
+                    cohorte.PROP_DUMPER_PORT,
+                    herald.FWPROP_PEER_UID, herald.FWPROP_PEER_NAME,
+                    herald.FWPROP_NODE_UID, herald.FWPROP_NODE_NAME):
             value = self._context.get_property(key)
             if value is not None:
                 # Avoid empty values
                 osgi_properties.put(key, str(value))
+
+        # Special case: Herald groups (comma-separated list)
+        value = self._context.get_property(herald.FWPROP_PEER_GROUPS)
+        if value:
+            osgi_properties.put(herald.FWPROP_PEER_GROUPS,
+                                ','.join(str(group) for group in value))
 
         if allow_bridge:
             # Prepare the "extra system package" framework property
