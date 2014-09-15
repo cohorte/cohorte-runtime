@@ -14,6 +14,6 @@
 	}, {
 		"name" : "herald.remote.discovery"
 	}, {
-		"name" : "herald.remote.herald_jsonrpc"
+		"name" : "herald.remote.herald_jabsorbrpc"
 	} ]
 }
