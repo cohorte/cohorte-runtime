@@ -20,6 +20,7 @@ import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.ServiceProperty;
 import org.apache.felix.ipojo.annotations.Validate;
 import org.cohorte.herald.IConstants;
+import org.cohorte.herald.IDirectoryGroupListener;
 import org.cohorte.herald.IHerald;
 import org.cohorte.herald.IMessageListener;
 import org.cohorte.herald.Message;
@@ -45,10 +46,15 @@ import org.psem2m.isolates.slave.agent.ISvcAgent;
  * @author Thomas Calmant
  */
 @Component(name = "psem2m-slave-agent-core-factory")
-@Provides(specifications = { ISvcAgent.class, IMessageListener.class })
-public class AgentCore implements ISvcAgent, IMessageListener, BundleListener {
+@Provides(specifications = { ISvcAgent.class, IMessageListener.class,
+        IDirectoryGroupListener.class })
+public class AgentCore implements ISvcAgent, IMessageListener,
+        IDirectoryGroupListener, BundleListener {
 
     // TODO: inject the Python StateUpdater service
+
+    /** Name of the Herald group for monitors */
+    private static final String GROUP_MONITORS = "monitors";
 
     /** Agent bundle context */
     private final BundleContext pContext;
@@ -235,6 +241,46 @@ public class AgentCore implements ISvcAgent, IMessageListener, BundleListener {
         }
 
         return bundlesInfo;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * org.cohorte.herald.IDirectoryGroupListener#groupSet(java.lang.String)
+     */
+    @Override
+    public void groupSet(final String aGroup) {
+
+        if (GROUP_MONITORS.equals(aGroup)) {
+            try {
+                // Send the stopping signal
+                pHerald.fireGroup(GROUP_MONITORS, new Message(
+                        ISignalsConstants.ISOLATE_READY_SIGNAL));
+
+                pLogger.logInfo(this, "groupSet",
+                        "Monitors notified of isolate readiness");
+
+            } catch (final NoTransport ex) {
+                pLogger.logWarn(this, "groupSet",
+                        "Error sending the 'ready' message to monitors: ", ex);
+            }
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * org.cohorte.herald.IDirectoryGroupListener#groupUnset(java.lang.String)
+     */
+    @Override
+    public void groupUnset(final String aGroup) {
+
+        if (GROUP_MONITORS.equals(aGroup)) {
+            pLogger.logWarn(this, "groupUnset", "Group", GROUP_MONITORS,
+                    "has disappeared");
+        }
     }
 
     /*
@@ -510,16 +556,7 @@ public class AgentCore implements ISvcAgent, IMessageListener, BundleListener {
         // Register to bundle events : replaces the guardian thread.
         pContext.addBundleListener(this);
 
-        try {
-            // Send the stopping signal
-            pHerald.fireGroup("monitors", new Message(
-                    ISignalsConstants.ISOLATE_READY_SIGNAL));
-        } catch (final NoTransport ex) {
-            pLogger.logWarn(this, "invalidate",
-                    "Error sending the 'ready' message to monitors: ", ex);
-        }
-
         // Log the validation
-        pLogger.logInfo(this, "validate", "Isolate agent ready");
+        pLogger.logInfo(this, "validate", "Isolate agent validated");
     }
 }
