@@ -19,7 +19,7 @@ __version__ = "1.0.0"
 
 # Cohorte & Herald
 import cohorte.monitor
-import herald
+import herald.exceptions
 import herald.beans as beans
 
 # iPOPO Decorators
@@ -38,7 +38,7 @@ _logger = logging.getLogger(__name__)
 
 @ComponentFactory("cohorte-isolate-agent-factory")
 @Requires('_sender', herald.SERVICE_HERALD)
-@Provides(herald.SERVICE_LISTENER)
+@Provides((herald.SERVICE_LISTENER, herald.SERVICE_DIRECTORY_GROUP_LISTENER))
 @Property('_filters', herald.PROP_FILTERS, cohorte.monitor.SIGNAL_STOP_ISOLATE)
 class IsolateAgent(object):
     """
@@ -81,6 +81,31 @@ class IsolateAgent(object):
         _logger.warning(">>> STOPPING isolate <<<")
         self._context.get_bundle(0).stop()
 
+    def group_set(self, group):
+        """
+        A new Herald directory group has been set.
+
+        Sends the "Ready" message to monitors, as soon as one of their peers
+        has been detected
+        """
+        if group == 'monitors':
+            # Send the "ready" signal
+            try:
+                self._sender.fire_group(
+                    'monitors',
+                    beans.Message(cohorte.monitor.SIGNAL_ISOLATE_READY))
+            except herald.exceptions.NoTransport as ex:
+                _logger.error("No transport to notify monitors: %s", ex)
+            else:
+                _logger.info("Monitors notified of isolate readiness")
+
+    def group_unset(self, group):
+        """
+        An Herald directory group has been deleted
+        """
+        if group == 'monitors':
+            _logger.warning("Group '%s' has disappeared...", group)
+
     @Validate
     def validate(self, context):
         """
@@ -88,11 +113,6 @@ class IsolateAgent(object):
         """
         # Store the context
         self._context = context
-
-        # FIXME: the directory might not be filled up at this time
-        # Send the "ready" signal
-        message = beans.Message(cohorte.monitor.SIGNAL_ISOLATE_READY)
-        self._sender.fire_group('monitors', message)
         _logger.info("Isolate agent validated")
 
     @Invalidate
