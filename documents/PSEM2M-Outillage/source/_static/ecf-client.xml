@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<service-description>
-	<provide interface="org.psem2m.service.ISvcTrace" />
-	<property name="ecf.sp.cid">ecftcp://localhost:38000/server</property>
-	<property name="ecf.sp.cns">org.eclipse.ecf.core.identity.StringID</property>
-	<property name="ecf.sp.ect">ecf.generic.server</property>
-</service-description>

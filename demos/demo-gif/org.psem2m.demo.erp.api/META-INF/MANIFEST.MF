@@ -1,9 +1,0 @@
-Manifest-Version: 1.0
-Bundle-ManifestVersion: 2
-Bundle-Name: Demo - ERP API
-Bundle-SymbolicName: org.psem2m.demo.erp.api
-Bundle-Version: 1.0.0.qualifier
-Bundle-Vendor: isandlaTech.com
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Export-Package: org.psem2m.demo.erp.api.beans,
- org.psem2m.demo.erp.api.services

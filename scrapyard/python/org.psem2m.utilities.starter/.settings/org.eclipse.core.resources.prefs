@@ -1,9 +1,0 @@
-#Tue Dec 13 11:06:38 CET 2011
-eclipse.preferences.version=1
-encoding//psem2m/__init__.py=utf-8
-encoding//psem2m/runner/__init__.py=utf-8
-encoding//psem2m/runner/commons.py=utf-8
-encoding//psem2m/runner/core.py=utf-8
-encoding//psem2m/runner/nt.py=utf-8
-encoding//psem2m/runner/posix.py=utf-8
-encoding/starter.py=utf-8

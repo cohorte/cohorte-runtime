@@ -1,7 +1,28 @@
-# Eclipse / PyCharm
+# OS
+*~
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Java generated classes  #
+*.class
+
+# IntelliJ IDEA files #
+.idea
+*.iml
+out 
+
+# Felix #
+felix-cache/
+
+# Eclipse 
 .metadata
 RemoteSystemsTempFiles/
-.idea/
+
 
 # Binaries
 *.tar.gz
@@ -12,12 +33,8 @@ small-install.zip
 *.pid
 *.access
 
-# Maven (tests)
-# pom.xml
-
 # C
 *.o
-*~
 
 # Python
 *.pyc
@@ -35,3 +52,12 @@ sonar-project.properties
 # PSEM2M Compiler
 auto_build_psem2m.xml
 
+# Maven
+# generated
+src/lib/python
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties

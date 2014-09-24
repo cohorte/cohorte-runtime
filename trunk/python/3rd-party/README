@@ -1,6 +1,0 @@
-COHORTE Python depends on:
-
-- pelix/ipopo: https://github.com/tcalmant/ipopo
-- jsonrpclib-pelix: https://github.com/tcalmant/jsonrpclib
-- jpype: http://jpype.sourceforge.net/ (to be added in this folder)
-
