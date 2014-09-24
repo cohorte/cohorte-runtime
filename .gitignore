@@ -54,7 +54,7 @@ auto_build_psem2m.xml
 
 # Maven
 # generated
-src/lib/python
+cohorte-python-runtime/src/lib/python
 target/
 pom.xml.tag
 pom.xml.releaseBackup
