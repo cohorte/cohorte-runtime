@@ -12,4 +12,12 @@
 	<artifactId>org.psem2m.isolates.base</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>eclipse-plugin</packaging>
+
+	<dependencies>
+		<!-- Cohorte Utilities -->
+		<dependency>
+			<groupId>org.cohorte.utilities</groupId>
+			<artifactId>org.cohorte.utilities</artifactId>
+		</dependency>
+	</dependencies>
 </project>

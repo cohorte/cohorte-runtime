@@ -14,9 +14,16 @@
 	<packaging>eclipse-plugin</packaging>
 
 	<dependencies>
+		<!-- Herald -->
 		<dependency>
 			<groupId>org.cohorte.herald</groupId>
 			<artifactId>org.cohorte.herald.api</artifactId>
+		</dependency>
+
+		<!-- Cohorte Utilities -->
+		<dependency>
+			<groupId>org.cohorte.utilities</groupId>
+			<artifactId>org.cohorte.utilities</artifactId>
 		</dependency>
 	</dependencies>
 
