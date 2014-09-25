@@ -55,26 +55,26 @@ iPOJO-Components: instance { $component="psem2m-loggers-channels-facto
  LoggerSvc" }field { $name="pLogChannelsSvc" $type="org.psem2m.isolate
  s.loggers.ILogChannelsSvc" }field { $name="pLogger" $type="org.psem2m
  .isolates.loggers.ILogChannelSvc" }method { $name="close" }method { $
- name="destroy" }method { $name="getRequester" $return="org.psem2m.uti
- lities.logging.IActivityRequester" }method { $name="hasLogger" $retur
- n="boolean" }method { $name="invalidatePojo" }method { $name="isLogDe
- bugOn" $return="boolean" }method { $name="isLoggable" $return="boolea
- n" $arguments="{java.util.logging.Level}" $names="{aLevel}" }method {
-  $name="isLogInfoOn" $return="boolean" }method { $name="isLogSevereOn
- " $return="boolean" }method { $name="isLogWarningOn" $return="boolean
- " }method { $name="log" $arguments="{java.util.logging.Level,java.lan
- g.Object,java.lang.CharSequence,java.lang.Object[]}" $names="{aLevel,
- aWho,aWhat,aInfos}" }method { $name="log" $arguments="{java.util.logg
- ing.LogRecord}" $names="{record}" }method { $name="logDebug" $argumen
- ts="{java.lang.Object,java.lang.CharSequence,java.lang.Object[]}" $na
- mes="{aWho,aWhat,aInfos}" }method { $name="logInfo" $arguments="{java
- .lang.Object,java.lang.CharSequence,java.lang.Object[]}" $names="{aWh
- o,aWhat,aInfos}" }method { $name="logSevere" $arguments="{java.lang.O
- bject,java.lang.CharSequence,java.lang.Object[]}" $names="{aWho,aWhat
- ,aInfos}" }method { $name="logWarn" $arguments="{java.lang.Object,jav
- a.lang.CharSequence,java.lang.Object[]}" $names="{aWho,aWhat,aInfos}"
-  }method { $name="popLogLineBuffer" $return="org.psem2m.utilities.log
- ging.CLogLineBuffer" }method { $name="pushLogLineBuffer" $arguments="
- {org.psem2m.utilities.logging.CLogLineBuffer}" $names="{aLoggerLineBu
- ffer}" }method { $name="validatePojo" }}}
+ name="destroy" }method { $name="getLevel" $return="java.util.logging.
+ Level" }method { $name="getRequester" $return="org.psem2m.utilities.l
+ ogging.IActivityRequester" }method { $name="hasLogger" $return="boole
+ an" }method { $name="invalidatePojo" }method { $name="isLogDebugOn" $
+ return="boolean" }method { $name="isLoggable" $return="boolean" $argu
+ ments="{java.util.logging.Level}" $names="{aLevel}" }method { $name="
+ isLogInfoOn" $return="boolean" }method { $name="isLogSevereOn" $retur
+ n="boolean" }method { $name="isLogWarningOn" $return="boolean" }metho
+ d { $name="log" $arguments="{java.util.logging.Level,java.lang.Object
+ ,java.lang.CharSequence,java.lang.Object[]}" $names="{aLevel,aWho,aWh
+ at,aInfos}" }method { $name="log" $arguments="{java.util.logging.LogR
+ ecord}" $names="{record}" }method { $name="logDebug" $arguments="{jav
+ a.lang.Object,java.lang.CharSequence,java.lang.Object[]}" $names="{aW
+ ho,aWhat,aInfos}" }method { $name="logInfo" $arguments="{java.lang.Ob
+ ject,java.lang.CharSequence,java.lang.Object[]}" $names="{aWho,aWhat,
+ aInfos}" }method { $name="logSevere" $arguments="{java.lang.Object,ja
+ va.lang.CharSequence,java.lang.Object[]}" $names="{aWho,aWhat,aInfos}
+ " }method { $name="logWarn" $arguments="{java.lang.Object,java.lang.C
+ harSequence,java.lang.Object[]}" $names="{aWho,aWhat,aInfos}" }method
+  { $name="setLevel" $arguments="{java.util.logging.Level}" $names="{a
+ Level}" }method { $name="setLevel" $arguments="{java.lang.String}" $n
+ ames="{aLevelName}" }method { $name="validatePojo" }}}
 
