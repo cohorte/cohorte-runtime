@@ -25,7 +25,7 @@ import org.cohorte.herald.IHerald;
 import org.cohorte.herald.IMessageListener;
 import org.cohorte.herald.Message;
 import org.cohorte.herald.MessageReceived;
-import org.cohorte.herald.exceptions.NoTransport;
+import org.cohorte.herald.NoTransport;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;

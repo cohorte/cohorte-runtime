@@ -8,9 +8,9 @@ Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
 Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  .ipojo.architecture;version=1.8.0, org.cohorte.herald;version=0.0.1, 
- org.cohorte.herald.exceptions;version=0.0.1, org.cohorte.pyboot.api, 
- org.cohorte.shell;version=1.0.0, org.osgi.framework;version=1.6.0, or
- g.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.3
+ org.cohorte.pyboot.api, org.cohorte.shell;version=1.0.0, org.osgi.fra
+ mework;version=1.6.0, org.osgi.service.cm;version=1.2, org.osgi.servi
+ ce.log;version=1.3
 iPOJO-Components: instance { $name="cohorte-shell-agent" $component="c
  ohorte-shell-agent-factory" }component { $name="cohorte-shell-agent-f
  actory" $classname="org.cohorte.pyboot.shell.agent.ShellAgent" provid
