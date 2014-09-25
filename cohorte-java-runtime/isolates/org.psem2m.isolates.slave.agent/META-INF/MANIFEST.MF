@@ -6,17 +6,16 @@ Bundle-SymbolicName: org.psem2m.isolates.slave.agent
 Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.0.qualifier
 Created-By: iPOJO  1.8.0
-Export-Package: org.psem2m.isolates.slave.agent
 Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  .ipojo.architecture;version=1.8.0, org.cohorte.herald;version=0.0.1, 
- org.cohorte.herald.exceptions;version=0.0.1, org.osgi.framework;versi
- on=1.3.0, org.osgi.framework.wiring;version=1.0.0, org.osgi.service.c
- m;version=1.2, org.osgi.service.log;version=1.3, org.psem2m.isolates.
- base;version=1.0.0, org.psem2m.isolates.base.activators;version=1.0.0
- , org.psem2m.isolates.base.bundles;version=1.0.0, org.psem2m.isolates
- .constants;version=1.0.0, org.psem2m.isolates.services.dirs;version=1
- .0.0, org.psem2m.isolates.services.monitoring;version=1.0.0, org.psem
- 2m.utilities.logging;version=1.0.0
+ org.osgi.framework;version=1.3.0, org.osgi.framework.wiring;version=1
+ .0.0, org.osgi.service.cm;version=1.2, org.osgi.service.log;version=1
+ .3, org.psem2m.isolates.base;version=1.0.0, org.psem2m.isolates.base.
+ activators;version=1.0.0, org.psem2m.isolates.base.bundles;version=1.
+ 0.0, org.psem2m.isolates.constants;version=1.0.0, org.psem2m.isolates
+ .services.dirs;version=1.0.0, org.psem2m.isolates.services.monitoring
+ ;version=1.0.0, org.psem2m.isolates.slave.agent;version=1.0.1, org.ps
+ em2m.utilities.logging;version=1.0.0
 iPOJO-Components: component { $name="psem2m-slave-agent-core-factory" 
  $classname="org.psem2m.isolates.slave.agent.core.AgentCore" provides 
  { $specifications="{org.psem2m.isolates.slave.agent.ISvcAgent,org.coh

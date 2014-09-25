@@ -17,8 +17,8 @@ Import-Package: javax.swing, javax.swing.event, javax.swing.table, org
  .isolates.base;version=1.0.0, org.psem2m.isolates.base.activators;ver
  sion=1.0.0, org.psem2m.isolates.services.conf;version=1.0.0, org.psem
  2m.isolates.services.conf.beans;version=1.0.0, org.psem2m.isolates.se
- rvices.dirs;version=1.0.0, org.psem2m.isolates.slave.agent, org.psem2
- m.utilities, org.psem2m.utilities.logging
+ rvices.dirs;version=1.0.0, org.psem2m.isolates.slave.agent;version=1.
+ 0.1, org.psem2m.utilities, org.psem2m.utilities.logging
 iPOJO-Components: instance { $name="psem2m-ui-admin" $component="psem2
  m-ui-admin-factory" }instance { $name="psem2m-ui-admin-panel-bundles"
   $component="psem2m-ui-admin-panel-bundles-factory" }instance { $name
