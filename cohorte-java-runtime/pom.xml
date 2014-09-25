@@ -4,16 +4,22 @@
 	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>org.cohorte</groupId>
-		<artifactId>cohorte-root</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
-		<relativePath>../../pom.xml</relativePath>
+		<groupId>org.cohorte.runtime</groupId>
+		<artifactId>cohorte-runtime</artifactId>
+		<version>1.0.0</version>
+		<relativePath>../pom.xml</relativePath>
 	</parent>
-
 	<groupId>org.cohorte</groupId>
 	<artifactId>cohorte-java</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
+
+	<properties>
+		<tycho-version>0.21.0</tycho-version>
+		<osgi-version>5.0.0</osgi-version>
+		<ipojo-version>1.12.0</ipojo-version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 
 	<modules>
 		<module>boot/org.cohorte.pyboot</module>
@@ -31,25 +37,119 @@
 		<module>isolates/org.psem2m.isolates.loggers</module>
 		<module>isolates/org.psem2m.isolates.slave.agent</module>
 		<module>isolates/org.psem2m.isolates.utilities</module>
-
-		<module>tools/org.psem2m.status.storage</module>
+		<module>isolates/org.psem2m.status.storage</module>
 
 		<module>ui/org.psem2m.isolates.base.ui</module>
 		<module>ui/org.psem2m.isolates.ui</module>
 		<module>ui/org.psem2m.isolates.ui.admin</module>
 	</modules>
 
-	<repositories>
-		<repository>
-			<id>local-felix</id>
-			<layout>p2</layout>
-			<url>file://${user.dir}/repository-p2/org.cohorte.p2.repository/target/repository</url>
-		</repository>
-	</repositories>
+	<dependencies>
+		<!-- OSGi API -->
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.core</artifactId>
+			<version>${osgi-version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- iPOJO Annotations -->
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.ipojo.annotations</artifactId>
+			<version>${ipojo-version}</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<!-- iPOJO Core: necessary for all iPOJO manipulated projects -->
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.ipojo</artifactId>
+			<version>${ipojo-version}</version>
+		</dependency>
+	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+			<!-- OSGi Compendium API -->
+			<dependency>
+				<groupId>org.osgi</groupId>
+				<artifactId>org.osgi.compendium</artifactId>
+				<version>${osgi-version}</version>
+				<scope>provided</scope>
+			</dependency>
+
+			<!-- Herald API -->
+			<dependency>
+				<groupId>org.cohorte.herald</groupId>
+				<artifactId>org.cohorte.herald.api</artifactId>
+				<version>0.0.1-SNAPSHOT</version>
+				<scope>provided</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-maven-plugin</artifactId>
+				<version>${tycho-version}</version>
+				<extensions>true</extensions>
+			</plugin>
+		</plugins>
+
 		<pluginManagement>
 			<plugins>
+				<!-- Consider POM dependencies -->
+				<plugin>
+					<groupId>org.eclipse.tycho</groupId>
+					<artifactId>target-platform-configuration</artifactId>
+					<version>${tycho-version}</version>
+					<configuration>
+						<pomDependencies>consider</pomDependencies>
+					</configuration>
+				</plugin>
+
+				<!-- Add iPOJO annotations to class path -->
+				<plugin>
+					<groupId>org.eclipse.tycho</groupId>
+					<artifactId>tycho-compiler-plugin</artifactId>
+					<version>${tycho-version}</version>
+					<configuration>
+						<source>1.7</source>
+						<target>1.7</target>
+						<extraClasspathElements>
+							<!-- iPOJO Annotations are not in a bundle -->
+							<extraClasspathElement>
+								<groupId>org.apache.felix</groupId>
+								<artifactId>org.apache.felix.ipojo.annotations</artifactId>
+								<version>${ipojo-version}</version>
+							</extraClasspathElement>
+						</extraClasspathElements>
+					</configuration>
+				</plugin>
+
+				<!-- iPOJO manipulation -->
+				<plugin>
+					<groupId>org.apache.felix</groupId>
+					<artifactId>maven-ipojo-plugin</artifactId>
+					<version>${ipojo-version}</version>
+					<configuration>
+						<!-- Add support for Tycho packaging -->
+						<m_supportedProjectTypes>
+							<type>eclipse-plugin</type>
+						</m_supportedProjectTypes>
+					</configuration>
+					<executions>
+						<execution>
+							<goals>
+								<goal>ipojo-bundle</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+
 				<plugin>
 					<groupId>org.eclipse.tycho</groupId>
 					<artifactId>tycho-surefire-plugin</artifactId>

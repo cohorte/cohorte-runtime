@@ -13,6 +13,13 @@
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>eclipse-plugin</packaging>
 
+	<dependencies>
+		<dependency>
+			<groupId>org.cohorte.herald</groupId>
+			<artifactId>org.cohorte.herald.api</artifactId>
+		</dependency>
+	</dependencies>
+
 	<build>
 		<plugins>
 			<plugin>

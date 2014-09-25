@@ -25,7 +25,7 @@
 
 	<modules>		
 		<module>cohorte-python-runtime</module>		
-		<!--module>cohorte-java-runtime</module-->
+		<module>cohorte-java-runtime</module>
 	</modules>
 	
 	<licenses>
