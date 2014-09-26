@@ -174,6 +174,15 @@ class IsolateComposer(object):
                               bundle.get_symbolic_name(), ex)
 
 
+    def get_isolate_uid(self):
+        """
+        Returns the UID of the isolate hosting this composer
+
+        :return: An isolate UID
+        """
+        return self._context.get_property(cohorte.PROP_UID)
+
+
     def get_isolate_info(self):
         """
         Returns an Isolate bean corresponding to this composer

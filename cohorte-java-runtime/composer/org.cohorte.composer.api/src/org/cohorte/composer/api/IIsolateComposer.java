@@ -9,21 +9,28 @@ import java.util.Set;
 
 /**
  * Specification of an Isolate Composer service
- * 
+ *
  * @author Thomas Calmant
  */
 public interface IIsolateComposer {
 
     /**
      * Returns a bean that describes this isolate
-     * 
+     *
      * @return A bean that describes this isolate
      */
     Isolate get_isolate_info();
 
     /**
-     * Instantiates the given components
+     * Returns the UID of the isolate hosting this composer
      * 
+     * @return An isolate UID
+     */
+    String get_isolate_uid();
+
+    /**
+     * Instantiates the given components
+     *
      * @param aComponents
      *            A set of RawComponent beans
      */
@@ -31,7 +38,7 @@ public interface IIsolateComposer {
 
     /**
      * Kills the components with the given names
-     * 
+     *
      * @param aNames
      *            Names of the components to kill
      */

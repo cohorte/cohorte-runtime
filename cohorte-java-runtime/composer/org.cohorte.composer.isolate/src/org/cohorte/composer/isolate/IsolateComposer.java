@@ -27,7 +27,7 @@ import org.psem2m.isolates.constants.IPlatformProperties;
 
 /**
  * The Isolate Composer entry point
- * 
+ *
  * @author Thomas Calmant
  */
 @Component
@@ -67,7 +67,7 @@ public class IsolateComposer implements IIsolateComposer {
 
     /**
      * Component creation
-     * 
+     *
      * @param aContext
      *            The bundle context
      */
@@ -78,7 +78,7 @@ public class IsolateComposer implements IIsolateComposer {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.cohorte.composer.api.IIsolateComposer#get_isolate_info()
      */
     @Override
@@ -97,6 +97,17 @@ public class IsolateComposer implements IIsolateComposer {
     /*
      * (non-Javadoc)
      * 
+     * @see org.cohorte.composer.api.IIsolateComposer#get_isolate_uid()
+     */
+    @Override
+    public String get_isolate_uid() {
+
+        return pContext.getProperty(IPlatformProperties.PROP_ISOLATE_UID);
+    }
+
+    /*
+     * (non-Javadoc)
+     *
      * @see org.cohorte.composer.api.IIsolateComposer#instantiate(java.util.Set)
      */
     @Override
@@ -122,7 +133,7 @@ public class IsolateComposer implements IIsolateComposer {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.cohorte.composer.api.IIsolateComposer#kill(java.util.Set)
      */
     @Override
