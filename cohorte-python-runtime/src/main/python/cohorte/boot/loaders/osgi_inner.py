@@ -30,6 +30,9 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
 import pelix.framework
 import pelix.shell
 
+# JPype (Java bridge)
+import jpype._jexception as jexception
+
 # Python standard library
 import logging
 import os
@@ -63,6 +66,7 @@ PYTHON_JAVA_BRIDGE_INTERFACE = "org.cohorte.pyboot.api.IPyBridge"
 _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
+
 
 class PyBridge(object):
     """
@@ -99,7 +103,6 @@ class PyBridge(object):
         self._java_boot_config = self._to_java(java_configuration)
         self._prepare_components(java_configuration.composition)
 
-
     def _prepare_components(self, raw_components):
         """
         Converts the Python Component objects into Java Component beans
@@ -113,9 +116,8 @@ class PyBridge(object):
                 properties.put(key, value)
 
             # Store the component bean
-            self._components[component.name] = self.Component(component.factory,
-                                                              component.name,
-                                                              properties)
+            self._components[component.name] = \
+                self.Component(component.factory, component.name, properties)
 
     def _to_java(self, data):
         """
@@ -124,38 +126,34 @@ class PyBridge(object):
         :param data: Data to be converted
         :return: Converted data
         """
-        if hasattr(data, '_asdict'):
-            # Named tuple
-            data = data._asdict()
+        try:
+            # Named tuple (in theory)
+            as_dict = getattr(data, '_asdict')
+        except AttributeError:
+            # Keep data as is
+            pass
+        else:
+            data = as_dict()
 
         if isinstance(data, dict):
             # Convert a dictionary
             converted = self.HashMap()
-
             for key, value in data.items():
                 # Convert entry
-                new_key = self._to_java(key)
-                new_value = self._to_java(value)
-
-                converted.put(new_key, new_value)
-
-            # Return the new value
+                converted.put(self._to_java(key), self._to_java(value))
             return converted
 
         elif isinstance(data, (list, tuple, set)):
             # Convert a list
             converted = self.ArrayList()
-
             for item in data:
                 # Convert each item
                 converted.add(self._to_java(item))
-
             return converted
 
         else:
             # No conversion
             return data
-
 
     def debug(self, message, values):
         """
@@ -163,13 +161,11 @@ class PyBridge(object):
         """
         _logger.debug(message.format(*values))
 
-
     def error(self, message, values):
         """
         Logs an error message
         """
         _logger.error(message.format(*values))
-
 
     def getComponents(self):
         """
@@ -181,9 +177,7 @@ class PyBridge(object):
         result = self.ArrayList()
         for component in self._components.values():
             result.add(component)
-
         return result
-
 
     def getStartConfiguration(self):
         """
@@ -193,7 +187,6 @@ class PyBridge(object):
         """
         return self._java_boot_config
 
-
     def getPid(self):
         """
         Retrieves the Process ID of this isolate
@@ -202,7 +195,6 @@ class PyBridge(object):
         """
         return os.getpid()
 
-
     def getRemoteShellPort(self):
         """
         Returns the port used by the Pelix remote shell, or -1 if the shell is
@@ -210,7 +202,8 @@ class PyBridge(object):
 
         :return: The port used by the remote shell, or -1
         """
-        ref = self._context.get_service_reference(pelix.shell.REMOTE_SHELL_SPEC)
+        ref = self._context.get_service_reference(
+            pelix.shell.REMOTE_SHELL_SPEC)
         if ref is None:
             return -1
 
@@ -223,13 +216,10 @@ class PyBridge(object):
 
             # Release the service
             self._context.unget_service(ref)
-
             return port
-
         except pelix.framework.BundleException:
             # Service lost (called while the framework was stopping)
             return -1
-
 
     def onComponentStarted(self, name):
         """
@@ -243,7 +233,6 @@ class PyBridge(object):
         if not self._components:
             self._callback(True, "All components have been instantiated")
 
-
     def onError(self, error):
         """
         Called when an error has occurred
@@ -251,7 +240,6 @@ class PyBridge(object):
         :param error: An error message
         """
         self._callback(False, error)
-
 
     def prepareIsolate(self, uid, name, node, kind, level, sublevel,
                        bundles, composition):
@@ -262,13 +250,11 @@ class PyBridge(object):
             conf = self._parser.prepare_isolate(uid, name, node, kind,
                                                 level, sublevel,
                                                 bundles, composition)
-
         except:
             _logger.exception("Error preparing isolate...")
             return None
 
         return self._to_java(conf)
-
 
     def readConfiguration(self, filename):
         """
@@ -285,13 +271,14 @@ class PyBridge(object):
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory(ISOLATE_LOADER_FACTORY)
 @Provides(cohorte.SERVICE_ISOLATE_LOADER)
 @Property('_handled_kind', cohorte.SVCPROP_ISOLATE_LOADER_KIND, LOADER_KIND)
 @Requires('_java', cohorte.SERVICE_JAVA_RUNNER)
 @Requires('_repository', cohorte.repositories.SERVICE_REPOSITORY_ARTIFACTS,
-          spec_filter="({0}=java)" \
-                      .format(cohorte.repositories.PROP_REPOSITORY_LANGUAGE))
+          spec_filter="({0}=java)"
+          .format(cohorte.repositories.PROP_REPOSITORY_LANGUAGE))
 @Requires('_config', cohorte.SERVICE_CONFIGURATION_READER)
 @Requires('_finder', cohorte.SERVICE_FILE_FINDER)
 class JavaOsgiLoader(object):
@@ -318,7 +305,6 @@ class JavaOsgiLoader(object):
         # Bridge service registration
         self._bridge_reg = None
 
-
     def _setup_vm_properties(self, properties):
         """
         Sets up the JVM system properties dictionary (not the arguments)
@@ -327,11 +313,7 @@ class JavaOsgiLoader(object):
         :return: VM properties dictionary
         """
         # Prepare the dictionary
-        if properties:
-            return properties.copy()
-
-        return {}
-
+        return properties.copy() if properties else {}
 
     def _setup_osgi_properties(self, properties, allow_bridge):
         """
@@ -370,11 +352,9 @@ class JavaOsgiLoader(object):
         if allow_bridge:
             # Prepare the "extra system package" framework property
             osgi_properties.put(FRAMEWORK_SYSTEMPACKAGES_EXTRA,
-                                "{0}; version=1.0.0" \
+                                "{0}; version=1.0.0"
                                 .format(PYTHON_BRIDGE_BUNDLE_API))
-
         return osgi_properties
-
 
     def _start_jvm(self, vm_args, classpath, properties):
         """
@@ -408,12 +388,10 @@ class JavaOsgiLoader(object):
                 java_args.append(self._java.make_jvm_property(key, value))
 
             self._java.start(None, *java_args)
-
         else:
             # Add the JAR to the class path
             for jar_file in classpath:
                 self._java.add_jar(jar_file)
-
 
     def _close_osgi(self):
         """
@@ -429,7 +407,6 @@ class JavaOsgiLoader(object):
             self._osgi.stop()
             self._osgi = None
 
-
     def _register_bridge(self, context, java_configuration):
         """
         Instantiates and starts the iPOJO components instantiation handler
@@ -443,18 +420,16 @@ class JavaOsgiLoader(object):
                                                      java_configuration,
                                                      self._config,
                                                      self._bridge_callback))
-
         # Register it to the framework
         self._bridge_reg = context.registerService(PyBridge.JAVA_INTERFACE,
                                                    bridge_java, None)
-
 
     def _bridge_callback(self, success, message):
         """
         Called back by the Python-Java bridge
 
-        :param success: If True, all components have been started, else an error
-                        occurred
+        :param success: If True, all components have been started, else an
+        error occurred
         :param message: A call back message
         """
         if success:
@@ -462,7 +437,6 @@ class JavaOsgiLoader(object):
 
         else:
             _logger.warning("Bridge error: %s", message)
-
 
     def _find_osgi_jar(self, osgi_jar, symbolic_name):
         """
@@ -477,21 +451,18 @@ class JavaOsgiLoader(object):
             # We've been given a specific JAR file or symbolic name
             osgi_bundle = self._repository.get_artifact(symbolic_name,
                                                         filename=osgi_jar)
-
         except ValueError:
             # Bundle not found
             for bundle in self._repository.filter_services(FRAMEWORK_SERVICE):
                 # Get the first found framework
                 osgi_bundle = bundle
                 break
-
             else:
                 # No match found
                 raise ValueError("No OSGi framework found in repository")
 
         # Found !
         return osgi_bundle.file, osgi_bundle.get_service(FRAMEWORK_SERVICE)
-
 
     def load(self, configuration):
         """
@@ -528,7 +499,6 @@ class JavaOsgiLoader(object):
         else:
             _logger.warning("No Python bridge API bundle found")
 
-
         # Start the JVM
         _logger.debug("Starting JVM...")
         self._start_jvm(configuration.get('vm_args'), classpath,
@@ -539,8 +509,8 @@ class JavaOsgiLoader(object):
         self._java.load_class("java.awt.Color")
 
         # Load the FrameworkFactory implementation
-        FrameworkFactory = self._java.load_class(factory_name)
-        factory = FrameworkFactory()
+        factory_class = self._java.load_class(factory_name)
+        factory = factory_class()
 
         # Framework properties
         osgi_properties = self._setup_osgi_properties(java_config.properties,
@@ -558,7 +528,6 @@ class JavaOsgiLoader(object):
         bundle = self._repository.get_artifact(PYTHON_BRIDGE_BUNDLE)
         if not bundle:
             _logger.warning("No Python bridge bundle found")
-
         else:
             java_bundles.append(context.installBundle(bundle.url))
 
@@ -570,10 +539,8 @@ class JavaOsgiLoader(object):
             if bundle:
                 _logger.debug("Installing Java bundle %s...", bundle.name)
                 java_bundles.append(context.installBundle(bundle.url))
-
             elif not bundle_conf.optional:
                 raise ValueError("Bundle not found: {0}".format(bundle_conf))
-
             else:
                 _logger.warning("Bundle not found: %s", bundle_conf)
 
@@ -582,8 +549,7 @@ class JavaOsgiLoader(object):
             for bundle in java_bundles:
                 _logger.debug("Starting %s...", bundle.getSymbolicName())
                 bundle.start()
-
-        except Exception as ex:
+        except jexception.JavaException as ex:
             # Log the bundle exception and its cause
             _logger.error("Error starting bundle: %s",
                           ex.__javaobject__.toString())
@@ -598,7 +564,6 @@ class JavaOsgiLoader(object):
         # Start the component instantiation handler
         self._register_bridge(context, java_config)
 
-
     def wait(self):
         """
         Waits for the isolate to stop
@@ -610,12 +575,10 @@ class JavaOsgiLoader(object):
         # Wait for the OSGi framework to stop
         try:
             self._osgi.waitForStop(0)
-
         except Exception as ex:
             _logger.exception("Error waiting for the OSGi framework "
                               "to stop: %s", ex)
             raise
-
 
     @Validate
     def validate(self, context):
@@ -629,7 +592,6 @@ class JavaOsgiLoader(object):
 
         # Store the framework access
         self._context = context
-
 
     @Invalidate
     def invalidate(self, context):

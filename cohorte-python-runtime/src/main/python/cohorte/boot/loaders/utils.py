@@ -28,6 +28,7 @@ import logging
 
 # ------------------------------------------------------------------------------
 
+
 def boot_load(context, boot_config):
     """
     Utility method to do the common isolate boot operations, i.e. applies the
@@ -47,19 +48,20 @@ def boot_load(context, boot_config):
         if not framework.add_property(key, value):
             current = context.get_property(key)
             if current != value:
-                logger.debug("Couldn't set the property %r to %r (current: %r)",
-                             key, value, current)
+                logger.debug(
+                    "Couldn't set the property %r to %r (current: %r)",
+                    key, value, current)
 
     # Load Forker bundles
     for bundle in boot_config.bundles:
         try:
             # Install & start it
             context.install_bundle(bundle.name).start()
-
         except pelix.framework.BundleException as ex:
             if bundle.optional:
                 # The error can be ignored
-                logger.info("Error installing bundle '%s': %s", bundle.name, ex)
+                logger.info("Error installing bundle '%s': %s",
+                            bundle.name, ex)
             else:
                 # Fatal error
                 raise
@@ -76,6 +78,5 @@ def boot_load(context, boot_config):
                 # Instantiate the component
                 ipopo.instantiate(component.factory, component.name,
                                   component.properties)
-
     else:
         logger.debug("No component to instantiate")

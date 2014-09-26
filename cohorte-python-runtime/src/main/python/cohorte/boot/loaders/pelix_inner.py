@@ -38,6 +38,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory(ISOLATE_LOADER_FACTORY)
 @Provides(cohorte.SERVICE_ISOLATE_LOADER)
 @Property('_handled_kind', cohorte.SVCPROP_ISOLATE_LOADER_KIND, LOADER_KIND)
@@ -56,7 +57,6 @@ class PelixLoader(object):
 
         # Bundle _context
         self._context = None
-
 
     def load(self, configuration):
         """
@@ -79,14 +79,12 @@ class PelixLoader(object):
         utils.boot_load(self._context, base_config)
         # Nothing else to do...
 
-
     def wait(self):
         """
         Waits for the isolate to stop
         """
         # Simply wait for the framework to stop
         self._context.get_bundle(0).wait_for_stop()
-
 
     @Validate
     def validate(self, context):
@@ -97,7 +95,6 @@ class PelixLoader(object):
         """
         # Store the framework access
         self._context = context
-
 
     @Invalidate
     def invalidate(self, context):

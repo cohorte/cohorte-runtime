@@ -49,6 +49,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory(ISOLATE_LOADER_FACTORY)
 @Provides(cohorte.SERVICE_ISOLATE_LOADER)
 @Property('_handled_kind', cohorte.SVCPROP_ISOLATE_LOADER_KIND, LOADER_KIND)
@@ -73,7 +74,6 @@ class ForkerLoader(object):
 
         # Framework instance
         self._framework = None
-
 
     def _find_cohorte_directories(self):
         """
@@ -116,9 +116,7 @@ class ForkerLoader(object):
         # Update framework properties
         self._framework.add_property(cohorte.PROP_HOME, home)
         self._framework.add_property(cohorte.PROP_BASE, base)
-
         return home, base
-
 
     def _update_node(self):
         """
@@ -153,9 +151,7 @@ class ForkerLoader(object):
         # Update framework properties
         self._framework.add_property(cohorte.PROP_NODE_NAME, name)
         self._framework.add_property(cohorte.PROP_NODE_UID, uid)
-
         return uid, name
-
 
     def _update_uid(self):
         """
@@ -170,9 +166,7 @@ class ForkerLoader(object):
             # Use the framework UID
             uid = self._context.get_property(pelix.framework.FRAMEWORK_UID)
             self._framework.add_property(cohorte.PROP_UID, uid)
-
         return uid
-
 
     def prepare_state_updater(self, url):
         """
@@ -180,13 +174,11 @@ class ForkerLoader(object):
         """
         pass
 
-
     def update_state(self, new_state, extra=None):
         """
         Does nothing
         """
         pass
-
 
     def load(self, configuration):
         """
@@ -223,10 +215,11 @@ class ForkerLoader(object):
 * UID......: {uid}'''.format(home=home, base=base, node_uid=node_uid,
                              node_name=node_name, uid=uid))
 
-        # Update the file finder, as framework properties may have been modified
+        # Update the file finder, as framework properties may have been
+        # modified
         self._finder.update_roots()
 
-        # TODO: Set up isolate/forker specific framework properties
+        # Set up isolate/forker specific framework properties
         self._framework.add_property(cohorte.PROP_KIND, LOADER_KIND)
         self._framework.add_property(cohorte.PROP_NAME, cohorte.FORKER_NAME)
 
@@ -251,7 +244,6 @@ class ForkerLoader(object):
         # Let the utility method do its job
         utils.boot_load(context, boot_config)
 
-
     def wait(self):
         """
         Waits for the isolate to stop
@@ -260,7 +252,6 @@ class ForkerLoader(object):
         if self._framework is not None:
             # Simply wait for the framework to stop
             self._framework.wait_for_stop()
-
 
     @Validate
     def validate(self, context):
@@ -272,7 +263,6 @@ class ForkerLoader(object):
         # Store the framework access
         self._context = context
         self._framework = context.get_bundle(0)
-
 
     @Invalidate
     def invalidate(self, context):

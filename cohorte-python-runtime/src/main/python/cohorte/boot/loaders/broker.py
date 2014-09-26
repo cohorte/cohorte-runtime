@@ -35,7 +35,6 @@ try:
     # Python 3
     import http.client as httplib
     import urllib.parse as urlparse
-
 except ImportError:
     # Python 2
     import httplib
@@ -52,6 +51,7 @@ LOADER_KIND = 'broker'
 _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
+
 
 @ComponentFactory(ISOLATE_LOADER_FACTORY)
 @Provides(cohorte.SERVICE_ISOLATE_LOADER)
@@ -84,7 +84,6 @@ class BrokerClientLoader(object):
         # Framework instance
         self._framework = None
 
-
     def _grab_broker_configuration(self, access):
         """
         Retrieves the isolate configuration from the configuration broker, if
@@ -100,7 +99,6 @@ class BrokerClientLoader(object):
         # First request : retrieve the configuration
         try:
             conn = httplib.HTTPConnection(access[0], access[1])
-
         except httplib.HTTPException as ex:
             raise ValueError("Invalid server address: {0}".format(ex))
 
@@ -110,7 +108,7 @@ class BrokerClientLoader(object):
             response = conn.getresponse()
             data = to_unicode(response.read())
             if response.status != 200:
-                raise ValueError("Bad result from server: {0}" \
+                raise ValueError("Bad result from server: {0}"
                                  .format(response.status))
 
             # Delete it once retrieved
@@ -121,14 +119,11 @@ class BrokerClientLoader(object):
 
             # Configuration has been correctly read
             return data
-
         except IOError as ex:
             raise ValueError("Error requesting the broker: {0}".format(ex))
-
         finally:
             # Close the connection in any case
             conn.close()
-
 
     def _parse_url(self, url):
         """
@@ -146,7 +141,7 @@ class BrokerClientLoader(object):
         # Only HTTP is handled
         url = urlparse.urlparse(url)
         if url.scheme != "http":
-            raise ValueError("Unknown configuration broker protocol: {0}" \
+            raise ValueError("Unknown configuration broker protocol: {0}"
                              .format(url.scheme))
 
         # The host name (default: localhost)
@@ -162,8 +157,7 @@ class BrokerClientLoader(object):
             # Default port
             port = 8080
 
-        return (host, port, url.path)
-
+        return host, port, url.path
 
     def prepare_state_updater(self, state_updater_url):
         """
@@ -177,12 +171,10 @@ class BrokerClientLoader(object):
         try:
             # Parse the state updater URL
             self._updater_access = self._parse_url(state_updater_url)
-
         except ValueError as ex:
             # Ignore errors
             _logger.debug('Invalid status updater URL: %s', ex)
             self._updater_access = None
-
 
     def update_state(self, new_state, extra=None):
         """
@@ -203,7 +195,6 @@ class BrokerClientLoader(object):
         try:
             conn = httplib.HTTPConnection(self._updater_access[0],
                                           self._updater_access[1])
-
         except httplib.HTTPException as ex:
             raise ValueError("Invalid server address: {0}".format(ex))
 
@@ -222,20 +213,16 @@ class BrokerClientLoader(object):
 
                 try:
                     message = json.loads(data)['message']
-
-                except:
+                except (ValueError, KeyError, TypeError):
                     message = "Unknown error"
 
                 _logger.warning("Error updating the isolate status: %s",
                                 message)
-
         except IOError as ex:
             _logger.warning("Error updating the isolate status: %s", ex)
-
         finally:
             # Close the connection in any case
             conn.close()
-
 
     def load(self, configuration):
         """
@@ -295,7 +282,6 @@ class BrokerClientLoader(object):
             # Use the one in the given configuration
             boot_config = self._config.load_boot_dict(json_data['boot'])
             _logger.debug("Using boot configuration from the broker")
-
         else:
             # By default, load the boot file for this kind
             boot_config = self._config.load_boot(kind)
@@ -310,7 +296,7 @@ class BrokerClientLoader(object):
         svc_ref = context.get_service_reference(cohorte.SERVICE_ISOLATE_LOADER,
                                                 kind_filter)
         if svc_ref is None:
-            raise ValueError("No isolate loader found for kind '{0}'" \
+            raise ValueError("No isolate loader found for kind '{0}'"
                              .format(kind))
 
         try:
@@ -320,11 +306,9 @@ class BrokerClientLoader(object):
 
             # Keep the reference to the loader
             self._loader_ref = svc_ref
-
         finally:
             # Clean the service usage
             context.unget_service(svc_ref)
-
 
     def wait(self):
         """
@@ -340,12 +324,10 @@ class BrokerClientLoader(object):
             # Re-Use the loader
             loader = self._context.get_service(self._loader_ref)
             loader.wait()
-
         finally:
             # Clean the service usage
             if self._context is not None:
                 self._context.unget_service(self._loader_ref)
-
 
     @Validate
     def validate(self, context):
@@ -358,7 +340,6 @@ class BrokerClientLoader(object):
         self._context = context
         self._framework = context.get_bundle(0)
         self._loader_ref = None
-
 
     @Invalidate
     def invalidate(self, context):

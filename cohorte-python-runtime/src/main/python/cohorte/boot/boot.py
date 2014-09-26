@@ -47,6 +47,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 def _get_looper(context, looper_name):
     """
     Retrieves the main thread looper corresponding to the system
@@ -86,7 +87,6 @@ def _get_loader(context, loader_bundle):
         ipopo = get_ipopo_svc_ref(context)[1]
         _logger.debug("Instantiating component of type '%s'", loader_factory)
         return ipopo.instantiate(loader_factory, 'cohorte-isolate-loader')
-
     else:
         # Find the loader service
         svc_ref = context.get_service_reference(cohorte.SERVICE_ISOLATE_LOADER)
@@ -108,8 +108,8 @@ def load_isolate(pelix_properties, state_updater_url=None,
     :param pelix_properties: Pelix framework instance properties
     :param state_updater_url: URL to access the isolate state updater
     :param looper_name: Name of the main thread loop handler
-    :param fail_on_pdb: If true, ``pdb.post_mortem()`` is called if an exception
-                        occurs starting the framework
+    :param fail_on_pdb: If true, ``pdb.post_mortem()`` is called if an
+    exception occurs starting the framework
     :raise Exception: All exceptions are propagated
     """
     # Give some information
@@ -127,12 +127,12 @@ def load_isolate(pelix_properties, state_updater_url=None,
             sys.path.insert(0, repo)
 
     # Prepare the framework
-    framework = pelix.framework.FrameworkFactory.get_framework(pelix_properties)
+    framework = \
+        pelix.framework.FrameworkFactory.get_framework(pelix_properties)
 
     if not looper_name:
         # Run the framework in the main thread (nothing to do)
         _run_framework(framework, state_updater_url, fail_on_pdb)
-
     else:
         # Get the main thread handler
         context = framework.get_bundle_context()
@@ -153,7 +153,6 @@ def load_isolate(pelix_properties, state_updater_url=None,
             _logger.debug("Entering main thread loop...")
             looper.loop()
             _logger.debug("Exiting main thread loop...")
-
         finally:
             # Stop the framework if the looper stops
             _logger.debug("Stopping the framework...")
@@ -167,21 +166,18 @@ def _safe_run_framework(framework, looper, state_updater_url, fail_on_pdb):
     :param framework: An instance of framework
     :param looper: The main thread handler
     :param state_updater_url: URL to access the isolate state updater
-    :param fail_on_pdb: If true, ``pdb.post_mortem()`` is called if an exception
-                        occurs starting the framework
+    :param fail_on_pdb: If true, ``pdb.post_mortem()`` is called if an
+    exception occurs starting the framework
     """
     try:
         # Run the framework
         current_thread = threading.current_thread()
         _logger.debug("Starting framework in thread '%s' (%s)",
                       current_thread.name, current_thread.ident)
-
         _run_framework(framework, state_updater_url, fail_on_pdb)
-
     except Exception as ex:
         # Log the exception
         _logger.exception("Error running the framework: %s", ex)
-
     finally:
         # Stop the looper
         _logger.debug("Stopping the looper...")
@@ -194,8 +190,8 @@ def _run_framework(framework, state_updater_url, fail_on_pdb):
 
     :param framework: An instance of framework
     :param state_updater_url: URL to access the isolate state updater
-    :param fail_on_pdb: If true, ``pdb.post_mortem()`` is called if an exception
-                        occurs starting the framework
+    :param fail_on_pdb: If true, ``pdb.post_mortem()`` is called if an
+    exception occurs starting the framework
     :raise Exception: All exceptions are propagated
     """
     try:
@@ -214,7 +210,6 @@ def _run_framework(framework, state_updater_url, fail_on_pdb):
         if context.get_property(cohorte.PROP_CONFIG_BROKER):
             # If a broker has been given, use the Broker client...
             loader_bundle_name = 'cohorte.boot.loaders.broker'
-
         else:
             # ... else use the ForkerLoader
             loader_bundle_name = 'cohorte.boot.loaders.forker'
@@ -235,12 +230,10 @@ def _run_framework(framework, state_updater_url, fail_on_pdb):
         try:
             # Load the isolate
             loader.load(None)
-
         except Exception as ex:
             # Something wrong occurred
             loader.update_state(constants.STATE_FAILED, str(ex))
             raise
-
         else:
             # Isolate loaded
             loader.update_state(constants.STATE_LOADED)
@@ -250,7 +243,6 @@ def _run_framework(framework, state_updater_url, fail_on_pdb):
         _logger.debug("Waiting for the isolate to stop...")
         try:
             loader.wait()
-
         except KeyboardInterrupt:
             # Stop waiting on keyboard interruption
             _logger.debug("Got keyboard interruption, stopping.")
@@ -258,25 +250,22 @@ def _run_framework(framework, state_updater_url, fail_on_pdb):
         # Ensure the framework is stopped
         framework.stop()
         _logger.debug("Framework stopped.")
-
     except Exception as ex:
         _logger.error('Error running the isolate: %s', ex)
-
         if fail_on_pdb:
             # Start PDB to debug the exception
             import pdb
             pdb.post_mortem()
-
         else:
             # Propagate the exception
             raise
-
     finally:
         # Delete the framework (clean up)
         pelix.framework.FrameworkFactory.delete_framework(framework)
         _logger.debug("Framework deleted.")
 
 # ------------------------------------------------------------------------------
+
 
 def find_cohorte_directories():
     """
@@ -291,7 +280,6 @@ def find_cohorte_directories():
 
     # Use found home as default base
     base = os.getenv(cohorte.ENV_BASE, home)
-
     if not base:
         # Base and home are invalid (base is at least equal to home)
         raise KeyError('No correct value found in Home and Base '
@@ -301,11 +289,9 @@ def find_cohorte_directories():
 
     # Expand environment variables
     base = os.path.expanduser(os.path.expandvars(base))
-
     if not home:
         # Base has been found, but home is missing
         home = base
-
     else:
         # Expand variables in home too
         home = os.path.expanduser(os.path.expandvars(home))
@@ -313,6 +299,7 @@ def find_cohorte_directories():
     return home, base
 
 # ------------------------------------------------------------------------------
+
 
 class ColorFormatter(logging.Formatter):
     """
@@ -343,13 +330,13 @@ class ColorFormatter(logging.Formatter):
         self.use_colors = use_colors
 
         # Log level -> color
-        self.colors = {logging.DEBUG: 34,  # BLUE
-                       logging.INFO: 30,  # BLACK
-                       logging.WARNING: 33,  # YELLOW
-                       logging.ERROR: 41,  # RED (background)
-                       logging.CRITICAL: 45,  # PURPLE (background)
-                      }
-
+        self.colors = {
+            logging.DEBUG: 34,  # BLUE
+            logging.INFO: 30,  # BLACK
+            logging.WARNING: 33,  # YELLOW
+            logging.ERROR: 41,  # RED (background)
+            logging.CRITICAL: 45,  # PURPLE (background)
+        }
 
     def format(self, record):
         """
@@ -415,7 +402,6 @@ def configure_logger(logfile, debug, verbose, color):
     console_format = "%(asctime)s:%(levelname)-8s:%(name)-20s: %(message)s"
     if color:
         formatter = ColorFormatter(console_format)
-
     else:
         formatter = logging.Formatter(console_format)
 
@@ -439,14 +425,13 @@ def configure_logger(logfile, debug, verbose, color):
             fileh.setLevel(logging.INFO)
 
         # ... prepare its formatter
-        formatter = logging.Formatter("%(asctime)s:%(levelname)-8s:%(name)-20s:"
-                                      "%(threadName)-15s: %(message)s "
-                                      "(%(module)s.%(funcName)s() @%(lineno)d)")
+        formatter = logging.Formatter(
+            "%(asctime)s:%(levelname)-8s:%(name)-20s:%(threadName)-15s: "
+            "%(message)s (%(module)s.%(funcName)s() @%(lineno)d)")
         fileh.setFormatter(formatter)
 
         # ... register it
         root_log.addHandler(fileh)
-
     else:
         root_log.warning("No output log file given.")
 
@@ -459,10 +444,12 @@ def configure_logger(logfile, debug, verbose, color):
 
 # ------------------------------------------------------------------------------
 
+
 def main(args=None):
     """
     Script entry point if called directly.
-    Uses sys.argv to determine the boot options if the *args* parameter is None.
+    Uses sys.argv to determine the boot options if the *args* parameter is
+    None.
 
     **WARNING:** This method changes the log level of the logging module.
 
@@ -487,13 +474,13 @@ def main(args=None):
 
     group.add_argument("--configuration-broker", action="store",
                        dest="config_broker", default=None, metavar="URL",
-                       help="URL to the configuration broker. If not given, " \
-                            "this isolate will be a forker.")
+                       help="URL to the configuration broker. If not given, "
+                       "this isolate will be a forker.")
 
     group.add_argument("--state-updater", action="store",
                        dest="state_updater", default=None, metavar="URL",
-                       help="URL to the state updater. Should be given if " \
-                            "--configuration-broker is.")
+                       help="URL to the state updater. Should be given if "
+                       "--configuration-broker is.")
 
     # Logging options
     group = parser.add_argument_group("Logging options")
@@ -553,9 +540,8 @@ def main(args=None):
         framework_properties[pelix.framework.FRAMEWORK_UID] = args.isolate_uid
 
     if args.config_broker:
-        # The configuration broker URL has been given, i.e. not a forker isolate
+        # The configuration broker URL has been given, i.e. not a forker
         framework_properties[cohorte.PROP_CONFIG_BROKER] = args.config_broker
-
     elif args.isolate_node_name:
         # The node name has been given, and the configuration broker is missing
         # (in here if no broker given, i.e. if isolate is a forker)
@@ -573,6 +559,7 @@ def main(args=None):
     use_pdb = args.debug and sys.stdin.isatty()
     if use_pdb:
         import pdb
+
         def pm_exception(exctype, value, traceb):
             """
             Post-mortem exception handling (starts PDB)
@@ -581,7 +568,6 @@ def main(args=None):
             pdb.pm()
 
         sys.excepthook = pm_exception
-
     else:
         def log_exception(ex_cls, ex, traceb):
             """
@@ -597,7 +583,6 @@ def main(args=None):
         load_isolate(framework_properties, args.state_updater,
                      args.looper_name, use_pdb)
         return 0
-
     except Exception as ex:
         _logger.exception("Error running the isolate: %s", ex)
         return 1

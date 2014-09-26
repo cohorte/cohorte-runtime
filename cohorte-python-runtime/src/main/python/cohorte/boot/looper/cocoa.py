@@ -21,8 +21,8 @@ __docformat__ = "restructuredtext en"
 import Cocoa
 from PyObjCTools import AppHelper
 
-# Looper utilities
-import cohorte.boot.looper.utils as utils
+# Pelix utilities
+import pelix.utilities as utils
 
 # Standard library
 import logging
@@ -33,13 +33,13 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 def get_looper(*args, **kwargs):
     """
     Constructs the CocoaLoader
     """
     return CocoaLoader()
 
-# ------------------------------------------------------------------------------
 
 class CocoaLoader(object):
     """
@@ -52,7 +52,6 @@ class CocoaLoader(object):
         self._app = None
         self._argv = None
 
-
     def __ui_runner(self, event, method, args, kwargs):
         """
         Runs the given method and stores its result
@@ -63,17 +62,13 @@ class CocoaLoader(object):
         :param kwargs: Method keyword arguments
         """
         result = None
-
         try:
             result = method(*args, **kwargs)
-
         except Exception as ex:
             _logger.exception("Error executing %s: %s", method.__name__, ex)
-
         finally:
             # Task executed
             event.set(result)
-
 
     def run(self, method, *args, **kwargs):
         """
@@ -85,14 +80,13 @@ class CocoaLoader(object):
         :return: The result of the method
         """
         # Make an event object
-        event = utils.EventResult()
+        event = utils.EventData()
 
         # Call the runner
         AppHelper.callAfter(self.__ui_runner, event, method, args, kwargs)
 
         # Wait for it
-        return event.get()
-
+        return event.wait()
 
     def setup(self, argv=None):
         """
@@ -101,7 +95,6 @@ class CocoaLoader(object):
         # Create the application
         self._app = Cocoa.NSApplication.sharedApplication()
         self._argv = argv
-
 
     def loop(self):
         """
@@ -112,7 +105,6 @@ class CocoaLoader(object):
 
         # Main loop
         AppHelper.runEventLoop(self._argv)
-
 
     def stop(self):
         """

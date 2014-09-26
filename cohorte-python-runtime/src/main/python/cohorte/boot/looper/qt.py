@@ -21,8 +21,8 @@ __docformat__ = "restructuredtext en"
 import PyQt4.QtCore as QtCore
 import PyQt4.QtGui as QtGui
 
-# Looper utilities
-import cohorte.boot.looper.utils as utils
+# Pelix utilities
+import pelix.utilities as utils
 
 # Standard library
 import logging
@@ -31,7 +31,6 @@ import sys
 try:
     # Python 3
     import queue
-
 except ImportError:
     # Python 2
     import Queue as queue
@@ -42,13 +41,13 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 def get_looper(*args, **kwargs):
     """
     Constructs the QtLoader
     """
     return QtLoader()
 
-# ------------------------------------------------------------------------------
 
 class QtLoader(QtCore.QObject):
     """
@@ -56,10 +55,9 @@ class QtLoader(QtCore.QObject):
     Provides a run_on_ui() method to allow multithreaded application
     construction.
 
-    setup(), loop() and stop() should be called in the same thread, which should
-    be the process main thread.
+    setup(), loop() and stop() should be called in the same thread, which
+    should be the process main thread.
     """
-
     __ui_queued = QtCore.pyqtSignal()
     """ Signals a queued method to call in the UI thread """
 
@@ -70,7 +68,6 @@ class QtLoader(QtCore.QObject):
         QtCore.QObject.__init__(self)
         self.__app = None
         self.__waiting_calls = None
-
 
     def __ui_runner(self):
         """
@@ -83,23 +80,19 @@ class QtLoader(QtCore.QObject):
         try:
             # Call the method
             result = method(*args, **kwargs)
-
         except Exception as ex:
             _logger.exception("%s: %s", type(ex).__name__, ex)
-
         finally:
             # Task executed
             event.set(result)
             if self.__waiting_calls is not None:
                 self.__waiting_calls.task_done()
 
-
     def get_application(self):
         """
         Get the Qt application object
         """
         return self.__app
-
 
     def run(self, method, *args, **kwargs):
         """
@@ -115,7 +108,7 @@ class QtLoader(QtCore.QObject):
             raise ValueError("UI not yet set up")
 
         # Make an event object
-        event = utils.EventResult()
+        event = utils.EventData()
 
         # Add the method to the waiting list
         self.__waiting_calls.put((method, args, kwargs, event))
@@ -127,8 +120,7 @@ class QtLoader(QtCore.QObject):
         self.__app.processEvents()
 
         # Wait for the event before returning
-        return event.get()
-
+        return event.wait()
 
     def setup(self, argv=None):
         """
@@ -146,7 +138,6 @@ class QtLoader(QtCore.QObject):
 
         return self.__app
 
-
     def loop(self):
         """
         Blocking event loop.
@@ -155,7 +146,6 @@ class QtLoader(QtCore.QObject):
         signal is emitted.
         """
         self.__app.exec_()
-
 
     def stop(self):
         """

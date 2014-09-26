@@ -17,8 +17,8 @@ __docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 
-# Looper utilities
-import cohorte.boot.looper.utils as utils
+# Pelix utilities
+import pelix.utilities as utils
 
 # Standard library
 import logging
@@ -27,7 +27,6 @@ import threading
 try:
     # Python 3
     import queue
-
 except ImportError:
     # Python 2
     import Queue as queue
@@ -38,13 +37,13 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 def get_looper(*args, **kwargs):
     """
     Constructs the DefaultLooper
     """
     return DefaultLooper()
 
-# ------------------------------------------------------------------------------
 
 class DefaultLooper(object):
     """
@@ -64,13 +63,11 @@ class DefaultLooper(object):
         # Small timeout to avoid to blocked in the main loop forever
         self._timeout = 1
 
-
     def setup(self, argv=None):
         """
         Configures the looper (does nothing)
         """
         self._stop_event.clear()
-
 
     def run(self, method, *args, **kwargs):
         """
@@ -82,14 +79,13 @@ class DefaultLooper(object):
         :return: The result of the method
         """
         # Make an event object
-        event = utils.EventResult()
+        event = utils.EventData()
 
         # Add the method to the waiting list
         self._queue.put((method, args, kwargs, event))
 
         # Wait for it...
-        return event.get()
-
+        return event.wait()
 
     def loop(self):
         """
@@ -106,11 +102,9 @@ class DefaultLooper(object):
                 if task is self._stop_event:
                     # Stop event in the queue: get out
                     return
-
             except queue.Empty:
                 # Nothing to do
                 pass
-
             else:
                 # Extract elements
                 method, args, kwargs, event = task
@@ -119,17 +113,14 @@ class DefaultLooper(object):
                 try:
                     # Call the method
                     result = method(*args, **kwargs)
-
                 except Exception as ex:
                     _logger.exception("Error executing %s: %s",
                                       method.__name__, ex)
-
                 finally:
                     # Task executed
                     event.set(result)
                     if self._queue is not None:
                         self._queue.task_done()
-
 
     def stop(self):
         """
