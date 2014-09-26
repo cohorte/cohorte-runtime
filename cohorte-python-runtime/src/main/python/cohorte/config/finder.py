@@ -36,6 +36,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory('cohorte-file-finder-factory')
 @Provides(cohorte.SERVICE_FILE_FINDER)
 @Instantiate('cohorte-file-finder')
@@ -52,9 +53,8 @@ class FileFinder(object):
         self._context = None
 
         # Search roots
-        self._roots = None
-        self._custom_roots = None
-
+        self._roots = []
+        self._custom_roots = set()
 
     def _extract_platform_path(self, path):
         """
@@ -75,14 +75,12 @@ class FileFinder(object):
         # No match found
         return None
 
-
     def _gen_roots(self):
         """
         Generator to have the Cohorte roots (base then home) and the custom
         roots.
         """
         realpath = os.path.realpath
-
         for root_list in (self._roots, self._custom_roots):
             if root_list:
                 for root in root_list:
@@ -93,7 +91,6 @@ class FileFinder(object):
                     real_root = realpath(root)
                     if real_root != root:
                         yield real_root
-
 
     def _internal_find(self, filename):
         """
@@ -120,7 +117,6 @@ class FileFinder(object):
         if os.path.exists(path):
             yield path
 
-
     def find_rel(self, filename, base_file):
         """
         A generator to find the given file in the platform folders
@@ -143,7 +139,6 @@ class FileFinder(object):
             if os.path.isdir(base_file):
                 # The given base is a directory (absolute or relative)
                 base_dirs.add(abspath(base_file))
-
             elif file_exists(base_file):
                 # The given base exists: get its directory
                 base_dirs.add(abspath(os.path.dirname(base_file)))
@@ -196,11 +191,11 @@ class FileFinder(object):
 
             yield found_file
 
-
     def find_gen(self, pattern, base_dir=None, recursive=True):
         """
         Generator to find the files matching the given pattern looking
-        recursively in the given directory in the roots (base, home and customs)
+        recursively in the given directory in the roots (base, home and
+        customs)
 
         :param pattern: A file pattern
         :param base_dir: The name of a sub-directory of "home" or "base"
@@ -228,7 +223,6 @@ class FileFinder(object):
                     # Stop on first directory
                     return
 
-
     def add_custom_root(self, root):
         """
         Adds a custom search root (not ordered)
@@ -238,21 +232,13 @@ class FileFinder(object):
         if root:
             self._custom_roots.add(root)
 
-
     def remove_custom_root(self, root):
         """
         Removes a custom search root
 
         :param root: The custom root to remove
         """
-        if root:
-            try:
-                self._custom_roots.remove(root)
-
-            except KeyError:
-                # Ignore error
-                pass
-
+        self._custom_roots.discard(root)
 
     def update_roots(self):
         """
@@ -266,7 +252,6 @@ class FileFinder(object):
             if value and value not in self._roots:
                 self._roots.append(value)
 
-
     @Validate
     def validate(self, context):
         """
@@ -278,12 +263,11 @@ class FileFinder(object):
         self._context = context
 
         # Prepare the sets
-        self._roots = []
-        self._custom_roots = set()
+        del self._roots[:]
+        self._custom_roots.clear()
 
         # Update the roots list
         self.update_roots()
-
 
     @Invalidate
     def invalidate(self, context):
@@ -294,5 +278,5 @@ class FileFinder(object):
         """
         # Store the framework access
         self._context = None
-        self._roots = None
-        self._custom_roots = None
+        del self._roots[:]
+        self._custom_roots.clear()

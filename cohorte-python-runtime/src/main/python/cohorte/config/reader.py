@@ -51,6 +51,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory('cohorte-reader-json-factory')
 @Provides(cohorte.SERVICE_FILE_READER)
 @Property('_handled_formats', 'file.format', ('json', 'js'))
@@ -72,7 +73,6 @@ class ConfigurationFileReader(object):
         # The file finder
         self._finder = None
 
-
     def _compute_overridden_props(self, json_object, overriding_props):
         """
         Parses the given properties object and overrides it with the given
@@ -92,7 +92,6 @@ class ConfigurationFileReader(object):
 
         return overridden_props
 
-
     def _update_properties(self, json_data, overridden_props):
         """
         Updates the properties in the given parsed JSON content in-place
@@ -109,7 +108,6 @@ class ConfigurationFileReader(object):
             # We have an array, update all of its children
             for json_object in json_data:
                 self._update_properties(json_object, overridden_props)
-
         elif type(json_data) is dict:
             # Update the 'properties' field first
             properties_dict = json_data.get(KEY_PROPERTIES, None)
@@ -120,7 +118,6 @@ class ConfigurationFileReader(object):
             for key, value in overridden_props.items():
                 if key in json_data:
                     json_data[key] = value
-
 
     def _do_recursive_imports(self, filename, json_data, overridden_props,
                               include_stack):
@@ -189,9 +186,9 @@ class ConfigurationFileReader(object):
 
                 for import_filename in import_filenames:
                     # Import files
-                    imported_data = self._load_file(import_filename, filename,
-                                                    overridden_props,
-                                                    include_stack)
+                    imported_data = self._load_file(
+                        import_filename, filename, overridden_props,
+                        include_stack)
 
                     # Update properties in imported data
                     self._update_properties(imported_data, overridden_props)
@@ -201,9 +198,8 @@ class ConfigurationFileReader(object):
 
                     # Do the recursive import
                     for key, value in json_data.items():
-                        new_value = self._do_recursive_imports(filename, value,
-                                                               overridden_props,
-                                                               include_stack)
+                        new_value = self._do_recursive_imports(
+                            filename, value, overridden_props, include_stack)
                         if new_value is not value:
                             # The value has been changed
                             json_data[key] = value
@@ -213,9 +209,8 @@ class ConfigurationFileReader(object):
             else:
                 # Standard object, look into its entries
                 for key, value in json_data.items():
-                    new_value = self._do_recursive_imports(filename, value,
-                                                           overridden_props,
-                                                           include_stack)
+                    new_value = self._do_recursive_imports(
+                        filename, value, overridden_props, include_stack)
                     if new_value is not value:
                         # The value has been changed
                         json_data[key] = new_value
@@ -224,7 +219,6 @@ class ConfigurationFileReader(object):
 
         # Nothing to do
         return json_data
-
 
     def _find_equivalent(self, searched_dict, dicts_list):
         """
@@ -252,7 +246,6 @@ class ConfigurationFileReader(object):
         # Found nothing
         return None
 
-
     def merge_object(self, local, imported):
         """
         Merges recursively two JSON objects.
@@ -266,11 +259,9 @@ class ConfigurationFileReader(object):
         :return: The merge result, i.e. local
         """
         for key, imp_value in imported.items():
-
             if key not in local:
                 # Missing key
                 local[key] = imp_value
-
             else:
                 # Get current value
                 cur_value = local[key]
@@ -278,15 +269,14 @@ class ConfigurationFileReader(object):
 
                 if cur_type is not type(imp_value):
                     # Different types found
-                    _logger.warning('Trying to merge different types. Ignoring.'
-                                    ' (key: %s, types: %s / %s)',
+                    _logger.warning("Trying to merge different types. "
+                                    "Ignoring. (key: %s, types: %s / %s)",
                                     key, cur_type, type(imp_value))
                     continue
 
                 if cur_type is dict:
                     # Merge children
                     local[key] = self.merge_object(cur_value, imp_value)
-
                 elif cur_type is list:
                     # Merge arrays
                     new_array = imp_value[:]
@@ -297,7 +287,6 @@ class ConfigurationFileReader(object):
                             # Recognize the ID key used
                             imp_item = self._find_equivalent(cur_item,
                                                              imp_value)
-
                             if not imp_item:
                                 # No equivalent found, append the item
                                 new_array.append(cur_item)
@@ -319,7 +308,6 @@ class ConfigurationFileReader(object):
                     local[key] = new_array
 
         return local
-
 
     def _parse_file(self, filename, overridden_props, include_stack):
         """
@@ -353,12 +341,10 @@ class ConfigurationFileReader(object):
                         if commented:
                             # Remove the beginning of the comment
                             line = line[:start_idx]
-
                         else:
                             # Remove the in-line comment
                             end_idx += len('*/')
                             line = ''.join((line[:start_idx], line[end_idx:]))
-
                     except ValueError:
                         # No multiline comment found
                         pass
@@ -366,7 +352,6 @@ class ConfigurationFileReader(object):
                     try:
                         # Single line comment
                         line = line[:line.index('//')]
-
                     except ValueError:
                         # No comment
                         pass
@@ -381,11 +366,9 @@ class ConfigurationFileReader(object):
                         # Look for the end of the multiline comment block
                         end_idx = line.index('*/')
                         end_idx += len('*/')
-
                     except ValueError:
                         # No end of comment
                         pass
-
                     else:
                         # End of comment found
                         commented = False
@@ -397,9 +380,8 @@ class ConfigurationFileReader(object):
         json_data = json.loads(''.join(lines))
 
         # Check imports
-        return self._do_recursive_imports(filename, json_data, overridden_props,
-                                          include_stack)
-
+        return self._do_recursive_imports(filename, json_data,
+                                          overridden_props, include_stack)
 
     def _load_file(self, filename, base_file, overridden_props, include_stack):
         """
@@ -416,23 +398,20 @@ class ConfigurationFileReader(object):
         """
         # Parse the first matching file
         finder = self._finder.find_rel(filename, base_file)
-
         try:
             conffile = next(finder)
-
         except StopIteration:
             # No file found
-            raise IOError("File not found: '{0}' (base: {1})" \
+            raise IOError("File not found: '{0}' (base: {1})"
                           .format(filename, base_file))
 
         try:
             # Get the first file that is not yet in the include stack
             while conffile in include_stack:
                 conffile = next(finder)
-
         except StopIteration:
             # All found files are already in the inclusion stack
-            raise ValueError("Recursive import detected: '{0}' - '{1}'" \
+            raise ValueError("Recursive import detected: '{0}' - '{1}'"
                              .format(conffile, include_stack))
 
         # Store the selected file in the inclusion stack
@@ -444,7 +423,6 @@ class ConfigurationFileReader(object):
         # Remove the top of the stack before returning
         include_stack.pop()
         return json_data
-
 
     def load_file(self, filename, base_file=None, overridden_props=None,
                   log_error=True):
@@ -467,19 +445,16 @@ class ConfigurationFileReader(object):
             # Load the file
             return self._load_file(filename, base_file, overridden_props,
                                    include_stack)
-
         except ValueError as ex:
             # Log parsing errors
             _logger.error("Error parsing file '%s': %s", include_stack[-1], ex)
             raise
-
         except IOError as ex:
             if log_error:
                 # Log the access error
                 if include_stack:
-                    _logger.error("Error looking for file imported by '%s': %s",
-                                  include_stack[-1], ex)
-
+                    _logger.error("Error looking for file imported by '%s': "
+                                  "%s", include_stack[-1], ex)
                 else:
                     _logger.error("Can't read file '%s': %s", filename, ex)
 

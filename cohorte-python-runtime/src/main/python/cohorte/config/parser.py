@@ -48,9 +48,10 @@ BootConfiguration = collections.namedtuple('BootConfiguration',
 
 # Boot configuration + Isolate basic description
 Isolate = collections.namedtuple('Isolate',
-                                 BootConfiguration._fields \
+                                 BootConfiguration._fields
                                  + ('name', 'kind', 'node',
                                     'level', 'sublevel'))
+
 
 def _recursive_namedtuple_convert(data):
     """
@@ -59,23 +60,21 @@ def _recursive_namedtuple_convert(data):
     :param data: An object in a named tuple or its children
     :return: The converted object
     """
-    if type(data) is list:
+    if isinstance(data, list):
         # List
         return [_recursive_namedtuple_convert(item) for item in data]
-
     elif hasattr(data, '_asdict'):
         # Named tuple
         dict_value = dict(data._asdict())
         for key, value in dict_value.items():
             dict_value[key] = _recursive_namedtuple_convert(value)
-
         return dict_value
-
     else:
         # Standard object
         return data
 
 # ------------------------------------------------------------------------------
+
 
 @ComponentFactory('cohorte-config-parser-factory')
 @Provides(cohorte.SERVICE_CONFIGURATION_READER)
@@ -94,7 +93,6 @@ class BootConfigParser(object):
 
         # Loaded isolates configurations
         self._isolates = None
-
 
     def _parse_bundle(self, json_object):
         """
@@ -116,7 +114,6 @@ class BootConfigParser(object):
                       version=json_object.get('version'),
                       optional=json_object.get('optional', False))
 
-
     def _parse_bundles(self, bundles):
         """
         Parses the bundles in the given list. Returns an empty list if the
@@ -130,7 +127,6 @@ class BootConfigParser(object):
             return []
 
         return [self._parse_bundle(bundle) for bundle in bundles]
-
 
     def _parse_component(self, json_object):
         """
@@ -154,7 +150,6 @@ class BootConfigParser(object):
 
         return Component(factory=factory, name=name, properties=properties)
 
-
     def _parse_components(self, components):
         """
         Parses the components in the given list. Returns an empty list if the
@@ -166,9 +161,7 @@ class BootConfigParser(object):
         """
         if not components:
             return []
-
         return [self._parse_component(component) for component in components]
-
 
     def _parse_isolate(self, json_object):
         """
@@ -185,10 +178,8 @@ class BootConfigParser(object):
                        kind=json_object['kind'],
                        level=json_object['level'],
                        sublevel=json_object['sublevel'],
-
                        # Reuse boot configuration values
-                       ** boot_config._asdict())
-
+                       **boot_config._asdict())
 
     def _prepare_configuration(self, uid, name, kind,
                                bundles=None, composition=None,
@@ -226,9 +217,8 @@ class BootConfigParser(object):
         # Add bundles (or an empty list)
         if bundles:
             new_bundles = configuration.setdefault('bundles', [])
-            new_bundles.extend(_recursive_namedtuple_convert(\
-                                         [self.normalize_bundle(bundle)
-                                          for bundle in bundles]))
+            new_bundles.extend(_recursive_namedtuple_convert(
+                [self.normalize_bundle(bundle) for bundle in bundles]))
 
         # Add components (or an empty list)
         if composition:
@@ -237,7 +227,6 @@ class BootConfigParser(object):
 
         # Return the configuration dictionary
         return configuration
-
 
     def normalize_bundle(self, bundle):
         """
@@ -277,7 +266,6 @@ class BootConfigParser(object):
         return Bundle(name, filename, properties, version,
                       getattr(bundle, 'optional', False))
 
-
     def load_boot(self, kind):
         """
         Loads the boot configuration for the given kind of isolate, or returns
@@ -291,7 +279,6 @@ class BootConfigParser(object):
         """
         # Prepare & store the bean representation
         return self.load_boot_dict(self.load_conf_raw('boot', kind))
-
 
     def load_conf_raw(self, level, kind):
         """
@@ -307,7 +294,6 @@ class BootConfigParser(object):
         """
         # Load the boot file
         return self.read('{0}-{1}.js'.format(level, kind))
-
 
     def load_boot_dict(self, dict_config):
         """
@@ -339,7 +325,6 @@ class BootConfigParser(object):
                                  environment=environment,
                                  properties=properties)
 
-
     def prepare_isolate(self, uid, name, kind, level, sublevel,
                         bundles=None, composition=None):
         """
@@ -365,12 +350,10 @@ class BootConfigParser(object):
             # Try to load the isolate-specific configuration
             # without logging "file not found" errors
             isolate_conf = self.read(name + ".js", False)
-
         except IOError:
             # Ignore I/O errors (file not found)
             # Propagate ValueError (parsing errors)
             pass
-
         else:
             # Merge the configurations: this method considers that the first
             # parameter has priority on the second
@@ -380,7 +363,6 @@ class BootConfigParser(object):
         # Extend with the boot configuration
         return self._prepare_configuration(uid, name, kind,
                                            bundles, composition, configuration)
-
 
     def read(self, filename, reader_log_error=True):
         """
