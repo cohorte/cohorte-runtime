@@ -54,6 +54,7 @@ except ImportError:
 
 # ------------------------------------------------------------------------------
 
+
 @Requires('_watcher', cohorte.forker.SERVICE_WATCHER)
 class CommonStarter(object):
     """
@@ -75,7 +76,6 @@ class CommonStarter(object):
         # Isolate UID -> process information
         self._isolates = {}
 
-
     @Validate
     def _validate(self, context):
         """
@@ -87,7 +87,6 @@ class CommonStarter(object):
         # Get OS utility methods
         self._utils = cohorte.utils.get_os_utils()
 
-
     @Invalidate
     def _invalidate(self, context):
         """
@@ -95,7 +94,6 @@ class CommonStarter(object):
         """
         self._context = None
         self._utils = None
-
 
     def uids(self):
         """
@@ -105,7 +103,6 @@ class CommonStarter(object):
         """
         return list(self._isolates.keys())
 
-
     def ping(self, uid):
         """
         Pings the isolate with the given UID
@@ -113,7 +110,6 @@ class CommonStarter(object):
         :param uid: The UID if an isolate
         """
         return self._utils.is_process_running(self._isolates[uid].pid)
-
 
     def kill(self, uid):
         """
@@ -127,7 +123,6 @@ class CommonStarter(object):
         if process.poll() is None:
             process.terminate()
 
-
     def stop(self, uid):
         """
         Stops the given isolate
@@ -135,7 +130,6 @@ class CommonStarter(object):
         :param uid: The UID if an isolate
         """
         self.terminate(uid)
-
 
     def terminate(self, uid):
         """
@@ -146,11 +140,9 @@ class CommonStarter(object):
         """
         try:
             self.kill(uid)
-
         except OSError:
             # Ignore errors
             pass
-
 
     def normalize_environment(self, environment):
         """
@@ -163,12 +155,10 @@ class CommonStarter(object):
             value = environment[key]
             if value is None:
                 environment[key] = ''
-
             elif not isinstance(value, str):
                 environment[key] = str(value)
 
         return environment
-
 
     def setup_environment(self, configuration):
         """
@@ -203,12 +193,11 @@ class CommonStarter(object):
         self.normalize_environment(env)
         return env
 
-
     def prepare_working_directory(self, configuration):
         """
         Prepares the working directory for the given isolate configuration.
-        Uses the 'working_directory' configuration entry, if present, or creates
-        a new folder in the base directory.
+        Uses the 'working_directory' configuration entry, if present, or
+        creates a new folder in the base directory.
 
         :param configuration: An isolate configuration
         :return: A valid configuration directory
@@ -222,7 +211,6 @@ class CommonStarter(object):
 
             # Prepare folders
             return working_dir
-
         else:
             # Prepare a specific working directory
             uid = configuration['uid']
@@ -256,8 +244,8 @@ class CommonStarter(object):
                 index = max_index + 1
 
             # Set the folder name (2nd step)
-            path = os.path.join(path, '{index:03d}-{uid}'.format(index=index,
-                                                                 uid=uid))
+            path = os.path.join(path, '{index:03d}-{uid}'
+                                .format(index=index, uid=uid))
 
             # Ensure the whole path is created
             if not os.path.exists(path):

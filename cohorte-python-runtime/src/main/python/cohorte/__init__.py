@@ -174,14 +174,3 @@ SERVICE_JAVA_RUNNER = 'cohorte.java.runner'
 Loads a Java Virtual Machine (JVM) in the current process. Only one JVM can be
 loaded in a process.
 """
-
-# ------------------------------------------------------------------------------
-
-# SERVICE_SIGNALS_DIRECTORY = 'cohorte.signals.directory'
-""" Specification provided by a signals directory """
-
-# SERVICE_SIGNALS_RECEIVER = 'cohorte.signals.receiver'
-""" Specification provided by a signals receiver """
-
-# SERVICE_SIGNALS_SENDER = 'cohorte.signals.sender'
-""" Specification provided by a signals sender """

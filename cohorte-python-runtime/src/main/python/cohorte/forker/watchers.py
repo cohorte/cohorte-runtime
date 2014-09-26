@@ -36,6 +36,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.forker.SERVICE_WATCHER)
 @Requires('_listeners', cohorte.forker.SERVICE_WATCHER_LISTENER,
@@ -76,7 +77,6 @@ class IsolateWatcher(object):
         # Some locking
         self.__lock = threading.Lock()
 
-
     @Validate
     def _validate(self, context):
         """
@@ -96,7 +96,6 @@ class IsolateWatcher(object):
                                              name="Isolate-Waiter")
         self._wait_thread.daemon = True
         self._wait_thread.start()
-
 
     @Invalidate
     def _invalidate(self, context):
@@ -121,7 +120,6 @@ class IsolateWatcher(object):
         self._wait_thread = None
         self._io_threads.clear()
 
-
     def _notify_listeners(self, listeners, uid):
         """
         Notifies listeners of the loss of an isolate
@@ -134,14 +132,12 @@ class IsolateWatcher(object):
             _logger.debug('... notifying %s', listener)
             listener.handle_lost_isolate(uid)
 
-
     def __wait_thread(self):
         """
         Thread that waits for children processes to stop
         """
         while not self._stop_event.wait(self._pause) \
-        and not self._stop_event.is_set():
-
+                and not self._stop_event.is_set():
             with self.__lock:
                 # Copy the isolates information
                 isolates = list(self._isolates.items())
@@ -160,12 +156,10 @@ class IsolateWatcher(object):
                         listeners = self._listeners[:]
                         self._pool.enqueue(self._notify_listeners,
                                            listeners, uid)
-
                 except cohorte.utils.TimeoutExpired:
                     # Time out expired : process is still there,
                     # continue the loop
                     pass
-
 
     def __io_thread(self, uid, process, event):
         """
@@ -192,7 +186,6 @@ class IsolateWatcher(object):
 
             # In debug mode, print the raw output
             logger.debug(line)
-
 
     def watch(self, uid, process, watch_io=True):
         """
@@ -222,7 +215,6 @@ class IsolateWatcher(object):
                 # Store it
                 self._io_threads[uid] = (thread, event)
 
-
     def unwatch(self, uid):
         """
         Stop watching an isolate
@@ -240,7 +232,6 @@ class IsolateWatcher(object):
 
                 # Do not wait for the I/O thread as it might be stuck
                 event.set()
-
             except KeyError:
                 # I/O watcher wasn't requested
                 return

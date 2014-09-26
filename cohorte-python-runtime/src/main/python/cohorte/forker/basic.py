@@ -59,6 +59,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory('cohorte-forker-basic-factory')
 @Provides(cohorte.SERVICE_FORKER, '_controller')
 @Provides(cohorte.forker.SERVICE_WATCHER_LISTENER)
@@ -109,7 +110,6 @@ class ForkerBasic(object):
         # Small lock for starting isolates asynchronously
         self.__lock = threading.Lock()
 
-
     @BindField('_starters')
     def _bind_starter(self, field, svc, svc_ref):
         """
@@ -122,13 +122,11 @@ class ForkerBasic(object):
         self._timer = threading.Timer(.5, self.__provide)
         self._timer.start()
 
-
     def __provide(self):
         """
         Sets the service controller to True
         """
         self._controller = True
-
 
     def start_isolate(self, isolate_config):
         """
@@ -215,7 +213,6 @@ class ForkerBasic(object):
                 # Wait for it to be loaded (30 seconds max)
                 _logger.debug('Waiting for %s to come up', uid)
                 self._state_dir.wait_for(uid, 30)
-
             except ValueError:
                 # Timeout reached or isolate lost
                 _logger.error("Error waiting for isolate %s (%s) to be loaded",
@@ -227,7 +224,6 @@ class ForkerBasic(object):
                 # Kill the isolate
                 starter.terminate(uid)
                 return 2
-
         else:
             # No need to wait for the isolate
             self._state_dir.clear_isolate(uid)
@@ -237,7 +233,6 @@ class ForkerBasic(object):
 
         # No error
         return 0
-
 
     def ping(self, uid):
         """
@@ -255,7 +250,6 @@ class ForkerBasic(object):
         """
         try:
             starter = self._isolates[uid]
-
         except KeyError:
             # Unknown UID -> dead
             return 1
@@ -264,7 +258,6 @@ class ForkerBasic(object):
             return 0
         else:
             return 1
-
 
     def stop_isolate(self, uid, timeout=3):
         """
@@ -292,13 +285,12 @@ class ForkerBasic(object):
         # Remove references to the isolate
         self._state_dir.clear_isolate(uid)
 
-
     def set_platform_stopping(self):
         """
-        Sets the forker in platform-stopping mode: no more isolate will be spawn
+        Sets the forker in platform-stopping mode: no more isolate will be
+        spawn
         """
         self._platform_stopping = True
-
 
     def is_alive(self):
         """
@@ -309,7 +301,6 @@ class ForkerBasic(object):
         return self._watchers_running \
             and not self._sent_stopping \
             and not self._platform_stopping
-
 
     def handle_lost_isolate(self, uid):
         """
@@ -324,7 +315,6 @@ class ForkerBasic(object):
 
         try:
             starter = self._isolates.pop(uid)
-
         except KeyError:
             # Already stopped
             return
@@ -344,7 +334,6 @@ class ForkerBasic(object):
             self._herald.fire_group(
                 'all', Message(cohorte.monitor.SIGNAL_ISOLATE_LOST, uid))
 
-
     def _send_stopping(self):
         """
         Sends the "forker stopping" signal to others
@@ -354,19 +343,18 @@ class ForkerBasic(object):
             return
 
         _logger.warning("Sending 'forker stopping' signal.")
-
         content = {'uid': self._context.get_property(cohorte.PROP_UID),
                    'node': self._context.get_property(cohorte.PROP_NODE_UID),
                    'isolates': list(self._isolates.keys())}
 
         self._herald.fire_group(
-                'all', Message(cohorte.forker.SIGNAL_FORKER_STOPPING, content))
+            'all', Message(cohorte.forker.SIGNAL_FORKER_STOPPING, content))
 
         # Flag up
         self._sent_stopping = True
 
-
-    def _kill_isolates(self, max_threads=5, stop_timeout=5, total_timeout=None):
+    def _kill_isolates(self, max_threads=5, stop_timeout=5,
+                       total_timeout=None):
         """
         Stops/kills all isolates started by this forker.
         Uses a task pool to parallelize isolate stopping.
@@ -390,7 +378,6 @@ class ForkerBasic(object):
             pool.join(total_timeout)
             pool.stop()
 
-
     def framework_stopping(self):
         """
         Called by the Pelix framework when it is about to stop
@@ -401,7 +388,6 @@ class ForkerBasic(object):
 
         # Send the "forker stopping" signal
         self._send_stopping()
-
 
     @Invalidate
     def _invalidate(self, context):
@@ -425,7 +411,8 @@ class ForkerBasic(object):
         # Stop the isolates
         self._kill_isolates()
 
-        # Unregister from the framework (if we weren't stopped by the framework)
+        # Unregister from the framework
+        # (if we weren't stopped by the framework)
         context.remove_framework_stop_listener(self)
 
         # Clean up
@@ -434,7 +421,6 @@ class ForkerBasic(object):
         self._node_name = None
         self._node_uid = None
         _logger.info("Forker invalidated")
-
 
     @Validate
     def _validate(self, context):

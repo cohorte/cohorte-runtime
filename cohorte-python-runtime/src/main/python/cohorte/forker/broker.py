@@ -46,6 +46,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory("cohorte-forker-broker-factory")
 @Provides(cohorte.SERVICE_CONFIGURATION_BROKER, controller='_svc_flag')
 @Provides(pelix.http.HTTP_SERVLET)
@@ -74,7 +75,6 @@ class ConfigBroker(object):
         # Configurations lock
         self.__config_lock = threading.Lock()
 
-
     def bound_to(self, path, parameters):
         """
         Servlet bound to a HTTP service
@@ -83,17 +83,15 @@ class ConfigBroker(object):
         :param parameters: The server & servlet parameters
         """
         if path == self._servlet_path:
-            # Update our access informations
+            # Update our access information
             self._host = parameters['http.address']
             self._port = int(parameters['http.port'])
 
             # Register our service
             self._svc_flag = True
-
         else:
             _logger.warning("Bound to a HTTP service with a different path."
                             "Ignore.")
-
 
     def unbound_from(self, path, parameters):
         """
@@ -110,7 +108,6 @@ class ConfigBroker(object):
             self._host = None
             self._port = None
 
-
     def do_GET(self, request, response):
         """
         Handles GET requests
@@ -120,7 +117,6 @@ class ConfigBroker(object):
         """
         # Get the isolate UID (last part of the request path)
         uid = request.get_path().split('/')[-1]
-
         with self.__config_lock:
             # Get the associated configuration
             json_config = self._configurations.get(uid)
@@ -128,15 +124,12 @@ class ConfigBroker(object):
         if json_config:
             # Send the found configuration
             response.send_content(200, json_config, MIME_TYPE_JSON)
-
         else:
             # Unknown isolate
             error = {'uid': uid,
                      'result': False,
                      'message': "Unknown isolate UID"}
-
             response.send_content(404, json.dumps(error), MIME_TYPE_JSON)
-
 
     def do_DELETE(self, request, response):
         """
@@ -147,8 +140,6 @@ class ConfigBroker(object):
         """
         # Get the isolate UID (last part of the request path)
         uid = request.get_path().split('/')[-1]
-
-        code = 500
         result = {'uid': uid}
 
         if self.delete_configuration(uid):
@@ -156,7 +147,6 @@ class ConfigBroker(object):
             code = 200
             result['result'] = True
             result['message'] = "Configuration deleted"
-
         else:
             # Error
             code = 404
@@ -164,7 +154,6 @@ class ConfigBroker(object):
             result['message'] = "Unknown isolate UID"
 
         response.send_content(code, json.dumps(result), MIME_TYPE_JSON)
-
 
     def delete_configuration(self, uid):
         """
@@ -180,7 +169,6 @@ class ConfigBroker(object):
                 return True
 
         return False
-
 
     def store_configuration(self, uid, dict_config):
         """
@@ -202,14 +190,12 @@ class ConfigBroker(object):
         # Special IPv6 format
         if ':' in self._host:
             host = '[{0}]'.format(self._host)
-
         else:
             host = self._host
 
         return 'http://{host}:{port}{path}/{uid}'\
             .format(uid=uid, host=host, port=self._port,
                     path=self._servlet_path)
-
 
     @Invalidate
     def invalidate(self, context):

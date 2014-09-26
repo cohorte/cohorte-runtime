@@ -34,6 +34,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory('cohorte-forker-state-factory')
 @Provides('cohorte.forker.state')
 class IsolateStateDirectory(object):
@@ -51,7 +52,6 @@ class IsolateStateDirectory(object):
         # Waiters
         self._waiters = {}
 
-
     def prepare_isolate(self, uid):
         """
         Inserts an isolate in the UID, in the INEXISTANT state
@@ -64,13 +64,12 @@ class IsolateStateDirectory(object):
             cur_state = self._directory.get(uid)
             if cur_state is not None \
                     and cur_state != constants.STATE_INEXISTANT:
-                raise ValueError('{0} is already known in state {1}' \
+                raise ValueError('{0} is already known in state {1}'
                                  .format(uid, cur_state))
 
             # Store the isolate and prepare its waiter
             self._directory[uid] = constants.STATE_INEXISTANT
             self._waiters[uid] = threading.Event()
-
 
     def knows(self, uid):
         """
@@ -82,7 +81,6 @@ class IsolateStateDirectory(object):
         with self._directory_lock:
             return uid in self._directory
 
-
     def get_state(self, uid):
         """
         Gets the state of the given UID
@@ -92,7 +90,6 @@ class IsolateStateDirectory(object):
         """
         with self._directory_lock:
             return self._directory[uid]
-
 
     def change_state(self, uid, new_state):
         """
@@ -109,7 +106,6 @@ class IsolateStateDirectory(object):
             if new_state >= cur_state:
                 # Apply the change
                 self._directory[uid] = new_state
-
                 if new_state >= constants.STATE_LOADED:
                     # Isolate is loaded: release waiters
                     self._waiters[uid].set()
@@ -121,7 +117,6 @@ class IsolateStateDirectory(object):
                 # Notify waiters
                 self._waiters[uid].set()
                 del self._waiters[uid]
-
 
     def clear_isolate(self, uid):
         """
@@ -138,7 +133,6 @@ class IsolateStateDirectory(object):
 
             if uid in self._directory:
                 del self._directory[uid]
-
 
     def wait_for(self, uid, timeout=None):
         """
@@ -157,14 +151,12 @@ class IsolateStateDirectory(object):
         event.wait(timeout)
         if not event.is_set():
             raise ValueError("Unknown UID after timeout: %s", uid)
-
         elif uid not in self._directory:
             # We have been awaken by clear_isolate
             raise ValueError("UID %s has been cleared.", uid)
 
         # Just in case someone uses an if...
         return True
-
 
     @Validate
     def validate(self, context):
@@ -174,7 +166,6 @@ class IsolateStateDirectory(object):
         :param context: The bundle context
         """
         _logger.debug("Isolate directory validated")
-
 
     @Invalidate
     def invalidate(self, context):

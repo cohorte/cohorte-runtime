@@ -52,6 +52,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.forker.SERVICE_STARTER)
 @Property('_kinds', cohorte.forker.PROP_STARTER_KINDS, 'exe')
@@ -88,7 +89,6 @@ class ExeStarter(common.CommonStarter):
             arguments.extend(app_args)
 
         return arguments
-
 
     def start(self, configuration, state_udpater_url):
         """

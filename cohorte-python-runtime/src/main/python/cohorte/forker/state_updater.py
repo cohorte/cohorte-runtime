@@ -34,6 +34,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory("cohorte-forker-state-updater-factory")
 @Provides(pelix.http.HTTP_SERVLET)
 @Provides('cohorte.forker.state.updater', controller='_svc_flag')
@@ -61,7 +62,6 @@ class StateUpdater(object):
         # The forker isolate state directory
         self._state_dir = None
 
-
     def bound_to(self, path, parameters):
         """
         Servlet bound to a HTTP service
@@ -76,11 +76,9 @@ class StateUpdater(object):
 
             # Register our service
             self._svc_flag = True
-
         else:
             _logger.warning("Bound to a HTTP service with a different path."
                             "Ignore.")
-
 
     def unbound_from(self, path, parameters):
         """
@@ -96,7 +94,6 @@ class StateUpdater(object):
             # Clear our access information
             self._host = None
             self._port = None
-
 
     def do_POST(self, request, response):
         """
@@ -122,7 +119,6 @@ class StateUpdater(object):
             self._state_dir.change_state(uid, state)
             code = 200
             result['success'] = True
-
         except (KeyError, ValueError) as ex:
             code = 500
             result['success'] = False
@@ -135,7 +131,6 @@ class StateUpdater(object):
 
         # Send the JSON response
         response.send_content(code, json.dumps(result), 'application/json')
-
 
     def get_url(self):
         """
@@ -154,13 +149,11 @@ class StateUpdater(object):
         # Special IPv6 format
         if ':' in self._host:
             host = '[{0}]'.format(self._host)
-
         else:
             host = self._host
 
         return 'http://{host}:{port}{path}'.format(host=host, port=self._port,
                                                    path=self._servlet_path)
-
 
     @Validate
     def validate(self, context):
@@ -170,7 +163,6 @@ class StateUpdater(object):
         :param context: The bundle context
         """
         _logger.debug("State updater validated")
-
 
     @Invalidate
     def invalidate(self, context):

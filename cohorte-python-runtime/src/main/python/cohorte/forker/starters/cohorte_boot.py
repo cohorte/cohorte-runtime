@@ -61,6 +61,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.forker.SERVICE_STARTER)
 @Property('_kinds', cohorte.forker.PROP_STARTER_KINDS,
@@ -87,7 +88,6 @@ class CohorteBoot(common.CommonStarter):
         # Stop timeout (3 seconds)
         self._timeout = 3.
 
-
     def _run_boot_script(self, working_directory, configuration,
                          config_broker_url, state_updater_url,
                          looper_name=None):
@@ -112,7 +112,6 @@ class CohorteBoot(common.CommonStarter):
         if interpreter_args:
             if type(interpreter_args) is list:
                 args.extend(interpreter_args)
-
             else:
                 args.append(str(interpreter_args))
 
@@ -159,7 +158,6 @@ class CohorteBoot(common.CommonStarter):
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT)
 
-
     def start(self, configuration, state_updater_url):
         """
         Starts an isolate with the given configuration and its monitoring
@@ -167,7 +165,7 @@ class CohorteBoot(common.CommonStarter):
 
         :param configuration: An isolate configuration
         :param state_updater_url: URL to the isolate state updater
-        :return: True in case of success, as it uses the state udpater
+        :return: True in case of success, as it uses the state updater
         :raise ValueError: Invalid configuration
         :raise OSError: Error starting the isolate
         """
@@ -191,7 +189,6 @@ class CohorteBoot(common.CommonStarter):
             process = self._run_boot_script(working_dir, configuration,
                                             config_url, state_updater_url,
                                             looper)
-
         except:
             # Delete the configuration in case of error
             self._broker.delete_configuration(uid)
@@ -205,7 +202,6 @@ class CohorteBoot(common.CommonStarter):
 
         # Success, and uses the state updater
         return True
-
 
     def stop(self, uid):
         """
