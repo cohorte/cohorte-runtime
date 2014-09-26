@@ -45,6 +45,7 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.SERVICE_NODE_STARTER)
 @Instantiate("node-starter")

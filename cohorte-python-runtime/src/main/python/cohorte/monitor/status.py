@@ -32,6 +32,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory("cohorte-monitor-status-factory")
 @Provides(cohorte.monitor.SERVICE_STATUS)
 class MonitorStatus(object):
@@ -44,7 +45,6 @@ class MonitorStatus(object):
         """
         # Isolate UID -> State
         self._isolates = {}
-
 
     def add_isolate(self, uid):
         """
@@ -65,7 +65,6 @@ class MonitorStatus(object):
         _logger.debug("New isolate FSM: %s", uid)
         return new_fsm.state
 
-
     def remove_isolate(self, uid):
         """
         Removes the references to the given isolate
@@ -83,7 +82,6 @@ class MonitorStatus(object):
         except KeyError:
             return False
 
-
     def isolate_requested(self, uid):
         """
         The instantiation of the isolate has been requested to a forker
@@ -93,7 +91,6 @@ class MonitorStatus(object):
         :raise ValueError: Invalid state transition
         """
         return self._isolates[uid].handle(fsm.ISOLATE_EVENT_REQUESTED)
-
 
     def isolate_starting(self, uid):
         """
@@ -105,7 +102,6 @@ class MonitorStatus(object):
         """
         return self._isolates[uid].handle(fsm.ISOLATE_EVENT_STARTING)
 
-
     def isolate_ready(self, uid):
         """
         The instantiation of the isolate succeeded
@@ -115,7 +111,6 @@ class MonitorStatus(object):
         :raise ValueError: Invalid state transition
         """
         return self._isolates[uid].handle(fsm.ISOLATE_EVENT_READY)
-
 
     def isolate_stopping(self, uid):
         """
@@ -127,7 +122,6 @@ class MonitorStatus(object):
         """
         return self._isolates[uid].handle(fsm.ISOLATE_EVENT_STOPPING)
 
-
     def isolate_gone(self, uid):
         """
         The isolate has been lost (process killed, ...)
@@ -137,7 +131,6 @@ class MonitorStatus(object):
         :raise ValueError: Invalid state transition
         """
         return self._isolates[uid].handle(fsm.ISOLATE_EVENT_GONE)
-
 
     def get_running(self):
         """
@@ -149,7 +142,6 @@ class MonitorStatus(object):
                 if item[1].state in (fsm.ISOLATE_STATE_REQUESTED,
                                      fsm.ISOLATE_STATE_READY)]
 
-
     def get_in_state(self, state):
         """
         Retrieves the UIDs of the isolates in the given state
@@ -159,7 +151,6 @@ class MonitorStatus(object):
         """
         return [item[0] for item in self._isolates.items()
                 if item[1].state == state]
-
 
     def get_state(self, uid):
         """
@@ -171,14 +162,12 @@ class MonitorStatus(object):
         """
         return self._isolates[uid].state
 
-
     @Validate
     def validate(self, context):
         """
         Component validated
         """
         _logger.info("Monitor status validated")
-
 
     @Invalidate
     def invalidate(self, context):

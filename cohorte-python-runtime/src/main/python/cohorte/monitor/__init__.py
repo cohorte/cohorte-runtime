@@ -36,7 +36,8 @@ SIGNALS_PLATFORM_PATTERN = "{0}/*".format(__SIGNALS_PLATFORM_PREFIX)
 SIGNAL_STOP_PLATFORM = "{0}/stop".format(__SIGNALS_PLATFORM_PREFIX)
 """ Signals requesting the platform to completely stop """
 
-SIGNAL_PLATFORM_STOPPING = "{0}/platform-stop".format(__SIGNALS_PLATFORM_PREFIX)
+SIGNAL_PLATFORM_STOPPING = "{0}/platform-stop"\
+    .format(__SIGNALS_PLATFORM_PREFIX)
 """
 Sets the monitors and forkers into platform stopping mode
 - sent by monitor or forker, to all monitors and forkers

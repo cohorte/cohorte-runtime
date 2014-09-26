@@ -60,6 +60,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory("cohorte-monitor-basic-factory")
 @Provides((cohorte.monitor.SERVICE_MONITOR,
            cohorte.forker.SERVICE_WATCHER_LISTENER))
@@ -106,7 +107,6 @@ class MonitorBasic(object):
         # Auto-run isolates
         self._auto_isolates = {}
 
-
     def handle_received_signal(self, name, data):
         """
         Handles a signal
@@ -139,7 +139,6 @@ class MonitorBasic(object):
                 # Isolate signaled as lost
                 self._handle_lost(data['signalContent'])
 
-
     def ping(self, uid):
         """
         Tells a forker to ping an isolate
@@ -148,7 +147,6 @@ class MonitorBasic(object):
         :return: True if the forker knows and pings the isolate
         """
         return self._forker.ping(uid)
-
 
     def _get_isolate_artifacts(self, kind, level, sublevel):
         """
@@ -165,7 +163,6 @@ class MonitorBasic(object):
                                bundle.filename)
                 for bundle in configuration.bundles]
 
-
     def _start_config_isolates(self):
         """
         Starts isolates configured for this node
@@ -174,7 +171,6 @@ class MonitorBasic(object):
         """
         try:
             isolates = self._config.read('autorun_isolates.js', True)
-
         except (IOError, ValueError):
             # Error already logged by the file reader
             return
@@ -189,7 +185,6 @@ class MonitorBasic(object):
             all_started |= self._start_config_isolate(isolate)
 
         return all_started
-
 
     def _start_config_isolate(self, isolate):
         """
@@ -231,12 +226,10 @@ class MonitorBasic(object):
             # Great success !
             self._status.isolate_starting(uid)
             return True
-
         else:
             # Failed...
             self._status.isolate_gone(uid)
             return False
-
 
     def start_isolate(self, name, kind, level, sublevel, bundles=None,
                       uid=None):
@@ -250,7 +243,7 @@ class MonitorBasic(object):
         :param sublevel: Category of configuration (monitor, isolate, ...)
         :param bundles: Extra bundles to install (Bundle beans)
         :param uid: A user-defined isolate UID
-        :raise IOError: Unknown/unaccessible kind of isolate
+        :raise IOError: Unknown/inaccessible kind of isolate
         :raise KeyError: A parameter is missing in the configuration files
         :raise ValueError: Error reading the configuration
         """
@@ -275,7 +268,8 @@ class MonitorBasic(object):
         isolate_artifacts = self._get_isolate_artifacts(kind, level, sublevel)
 
         # Resolve the custom bundles installation
-        resolution = repository.resolve_installation(bundles, isolate_artifacts)
+        resolution = repository.resolve_installation(bundles,
+                                                     isolate_artifacts)
         if resolution[2]:
             # Some artifacts are missing
             _logger.error("Missing artifacts: %s", resolution[2])
@@ -299,7 +293,8 @@ class MonitorBasic(object):
         # Prepare a configuration
         # Node name and UID will be given by the forker
         config = self._config.prepare_isolate(uid, name, kind,
-                                              level, sublevel, custom_artifacts)
+                                              level, sublevel,
+                                              custom_artifacts)
 
         # Store the isolate in the status
         self._status.add_isolate(uid)
@@ -312,12 +307,10 @@ class MonitorBasic(object):
             # Great success !
             self._status.isolate_starting(uid)
             return True
-
         else:
             # Failed...
             self._status.isolate_gone(uid)
             return False
-
 
     def stop_isolate(self, uid):
         """
@@ -331,7 +324,6 @@ class MonitorBasic(object):
             return True
         except KeyError:
             return False
-
 
     def handle_lost_isolate(self, uid):
         """
@@ -354,7 +346,6 @@ class MonitorBasic(object):
 
         # Auto-run isolate has been lost: restart it
         self._start_config_isolate(isolate)
-
 
     def _handle_lost(self, uid):
         """
@@ -380,7 +371,6 @@ class MonitorBasic(object):
         else:
             # "Foreign" isolate lost
             _logger.error("Isolate %s lost", uid)
-
 
     def _stop_platform(self):
         """
@@ -409,7 +399,6 @@ class MonitorBasic(object):
         # Stop this isolate
         self._context.get_bundle(0).stop()
 
-
     def _load_top_composer(self):
         """
         Installs and starts the top composer bundles
@@ -428,7 +417,6 @@ class MonitorBasic(object):
         for name in bundles:
             if name not in installed:
                 self._context.install_bundle(name).start()
-
 
     @Validate
     def validate(self, context):
@@ -449,7 +437,6 @@ class MonitorBasic(object):
         # Start the Top Composer
         if context.get_property(cohorte.PROP_RUN_TOP_COMPOSER):
             self._load_top_composer()
-
 
     @Invalidate
     def invalidate(self, context):

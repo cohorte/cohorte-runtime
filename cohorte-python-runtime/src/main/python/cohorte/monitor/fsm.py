@@ -35,6 +35,7 @@ ISOLATE_EVENT_READY = "/ready"
 ISOLATE_EVENT_STOPPING = "/stopping"
 ISOLATE_EVENT_GONE = "/gone"
 
+
 def make_isolate_fsm(uid):
     """
     Prepares an isolate FSM.

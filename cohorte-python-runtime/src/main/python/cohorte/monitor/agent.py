@@ -36,6 +36,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory("cohorte-isolate-agent-factory")
 @Requires('_sender', herald.SERVICE_HERALD)
 @Provides((herald.SERVICE_LISTENER, herald.SERVICE_DIRECTORY_GROUP_LISTENER))
