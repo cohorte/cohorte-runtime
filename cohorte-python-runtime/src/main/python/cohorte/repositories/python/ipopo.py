@@ -35,6 +35,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 class ComponentFactoryVisitor(ast.NodeVisitor):
     """
     AST visitor to extract imports and version
@@ -48,7 +49,6 @@ class ComponentFactoryVisitor(ast.NodeVisitor):
         self.factories = set()
         self.values = {}
 
-
     def generic_visit(self, node):
         """
         Custom default visit method that avoids to visit further that the
@@ -57,23 +57,20 @@ class ComponentFactoryVisitor(ast.NodeVisitor):
         if type(node) is ast.Module:
             ast.NodeVisitor.generic_visit(self, node)
 
-
     def visit_ClassDef(self, node):
         """
         Found a class definition
         """
         for decorator in node.decorator_list:
             if hasattr(decorator, 'func') \
-            and decorator.func.id == "ComponentFactory":
+                    and decorator.func.id == "ComponentFactory":
                 name = None
                 if decorator.args:
                     # Name: First argument
                     argument = decorator.args[0]
-
                 elif decorator.kwargs:
                     # Keyword argument
                     argument = decorator.kwargs['name']
-
                 else:
                     # Default name
                     name = "{0}Factory".format(node.name)
@@ -83,24 +80,22 @@ class ComponentFactoryVisitor(ast.NodeVisitor):
                         # Constant
                         try:
                             name = self.values[argument.id]
-
                         except KeyError:
-                            _logger.warning("Factory name '%s' is unknown (%s)",
-                                            argument.id, node.name)
-
+                            _logger.warning(
+                                "Factory name '%s' is unknown (%s)",
+                                argument.id, node.name)
                     else:
                         # Literal
                         try:
                             name = ast.literal_eval(argument)
-
                         except (ValueError, SyntaxError) as ex:
-                            _logger.warning("Invalid factory name for class %s:"
-                                            " %s", node.name, ex)
+                            _logger.warning(
+                                "Invalid factory name for class %s: %s",
+                                node.name, ex)
 
                 if name is not None:
                     # Store the factory name
                     self.factories.add(name)
-
 
     def visit_Assign(self, node):
         """
@@ -112,7 +107,6 @@ class ComponentFactoryVisitor(ast.NodeVisitor):
                 value = ast.literal_eval(node.value)
                 if is_string(value):
                     self.values[field] = value
-
             except (ValueError, SyntaxError):
                 # Ignore errors
                 pass
@@ -127,29 +121,26 @@ def _extract_module_factories(filename):
     :raise ValueError: Unreadable file
     """
     visitor = ComponentFactoryVisitor()
-
     try:
         with open(filename) as filep:
             source = filep.read()
-
     except (OSError, IOError) as ex:
         raise ValueError("Error reading {0}: {1}".format(filename, ex))
 
     try:
         module = ast.parse(source, filename, 'exec')
-
     except (ValueError, SyntaxError) as ex:
         raise ValueError("Error parsing {0}: {1}".format(filename, ex))
 
     try:
         visitor.visit(module)
-
     except Exception as ex:
         raise ValueError("Error visiting {0}: {1}".format(filename, ex))
 
     return visitor.factories
 
 # ------------------------------------------------------------------------------
+
 
 @ComponentFactory("cohorte-repository-factories-ipopo-factory")
 @Provides(cohorte.repositories.SERVICE_REPOSITORY_FACTORIES)
@@ -182,7 +173,6 @@ class IPopoRepository(object):
         # Some locking
         self.__lock = threading.RLock()
 
-
     def __contains__(self, item):
         """
         Tests if the given item is in the repository
@@ -205,13 +195,11 @@ class IPopoRepository(object):
         # No match
         return False
 
-
     def __len__(self):
         """
         Length of a repository <=> number of individual factories
         """
         return sum((len(factories) for factories in self._factories.values()))
-
 
     def add_artifact(self, artifact):
         """
@@ -223,7 +211,6 @@ class IPopoRepository(object):
         with self.__lock:
             # Extract factories
             names = _extract_module_factories(artifact.file)
-
             artifact_list = self._artifacts.setdefault(artifact, [])
             for name in names:
                 # Make the bean
@@ -238,7 +225,6 @@ class IPopoRepository(object):
                 if factory not in artifact_list:
                     artifact_list.append(factory)
 
-
     def clear(self):
         """
         Clears the repository content
@@ -246,7 +232,6 @@ class IPopoRepository(object):
         with self.__lock:
             self._artifacts.clear()
             self._factories.clear()
-
 
     def find_factories(self, factories):
         """
@@ -270,7 +255,6 @@ class IPopoRepository(object):
                     factories = self._factories[name]
                     providers = resolution.setdefault(name, [])
                     providers.extend(factory.artifact for factory in factories)
-
                 except KeyError:
                     # Factory name not found
                     unresolved.add(name)
@@ -280,7 +264,6 @@ class IPopoRepository(object):
                 artifacts.sort(reverse=True)
 
             return resolution, unresolved
-
 
     def find_factory(self, factory, artifact_name=None, artifact_version=None):
         """
@@ -308,13 +291,12 @@ class IPopoRepository(object):
 
                 if not artifacts:
                     # No match found
-                    raise KeyError("No matching artifact for {0} -> {1} {2}" \
+                    raise KeyError("No matching artifact for {0} -> {1} {2}"
                                    .format(factory, artifact_name, version))
 
             # Sort results
             artifacts.sort(reverse=True)
             return artifacts
-
 
     def get_language(self):
         """
@@ -322,14 +304,12 @@ class IPopoRepository(object):
         """
         return self._language
 
-
     def get_model(self):
         """
         Retrieves the component model that can handle the factories of this
         repository
         """
         return self._model
-
 
     def load_repositories(self):
         """
@@ -345,7 +325,6 @@ class IPopoRepository(object):
                 for artifact in repository.walk():
                     self.add_artifact(artifact)
 
-
     @Validate
     def validate(self, context):
         """
@@ -354,7 +333,6 @@ class IPopoRepository(object):
         # Load repositories in another thread
         threading.Thread(target=self.load_repositories,
                          name="iPOPO-repository-loader").start()
-
 
     @Invalidate
     def invalidate(self, context):

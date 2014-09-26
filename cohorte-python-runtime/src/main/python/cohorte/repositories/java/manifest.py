@@ -24,7 +24,6 @@ if PYTHON3:
     # Python 3
     import io
     StringIO = io.StringIO
-
 else:
     # Python 2
     import StringIO
@@ -36,6 +35,7 @@ else:
 IPOJO_COMPONENTS_KEY = 'iPOJO-Components'
 
 # ------------------------------------------------------------------------------
+
 
 class Manifest(object):
     """
@@ -50,7 +50,6 @@ class Manifest(object):
 
         # get() shortcut
         self.get = self.entries.get
-
 
     def extract_packages_list(self, manifest_key):
         """
@@ -87,17 +86,13 @@ class Manifest(object):
 
         return parsed_list
 
-
     def format(self):
         """
         Formats the entries to be Manifest format compliant
         """
-        # Format values
-        lines = []
-
         # First line: Manifest version
-        lines.append(': '.join(('Manifest-Version',
-                                self.entries.get('Manifest-Version', '1.0'))))
+        lines = [': '.join(('Manifest-Version',
+                            self.entries.get('Manifest-Version', '1.0')))]
 
         # Sort keys, except the version
         keys = [key.strip() for key in self.entries.keys()
@@ -110,7 +105,6 @@ class Manifest(object):
             lines.extend(self._wrap_line(line))
 
         return '\n'.join(lines)
-
 
     def parse(self, manifest):
         """
@@ -130,11 +124,9 @@ class Manifest(object):
         with contextlib.closing(StringIO(manifest)) as manifest_io:
             key = None
             for line in manifest_io.readlines():
-
                 if key is not None and line[0] == ' ':
                     # Line continuation
                     self.entries[key] += line.strip()
-
                 else:
                     # Strip the line
                     line = line.strip()
@@ -149,7 +141,6 @@ class Manifest(object):
                     # Strip values
                     self.entries[key] = value.strip()
 
-
     def _wrap_line(self, line):
         """
         Wraps a line, Manifest style
@@ -157,14 +148,12 @@ class Manifest(object):
         :param line: The line to wrap
         :return: The wrapped line
         """
-        lines = []
         # 70 chars for the first line
-        lines.append(line[:70])
+        lines = [line[:70]]
 
         # space + 69 chars for the others
         chunk = line[70:]
         while chunk:
             lines.append(' ' + chunk[:69])
             chunk = chunk[69:]
-
         return lines

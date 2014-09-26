@@ -23,6 +23,7 @@ import os
 
 # ------------------------------------------------------------------------------
 
+
 class Artifact(object):
     """
     Basic representation of an artifact, i.e. a bundle (Java),
@@ -52,13 +53,11 @@ class Artifact(object):
         self.__file = None
         self.file = filename
 
-
     def __hash__(self):
         """
         Computes the hash of this object
         """
         return hash(repr(self))
-
 
     def __eq__(self, other):
         """
@@ -74,15 +73,12 @@ class Artifact(object):
             return self.__language == other.__language \
                 and self.__name == other.__name \
                 and self.__version == other.__version
-
         elif is_string(other):
             # Compare by name
             return self.__name == other
-
         else:
             # Unknown type
             return NotImplemented
-
 
     def __ne__(self, other):
         """
@@ -93,7 +89,6 @@ class Artifact(object):
             return NotImplemented
 
         return not equality
-
 
     def __lt__(self, other):
         """
@@ -111,7 +106,6 @@ class Artifact(object):
             # Name order
             return self.__name < other.__name
 
-
     def __le__(self, other):
         """
         Compares this artifact with another
@@ -121,7 +115,6 @@ class Artifact(object):
             return NotImplemented
 
         return equals or self.__lt__(other)
-
 
     def __gt__(self, other):
         """
@@ -134,11 +127,9 @@ class Artifact(object):
         if self.__name == other.__name:
             # Same name: compare versions
             return self.__version > other.__version
-
         else:
             # Name order
             return self.__name > other.__name
-
 
     def __ge__(self, other):
         """
@@ -150,7 +141,6 @@ class Artifact(object):
 
         return equals or self.__gt__(other)
 
-
     def __repr__(self):
         """
         String representation of the artifact
@@ -158,13 +148,11 @@ class Artifact(object):
         return "Artifact('{self.language}', '{self.name}', " \
                "{self.version!r}, '{self.file}')".format(self=self)
 
-
     def __str__(self):
         """
         Human-readable representation
         """
         return "{self.name}-{self.version}".format(self=self)
-
 
     @property
     def file(self):
@@ -173,7 +161,6 @@ class Artifact(object):
         """
         return self.__file
 
-
     @file.setter
     def file(self, filename):
         """
@@ -181,10 +168,8 @@ class Artifact(object):
         """
         if not filename:
             self.__file = None
-
         else:
             self.__file = os.path.realpath(filename)
-
 
     @property
     def language(self):
@@ -193,7 +178,6 @@ class Artifact(object):
         """
         return self.__language
 
-
     @property
     def name(self):
         """
@@ -201,14 +185,12 @@ class Artifact(object):
         """
         return self.__name
 
-
     @property
     def version(self):
         """
         Version of the artifact (read-only)
         """
         return self.__version
-
 
     @property
     def url(self):
@@ -221,6 +203,7 @@ class Artifact(object):
         return None
 
 # ------------------------------------------------------------------------------
+
 
 class Factory(object):
     """
@@ -257,7 +240,6 @@ class Factory(object):
         # Provided services
         self.provides = set()
 
-
     def __repr__(self):
         """
         String representation of the factory
@@ -265,13 +247,11 @@ class Factory(object):
         return "Factory('{self.name}', '{self.language}', " \
                "'{self.model}', {self.artifact!r})".format(self=self)
 
-
     def __str__(self):
         """
         Human-readable representation
         """
         return "{self.name} ({self.model})".format(self=self)
-
 
     @property
     def artifact(self):
@@ -280,7 +260,6 @@ class Factory(object):
         """
         return self.__artifact
 
-
     @property
     def language(self):
         """
@@ -288,14 +267,12 @@ class Factory(object):
         """
         return self.__language
 
-
     @property
     def model(self):
         """
         Component model (read-only)
         """
         return self.__model
-
 
     @property
     def name(self):
@@ -305,6 +282,7 @@ class Factory(object):
         return self.__name
 
 # ------------------------------------------------------------------------------
+
 
 class Version(object):
     """
@@ -316,10 +294,8 @@ class Version(object):
         """
         self.version = None
         self.qualifier = ''
-
         if version_str is not None:
             self.parse(version_str)
-
 
     def __str__(self):
         """
@@ -334,13 +310,11 @@ class Version(object):
 
         return version
 
-
     def __repr__(self):
         """
         Object string representation
         """
         return "Version('{1}')".format(__name__, self.__str__())
-
 
     def __normalize_cmp(self, other):
         """
@@ -369,7 +343,6 @@ class Version(object):
 
         return local_version, other_version
 
-
     def __lt__(self, other):
         """
         Compares this version with another
@@ -384,7 +357,6 @@ class Version(object):
 
         return local_version < other_version
 
-
     def __le__(self, other):
         """
         Compares this version with another
@@ -394,7 +366,6 @@ class Version(object):
             return NotImplemented
 
         return equals or self.__lt__(other)
-
 
     def __eq__(self, other):
         """
@@ -408,7 +379,6 @@ class Version(object):
         return local_version == other_version \
             and self.qualifier == other.qualifier
 
-
     def __ne__(self, other):
         """
         Compares this version with another
@@ -419,7 +389,6 @@ class Version(object):
 
         return not equality
 
-
     def __gt__(self, other):
         """
         Compares this version with another
@@ -429,12 +398,10 @@ class Version(object):
             return NotImplemented
 
         local_version, other_version = self.__normalize_cmp(other)
-
         if local_version == other_version:
             return self.qualifier > other.qualifier
 
         return local_version > other_version
-
 
     def __ge__(self, other):
         """
@@ -445,7 +412,6 @@ class Version(object):
             return NotImplemented
 
         return equals or self.__gt__(other)
-
 
     def __add__(self, other):
         """
@@ -467,21 +433,17 @@ class Version(object):
         while i < other_len:
             if i < local_len:
                 local_part = self.version[i]
-
             else:
                 local_part = None
 
             if i < other_len:
                 other_part = other.version[i]
-
                 if local_part is not None:
                     # Increment version number
                     new_version.append(local_part + other_part)
-
                 else:
                     # All current parts added
                     new_version.append(other_part)
-
             else:
                 # All other parts added
                 new_version.append(local_part)
@@ -498,7 +460,6 @@ class Version(object):
             new_version.append(qualifier)
 
         return Version(new_version)
-
 
     def matches(self, other):
         """
@@ -523,7 +484,6 @@ class Version(object):
                 # Convert boundaries
                 minimum = Version(versions[0])
                 maximum = Version(versions[1])
-
             else:
                 minimum = Version(other)
                 # Allow binding up to the next major version (excluded)
@@ -535,7 +495,6 @@ class Version(object):
             if other.version is None:
                 # Other matches any version
                 return True
-
             else:
                 # Allow binding up to the next major version (excluded)
                 minimum = other
@@ -545,19 +504,15 @@ class Version(object):
         if minimum is not None and self < minimum:
             # We're under the minimal version
             return False
-
         elif maximum is not None and self > maximum:
             # We're above the maximal version
             return False
-
         elif not inclusive and self == maximum:
             # We're at the upper boundary
             return False
-
         else:
             # Range tests passed
             return True
-
 
     def parse(self, version_str):
         """
@@ -566,7 +521,6 @@ class Version(object):
         # Reset values
         self.version = None
         self.qualifier = ''
-
         if not version_str:
             # Nothing to do
             return
@@ -583,11 +537,9 @@ class Version(object):
                 # ... with a qualifier
                 self.version = tuple(version_str[:-1])
                 self.qualifier = version_str[-1]
-
             else:
                 # ... without it
                 self.version = tuple(version_str)
-
         else:
             # String version
             version_str = str(version_str)
@@ -598,12 +550,10 @@ class Version(object):
                 # Qualifier in the last element
                 last_part, self.qualifier = version[-1].split('-')
                 version[-1] = last_part
-
             else:
                 try:
                     # Try a conversion of the last part
                     int(version[-1])
-
                 except ValueError:
                     # Last part is not an integer, so it a qualifier
                     self.qualifier = version[-1]
@@ -616,15 +566,12 @@ class Version(object):
         version = []
         qualifier = []
         for part in self.version:
-
             if in_qualifier:
                 qualifier.append(part)
-
             else:
                 # Not yet in the qualifier
                 try:
                     version.append(int(part))
-
                 except ValueError:
                     # Integer conversion error -> begin qualifier mode
                     in_qualifier = True

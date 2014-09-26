@@ -36,6 +36,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 class Element(object):
     """
     iPOJO Metadata element
@@ -58,7 +59,6 @@ class Element(object):
             namespace = namespace.lower()
         self.namespace = namespace
 
-
     def __str__(self):
         """
         String representation
@@ -67,13 +67,11 @@ class Element(object):
 
     __repr__ = __str__
 
-
     def add_attribute(self, attribute):
         """
         Sets the value of an attribute of this element
         """
         self.attributes[attribute.get_qname()] = attribute
-
 
     def add_element(self, element):
         """
@@ -81,19 +79,16 @@ class Element(object):
         """
         self.elements.setdefault(element.get_qname(), []).append(element)
 
-
     def get_attribute(self, name, namespace=None):
         """
         Retrieves the value of the given attribute, or None
         """
         if not namespace:
             qname = name
-
         else:
             qname = ':'.join((namespace, name))
 
         return self.attributes.get(qname, None)
-
 
     def get_elements(self, name, namespace=None):
         """
@@ -101,12 +96,9 @@ class Element(object):
         """
         if not namespace:
             qname = name
-
         else:
             qname = ':'.join((namespace, name))
-
         return self.elements.get(qname, [])
-
 
     def get_qname(self):
         """
@@ -114,9 +106,7 @@ class Element(object):
         """
         if not self.namespace:
             return self.name
-
         return ':'.join((self.namespace, self.name))
-
 
     def to_pretty_string(self, prefix="", return_list=False, lines=None):
         """
@@ -147,6 +137,7 @@ class Element(object):
 
 # ------------------------------------------------------------------------------
 
+
 class Attribute(object):
     """
     Attribute of an iPOJO element
@@ -162,7 +153,6 @@ class Attribute(object):
             namespace = namespace.lower()
         self.namespace = namespace
 
-
     def get_qname(self):
         """
         Returns the qualified name of the Element
@@ -172,13 +162,11 @@ class Attribute(object):
 
         return ':'.join((self.namespace, self.name))
 
-
     def __str__(self):
         """
         String representation
         """
         return '${0}="{1}"'.format(self.get_qname(), self.value)
-
 
     def __repr__(self):
         """
@@ -187,6 +175,7 @@ class Attribute(object):
         return "Attribute('{1}')".format(__name__, self.__str__())
 
 # ------------------------------------------------------------------------------
+
 
 def _parse_attribute(line, idx):
     """
@@ -295,6 +284,7 @@ def parse_ipojo_line(line):
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory("cohorte-repository-factories-ipojo-factory")
 @Provides(cohorte.repositories.SERVICE_REPOSITORY_FACTORIES)
 @Requires('_repositories', cohorte.repositories.SERVICE_REPOSITORY_ARTIFACTS,
@@ -326,7 +316,6 @@ class IPojoRepository(object):
         # Thread safety
         self.__lock = threading.RLock()
 
-
     def __contains__(self, item):
         """
         Tests if the given item is in the repository
@@ -341,7 +330,6 @@ class IPojoRepository(object):
 
             # Test if the name is in the factories
             return item.name in self._factories
-
         elif item in self._factories:
             # Item matches a factory name
             return True
@@ -349,13 +337,11 @@ class IPojoRepository(object):
         # No match
         return False
 
-
     def __len__(self):
         """
         Length of a repository <=> number of individual factories
         """
         return sum((len(factories) for factories in self._factories.values()))
-
 
     def _extract_bundle_factories(self, artifact):
         """
@@ -397,7 +383,6 @@ class IPojoRepository(object):
 
         return factories
 
-
     def add_artifact(self, artifact):
         """
         Adds the factories provided by the given artifact
@@ -426,7 +411,6 @@ class IPojoRepository(object):
                 if factory not in artifact_list:
                     artifact_list.append(factory)
 
-
     def clear(self):
         """
         Clears the repository content
@@ -434,7 +418,6 @@ class IPojoRepository(object):
         with self.__lock:
             self._artifacts.clear()
             self._factories.clear()
-
 
     def find_factories(self, factories):
         """
@@ -458,7 +441,6 @@ class IPojoRepository(object):
                     factories = self._factories[name]
                     providers = resolution.setdefault(name, [])
                     providers.extend(factory.artifact for factory in factories)
-
                 except KeyError:
                     # Factory name not found
                     unresolved.add(name)
@@ -468,7 +450,6 @@ class IPojoRepository(object):
                 artifacts.sort(reverse=True)
 
             return resolution, unresolved
-
 
     def find_factory(self, factory, artifact_name=None, artifact_version=None):
         """
@@ -483,7 +464,6 @@ class IPojoRepository(object):
             # Copy the list of artifacts for this factory
             artifacts = [factory.artifact
                          for factory in self._factories[factory]]
-
             if artifact_name is not None:
                 # Artifact must be selected
                 # Prepare the version bean
@@ -496,13 +476,12 @@ class IPojoRepository(object):
 
                 if not artifacts:
                     # No match found
-                    raise KeyError("No matching artifact for {0} -> {1} {2}" \
+                    raise KeyError("No matching artifact for {0} -> {1} {2}"
                                    .format(factory, artifact_name, version))
 
             # Sort results
             artifacts.sort(reverse=True)
             return artifacts
-
 
     def get_language(self):
         """
@@ -510,14 +489,12 @@ class IPojoRepository(object):
         """
         return self._language
 
-
     def get_model(self):
         """
         Retrieves the component model that can handle the factories of this
         repository
         """
         return self._model
-
 
     def load_repositories(self):
         """
@@ -533,7 +510,6 @@ class IPojoRepository(object):
                 for artifact in repository.walk():
                     self.add_artifact(artifact)
 
-
     @Validate
     def validate(self, context):
         """
@@ -542,7 +518,6 @@ class IPojoRepository(object):
         # Load repositories in another thread
         threading.Thread(target=self.load_repositories,
                          name="iPOJO-repository-loader").start()
-
 
     @Invalidate
     def invalidate(self, context):

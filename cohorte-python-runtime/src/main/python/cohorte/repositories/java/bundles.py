@@ -53,6 +53,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 class Bundle(Artifact):
     """
     Represents an OSGi bundle
@@ -85,7 +86,6 @@ class Bundle(Artifact):
         self.all_require = \
             self._manifest.extract_packages_list('Require-Bundle')
 
-
     def exports(self, package_name, required_version=None):
         """
         Tests if the given package is exported by this bundle
@@ -99,7 +99,6 @@ class Bundle(Artifact):
 
         version = Version(self.all_exports[package_name].get('version'))
         return version.matches(required_version)
-
 
     def imports(self, other_bundle):
         """
@@ -128,7 +127,6 @@ class Bundle(Artifact):
 
         return False
 
-
     def is_fragment(self):
         """
         Tests if this bundle is a fragment
@@ -136,7 +134,6 @@ class Bundle(Artifact):
         :return: True if this bundle is a fragment
         """
         return 'Fragment-Host' in self._manifest.entries
-
 
     def get_exported_packages(self):
         """
@@ -147,13 +144,11 @@ class Bundle(Artifact):
         return ((name, Version(attributes.get('version')))
                 for name, attributes in self.all_exports.items())
 
-
     def get_manifest(self):
         """
         Retrieves the parsed Manifest
         """
         return self._manifest
-
 
     def get_service(self, service_name):
         """
@@ -168,21 +163,18 @@ class Bundle(Artifact):
 
         jar_file = zipfile.ZipFile(self.file)
         try:
-            service_factory = jar_file.read('{0}/{1}' \
-                                            .format(BUNDLE_SERVICES_FOLDER,
-                                                    service_name))
+            service_factory = jar_file.read(
+                '{0}/{1}'.format(BUNDLE_SERVICES_FOLDER, service_name))
             service_factory = to_str(service_factory)
-
             return service_factory.strip()
-
         except KeyError:
             # Not a framework JAR
             return None
-
         finally:
             jar_file.close()
 
 # ------------------------------------------------------------------------------
+
 
 @ComponentFactory("cohorte-repository-artifacts-java-factory")
 @Provides(cohorte.repositories.SERVICE_REPOSITORY_ARTIFACTS)
@@ -207,7 +199,6 @@ class OSGiBundleRepository(object):
         # Name -> [(Package Version, Bundle)]
         self._packages = {}
 
-
     def __contains__(self, item):
         """
         Tests if the given item is in the repository
@@ -218,11 +209,9 @@ class OSGiBundleRepository(object):
         if isinstance(item, Bundle):
             # Test the Bundle object
             return item in self._bundles.values()
-
         elif item in self._bundles:
             # Item matches a bundle name
             return True
-
         else:
             # Test the file name
             for name in (item, os.path.realpath(item)):
@@ -232,15 +221,14 @@ class OSGiBundleRepository(object):
         # No match
         return False
 
-
     def __len__(self):
         """
         Length of a repository <=> number of individual artifacts
         """
         return sum((len(bundles) for bundles in self._bundles.values()))
 
-
-    def __add_bundle(self, bundle, bundle_registry=None, package_registry=None):
+    def __add_bundle(self, bundle, bundle_registry=None,
+                     package_registry=None):
         """
         Adds a bundle to the given registry
 
@@ -264,7 +252,6 @@ class OSGiBundleRepository(object):
         for name, version in bundle.get_exported_packages():
             self.__add_package(package_registry, name, version, bundle)
 
-
     def __add_package(self, registry, name, version, bundle):
         """
         Adds a Java package to the given registry
@@ -280,7 +267,6 @@ class OSGiBundleRepository(object):
         package_list = registry.setdefault(name, [])
         package_list.append((version, bundle))
         package_list.sort(key=operator.itemgetter(0), reverse=True)
-
 
     def add_file(self, filename):
         """
@@ -299,7 +285,6 @@ class OSGiBundleRepository(object):
         # Store the bundle
         self.__add_bundle(Bundle(filename, manifest))
 
-
     def add_directory(self, dirname):
         """
         Recursively adds all .jar bundles found in the given directory into the
@@ -317,7 +302,6 @@ class OSGiBundleRepository(object):
                     except ValueError as ex:
                         _logger.warning(ex)
 
-
     def clear(self):
         """
         Clears the repository content
@@ -325,7 +309,6 @@ class OSGiBundleRepository(object):
         self._files.clear()
         self._bundles.clear()
         self._packages.clear()
-
 
     def filter_services(self, service):
         """
@@ -341,15 +324,15 @@ class OSGiBundleRepository(object):
                 if bundle.get_service(service) is not None:
                     yield bundle
 
-
     def get_artifact(self, name=None, version=None, filename=None,
                      registry=None):
         """
         Retrieves a bundle from the repository
 
-        :param name: The bundle symbolic name (mutually exclusive with filename)
-        :param version: The bundle version (None or '0.0.0' for any), ignored if
-                        filename is used
+        :param name: The bundle symbolic name (mutually exclusive with
+        filename)
+        :param version: The bundle version (None or '0.0.0' for any), ignored
+        if filename is used
         :param filename: The bundle file name (mutually exclusive with name)
         :param registry: Registry where to look for the bundle
         :return: The first matching bundle
@@ -393,7 +376,7 @@ class OSGiBundleRepository(object):
             if bundle.version.matches(version):
                 return bundle
 
-        raise ValueError('Bundle {0} not found for version {1}' \
+        raise ValueError('Bundle {0} not found for version {1}'
                          .format(name, version))
 
     def get_language(self):
@@ -401,7 +384,6 @@ class OSGiBundleRepository(object):
         Retrieves the language of the artifacts stored in this repository
         """
         return self._language
-
 
     def get_package(self, name, version=None,
                     bundle_registry=None, package_registry=None):
@@ -427,7 +409,6 @@ class OSGiBundleRepository(object):
                 return pkg_bundle
 
         return None
-
 
     def resolve_installation(self, bundles, system_artifacts=None,
                              system_packages=None):
@@ -468,17 +449,15 @@ class OSGiBundleRepository(object):
                 if isinstance(artifact, Bundle):
                     # Got a bundle
                     self.__add_bundle(artifact, local_bundles, local_packages)
-
                 elif isinstance(artifact, Artifact):
                     # Got an artifact
                     bundle = self.get_artifact(artifact.name, artifact.version,
                                                artifact.file)
                     if bundle:
-                        self.__add_bundle(bundle, local_bundles, local_packages)
-
+                        self.__add_bundle(bundle, local_bundles,
+                                          local_packages)
                     else:
                         _logger.warning("Unknown system bundle: %s", artifact)
-
                 else:
                     _logger.warning("Unhandled system artifact: %s", artifact)
 
@@ -489,7 +468,6 @@ class OSGiBundleRepository(object):
             # Loop control
             bundle = to_install[i]
             i += 1
-
             if bundle is None:
                 # Ignore None bundle (system bundle)
                 continue
@@ -508,15 +486,14 @@ class OSGiBundleRepository(object):
                 provider = None
                 for registry in (local_bundles, self._bundles):
                     try:
-                        provider = self.get_artifact(required, required_version,
+                        provider = self.get_artifact(required,
+                                                     required_version,
                                                      None, registry)
                         # Found one
                         break
-
                     except ValueError:
                         # Try next
                         pass
-
                 else:
                     # No provider found
                     missing_bundles.add(required)
@@ -557,16 +534,13 @@ class OSGiBundleRepository(object):
                     # Found the package in the resolved bundles
                     if provider is not SYSTEM_BUNDLE:
                         dependencies[bundle].append(provider)
-
                 else:
                     # Find it
                     provider = self.get_package(imported, pkg_version,
                                                 self._bundles, self._packages)
-
                     if not provider:
                         # Missing
                         missing_packages.add(imported)
-
                     elif provider is not SYSTEM_BUNDLE:
                         # Store the bundle
                         self.__add_bundle(provider,
@@ -574,13 +548,11 @@ class OSGiBundleRepository(object):
 
                         # Store the dependency
                         dependencies[bundle].append(provider)
-
                         if provider not in to_install:
                             # We'll have to resolve it
                             to_install.append(provider)
 
         return to_install, dependencies, missing_bundles, missing_packages
-
 
     def walk(self):
         """
@@ -589,7 +561,6 @@ class OSGiBundleRepository(object):
         for bundles in self._bundles.values():
             for bundle in bundles:
                 yield bundle
-
 
     @Validate
     def validate(self, context):
@@ -600,7 +571,6 @@ class OSGiBundleRepository(object):
         for key in (cohorte.PROP_BASE, cohorte.PROP_HOME):
             repository = os.path.join(context.get_property(key), "repo")
             self.add_directory(repository)
-
 
     @Invalidate
     def invalidate(self, context):

@@ -36,6 +36,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 class Module(Artifact):
     """
     Represents a bundle
@@ -52,9 +53,8 @@ class Module(Artifact):
         """
         Artifact.__init__(self, "python", name, version, filename)
 
-        # Store informations
+        # Store information
         self.all_imports = imports
-
 
     def imports(self, artifact):
         """
@@ -71,6 +71,7 @@ class Module(Artifact):
 
 # ------------------------------------------------------------------------------
 
+
 class AstVisitor(ast.NodeVisitor):
     """
     AST visitor to extract imports and version
@@ -81,10 +82,8 @@ class AstVisitor(ast.NodeVisitor):
         Sets up the visitor
         """
         ast.NodeVisitor.__init__(self)
-
         self.imports = set()
         self.version = None
-
 
     def generic_visit(self, node):
         """
@@ -94,7 +93,6 @@ class AstVisitor(ast.NodeVisitor):
         if type(node) is ast.Module:
             ast.NodeVisitor.generic_visit(self, node)
 
-
     def visit_Import(self, node):
         """
         Found an "import"
@@ -102,13 +100,11 @@ class AstVisitor(ast.NodeVisitor):
         for alias in node.names:
             self.imports.add(alias.name)
 
-
     def visit_ImportFrom(self, node):
         """
         Found a "from ... import ..."
         """
         self.imports.add(node.module)
-
 
     def visit_Assign(self, node):
         """
@@ -116,15 +112,13 @@ class AstVisitor(ast.NodeVisitor):
         """
         field = getattr(node.targets[0], 'id', None)
         if not self.version \
-        and field in ('__version__', '__version_info__'):
+                and field in ('__version__', '__version_info__'):
             try:
                 version_parsed = ast.literal_eval(node.value)
                 if isinstance(version_parsed, (tuple, list)):
                     self.version = ".".join(str(version_parsed))
-
                 else:
                     self.version = str(version_parsed)
-
             except ValueError:
                 # Ignore errors
                 pass
@@ -143,13 +137,11 @@ def _extract_module_info(filename):
     try:
         with open(filename) as filep:
             source = filep.read()
-
     except (OSError, IOError) as ex:
         raise ValueError("Error reading {0}: {1}".format(filename, ex))
 
     try:
         module = ast.parse(source, filename, 'exec')
-
     except (ValueError, SyntaxError) as ex:
         raise ValueError("Error parsing {0}: {1}".format(filename, ex))
 
@@ -157,6 +149,7 @@ def _extract_module_info(filename):
     return visitor.version, visitor.imports
 
 # ------------------------------------------------------------------------------
+
 
 @ComponentFactory("cohorte-repository-artifacts-python-factory")
 @Provides(cohorte.repositories.SERVICE_REPOSITORY_ARTIFACTS)
@@ -180,7 +173,6 @@ class PythonModuleRepository(object):
         # File -> Module
         self._files = {}
 
-
     def __contains__(self, item):
         """
         Tests if the given item is in the repository
@@ -195,11 +187,9 @@ class PythonModuleRepository(object):
 
             # Test if the name is in the modules
             return item.name in self._modules
-
         elif item in self._modules:
             # Item matches a module name
             return True
-
         else:
             # Test the file name
             for name in (item, os.path.realpath(item)):
@@ -209,13 +199,11 @@ class PythonModuleRepository(object):
         # No match
         return False
 
-
     def __len__(self):
         """
         Length of a repository <=> number of individual artifacts
         """
         return sum((len(modules) for modules in self._modules.values()))
-
 
     def __add_module(self, module, registry=None):
         """
@@ -235,7 +223,6 @@ class PythonModuleRepository(object):
 
         # Associate the file name with the module
         self._files[module.file] = module
-
 
     def __compute_name(self, filename):
         """
@@ -258,23 +245,21 @@ class PythonModuleRepository(object):
                 # Known directory: stop there
                 package_parts.append(self._directory_package[dirname])
                 break
-
             elif not os.path.exists(os.path.join(dirname, "__init__.py")):
                 # Not a package anymore
                 break
-
             else:
                 package = os.path.basename(dirname)
                 if ' ' in package:
                     # Invalid package name
-                    raise ValueError("Invalid package name: {0}"\
+                    raise ValueError("Invalid package name: {0}"
                                      .format(package))
                 else:
                     # Go further up
                     package_parts.append(package)
                     dirname = os.path.dirname(dirname)
 
-        # Store the package informations
+        # Store the package information
         package_parts.reverse()
         package = None
         package_path = dirname
@@ -282,7 +267,6 @@ class PythonModuleRepository(object):
         for part in package_parts:
             try:
                 package = '.'.join((package, part))
-
             except TypeError:
                 package = part
 
@@ -292,10 +276,8 @@ class PythonModuleRepository(object):
         if module == '__init__':
             # Do not append the __init__ in packages
             return package
-
         else:
             return '{0}.{1}'.format(package, module)
-
 
     def __test_import(self, name):
         """
@@ -308,18 +290,15 @@ class PythonModuleRepository(object):
             # find_module() uses a path-like name, not a dotted one
             path_name = name.replace('.', os.sep)
             result = imp.find_module(path_name)
-
         except ImportError:
             # Module not found
             return False
-
         else:
             # Module found: close the file opened by find_module(), if any
             if result[0] is not None:
                 result[0].close()
 
             return True
-
 
     def add_file(self, filename):
         """
@@ -340,7 +319,6 @@ class PythonModuleRepository(object):
         # Store the module
         self.__add_module(Module(name, version, imports, realfile))
 
-
     def add_directory(self, dirname):
         """
         Recursively adds all .py modules found in the given directory into the
@@ -354,10 +332,8 @@ class PythonModuleRepository(object):
                     fullname = os.path.join(root, filename)
                     try:
                         self.add_file(fullname)
-
                     except ValueError as ex:
                         _logger.warning("Error analyzing %s: %s", fullname, ex)
-
 
     def clear(self):
         """
@@ -367,15 +343,14 @@ class PythonModuleRepository(object):
         self._files.clear()
         self._directory_package.clear()
 
-
     def get_artifact(self, name=None, version=None, filename=None,
                      registry=None):
         """
         Retrieves a module from the repository
 
         :param name: The module name (mutually exclusive with filename)
-        :param version: The module version (None or '0.0.0' for any), ignored if
-                        filename is used
+        :param version: The module version (None or '0.0.0' for any), ignored
+        if filename is used
         :param filename: The module file name (mutually exclusive with name)
         :param registry: Registry where to look for the module
         :return: The first matching module
@@ -405,7 +380,6 @@ class PythonModuleRepository(object):
             module = name
             if module in registry:
                 return module
-
             else:
                 # Use the module name and version
                 name = module.name
@@ -419,16 +393,14 @@ class PythonModuleRepository(object):
             if module.version.matches(version):
                 return module
 
-        raise ValueError('Module {0} not found for version {1}' \
+        raise ValueError('Module {0} not found for version {1}'
                          .format(name, version))
-
 
     def get_language(self):
         """
         Retrieves the language of the artifacts stored in this repository
         """
         return self._language
-
 
     def resolve_installation(self, artifacts, system_artifacts=None):
         """
@@ -454,7 +426,6 @@ class PythonModuleRepository(object):
                 if is_string(module):
                     if module in self._modules:
                         module = self._modules[module]
-
                     else:
                         module = Module(str(module), None, None, None)
 
@@ -485,11 +456,9 @@ class PythonModuleRepository(object):
                                                      registry)
                         # Found one
                         break
-
                     except ValueError:
                         # Try next
                         pass
-
                 else:
                     # No provider found, try to import the file
                     if not self.__test_import(imported):
@@ -516,7 +485,6 @@ class PythonModuleRepository(object):
 
         return to_install, dependencies, missing_modules, []
 
-
     def walk(self):
         """
         # Walk through the known artifacts
@@ -524,7 +492,6 @@ class PythonModuleRepository(object):
         for modules in self._modules.values():
             for module in modules:
                 yield module
-
 
     @Validate
     def validate(self, context):
@@ -541,7 +508,6 @@ class PythonModuleRepository(object):
         if python_path:
             for path in python_path.split(os.pathsep):
                 self.add_directory(path)
-
 
     @Invalidate
     def invalidate(self, context):
