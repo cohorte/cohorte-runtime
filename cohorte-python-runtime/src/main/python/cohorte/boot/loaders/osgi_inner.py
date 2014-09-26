@@ -354,7 +354,8 @@ class JavaOsgiLoader(object):
                     cohorte.PROP_NODE_UID, cohorte.PROP_NODE_NAME,
                     cohorte.PROP_DUMPER_PORT,
                     herald.FWPROP_PEER_UID, herald.FWPROP_PEER_NAME,
-                    herald.FWPROP_NODE_UID, herald.FWPROP_NODE_NAME):
+                    herald.FWPROP_NODE_UID, herald.FWPROP_NODE_NAME,
+                    herald.FWPROP_APPLICATION_ID):
             value = self._context.get_property(key)
             if value is not None:
                 # Avoid empty values
