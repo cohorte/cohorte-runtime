@@ -31,7 +31,7 @@ import pelix.framework
 import pelix.shell
 
 # JPype (Java bridge)
-import jpype._jexception as jexception
+import jpype
 
 # Python standard library
 import logging
@@ -549,7 +549,7 @@ class JavaOsgiLoader(object):
             for bundle in java_bundles:
                 _logger.debug("Starting %s...", bundle.getSymbolicName())
                 bundle.start()
-        except jexception.JavaException as ex:
+        except jpype.JavaException as ex:
             # Log the bundle exception and its cause
             _logger.error("Error starting bundle: %s",
                           ex.__javaobject__.toString())

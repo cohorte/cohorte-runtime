@@ -46,6 +46,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory('cohorte-java-runner-factory')
 @Provides(cohorte.SERVICE_JAVA_RUNNER)
 class JavaVM(object):
@@ -61,7 +62,6 @@ class JavaVM(object):
 
         # JVM presence flag
         self._jvm_running = False
-
 
     def add_jar(self, jar_file_path):
         """
@@ -80,18 +80,17 @@ class JavaVM(object):
             ClassLoader = self.load_class('java.lang.ClassLoader')
 
             # Code from:
-            # http://jimlife.wordpress.com/2007/12/19/java-adding-new-classpath-at-runtime/
+            # http://jimlife.wordpress.com/2007/12/19
+            # /java-adding-new-classpath-at-runtime/
             jar_file = File(jar_file_path)
             jar_url = jar_file.toURL()
 
             # jPype will do the reflection stuffs for us
             class_loader = ClassLoader.getSystemClassLoader()
             class_loader.addURL(jar_url)
-
         except jpype.JavaException as ex:
-            raise ValueError("Error loading the JAR file '{0}': {1}" \
+            raise ValueError("Error loading the JAR file '{0}': {1}"
                              .format(jar_file, ex))
-
 
     def get_package(self, name):
         """
@@ -104,7 +103,6 @@ class JavaVM(object):
         """
         return jpype.JPackage(name)
 
-
     def is_running(self):
         """
         Tests if the JVM is currently running
@@ -112,7 +110,6 @@ class JavaVM(object):
         :return: True if the JVM is running
         """
         return self._jvm_running
-
 
     def load_class(self, name):
         """
@@ -124,10 +121,8 @@ class JavaVM(object):
         """
         try:
             return jpype._jclass.JClass(name)
-
         except jpype.JavaException as ex:
             raise ValueError(str(ex))
-
 
     def make_proxy(self, instance, interface=None):
         """
@@ -152,7 +147,6 @@ class JavaVM(object):
 
         return jpype.JProxy(interface, inst=instance)
 
-
     def make_jvm_classpath(self, classpath):
         """
         Prepares the arguments of the JVM
@@ -161,7 +155,6 @@ class JavaVM(object):
         :return: The corresponding class path argument
         """
         return "-Djava.class.path={0}".format(os.path.pathsep.join(classpath))
-
 
     def make_jvm_property(self, key, value):
         """
@@ -172,7 +165,6 @@ class JavaVM(object):
         :return: The property definition
         """
         return "-D{0}={1}".format(key, value)
-
 
     def start(self, vm_library=None, *args):
         """
@@ -195,7 +187,6 @@ class JavaVM(object):
         self._context.get_bundle(0).add_property(PROP_JVM_LOADED, True)
         self._jvm_running = True
 
-
     def stop(self):
         """
         Stops the JVM.
@@ -209,7 +200,6 @@ class JavaVM(object):
             # Stop the JVM
             jpype.shutdownJVM()
 
-
     @Validate
     def validate(self, context):
         """
@@ -219,7 +209,6 @@ class JavaVM(object):
         """
         # Store the framework access
         self._context = context
-
 
     @Invalidate
     def invalidate(self, context):
