@@ -54,7 +54,6 @@ import logging
 
 _logger = logging.getLogger(__name__)
 
-
 STORY_PAGE = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -62,7 +61,8 @@ STORY_PAGE = """<!DOCTYPE html>
 <meta charset="UTF-8">
 <title>Node Composer Story</title>
 
-<link rel="stylesheet" type="text/css" media="all" href="{statics}/narrative/narrative.css">
+<link rel="stylesheet" type="text/css" media="all"
+    href="{statics}/narrative/narrative.css">
 
 <script src="{statics}/d3.min.js"></script>
 <script src="{statics}/narrative/catxml.js"></script>
@@ -118,7 +118,8 @@ ISOLATES_PAGE = """<!DOCTYPE html>
 
 <script src="{statics}/d3.min.js"></script>
 
-<link rel="stylesheet" type="text/css" media="all" href="{statics}/circle2/style.css">
+<link rel="stylesheet" type="text/css" media="all"
+    href="{statics}/circle2/style.css">
 <script src="{statics}/circle2/circle.js"></script>
 </head>
 
@@ -134,6 +135,7 @@ draw_chart(json_distribution);
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.instruments.SERVICE_INSTRUMENT_UI)
 @Requires('_history', cohorte.composer.SERVICE_HISTORY_NODE)
@@ -141,8 +143,9 @@ draw_chart(json_distribution);
 @Instantiate('instrument-node')
 class NodeComposerInstrument(cohorte.instruments.CommonHttp):
     """
-    Prints informations about the node composer
+    Prints information about the node composer
     """
+
     def __init__(self):
         """
         Sets up members
@@ -164,14 +167,12 @@ class NodeComposerInstrument(cohorte.instruments.CommonHttp):
                        'story2': self._send_second_story,
                        'isolates': self._send_isolates}
 
-
     @Validate
     def validate(self, context):
         """
         Component validated
         """
         self._node_name = context.get_property(cohorte.PROP_NODE_NAME)
-
 
     def handle_request(self, base_path, sub_path, request, response):
         """
@@ -186,18 +187,15 @@ class NodeComposerInstrument(cohorte.instruments.CommonHttp):
         if not parts:
             # No parameter given
             self.send_index(response)
-
         else:
             try:
                 # Find the method handling this path...
                 handler = self._paths[parts[0]]
-
             except KeyError:
                 # ... not found
                 self.page_not_found(response,
                                     "Unknown page: {0}".format(parts[0]),
                                     self._name)
-
             else:
                 # ... use it
                 handler(response)
@@ -207,19 +205,17 @@ class NodeComposerInstrument(cohorte.instruments.CommonHttp):
         Prepares the index page
         """
         # Prepare the lists of links
-        items_list = self.make_list(self.make_link(name.title(),
-                                                   self._name, name)
-                                    for name in sorted(self._paths))
+        items_list = self.make_list(
+            self.make_link(name.title(), self._name, name)
+            for name in sorted(self._paths))
 
         # Prepare the HTML body
-        body = """<h2>Node Composer pages</h2>
-{items_list}
-""".format(items_list=items_list)
+        body = "<h2>Node Composer pages</h2>\n{items_list}\n" \
+            .format(items_list=items_list)
 
         # Send the page
-        response.send_content(200,
-                              self.make_page("Cohorte Node Composer", body))
-
+        response.send_content(
+            200, self.make_page("Cohorte Node Composer", body))
 
     def _send_second_story(self, response):
         """
@@ -255,9 +251,7 @@ class NodeComposerInstrument(cohorte.instruments.CommonHttp):
         # Generate the page content
         page = SECOND_STORY_PAGE.format(statics=self.get_statics_path(),
                                         json_data=data_json)
-
         response.send_content(200, page)
-
 
     def _send_story(self, response):
         """
@@ -273,17 +267,17 @@ class NodeComposerInstrument(cohorte.instruments.CommonHttp):
         all_names = self.__extract_story_characters(hist_scenes)
 
         # Prepare character -> ID association
-        characters_id = dict((name, idx) for idx, name in enumerate(all_names))
-        id_characters = dict((idx, name) for name, idx in characters_id.items())
+        characters_id = dict((name, idx)
+                             for idx, name in enumerate(all_names))
+        id_characters = dict((idx, name)
+                             for name, idx in characters_id.items())
 
         # Prepare "character.xml"
-        characters_xml = """<?xml version="1.0"?>
-<characters>
-{0}
-</characters>
-""".format('\n'.join('\t<character group="{0}" id="{1}" name="{2}"/>'\
-                     .format(idx % 10, idx, id_characters[idx])
-                     for idx in sorted(characters_id.values())))
+        characters_xml = '<?xml version="1.0"?>\n<characters>\n{0}\n' \
+                         '</characters>\n'\
+            .format('\n'.join('\t<character group="{0}" id="{1}" name="{2}"/>'
+                              .format(idx % 10, idx, id_characters[idx])
+                              for idx in sorted(characters_id.values())))
 
         # Prepare "narrative.json"
         scenes = self.__make_story_scenes(hist_scenes, characters_id)
@@ -291,18 +285,15 @@ class NodeComposerInstrument(cohorte.instruments.CommonHttp):
 
         # Escape content: must be Javascript a string declaration
         characters_xml = characters_xml.replace("'", "\\'") \
-                                       .replace("\n", " \\\n")
+            .replace("\n", " \\\n")
         narrative_json = narrative_json.replace("'", "\\'") \
-                                       .replace("\n", " \\\n")
-
+            .replace("\n", " \\\n")
 
         # Generate the page content
         page = STORY_PAGE.format(statics=self.get_statics_path(),
                                  characters_xml=characters_xml,
                                  json_scenes=narrative_json)
-
         response.send_content(200, page)
-
 
     def __extract_story_characters(self, history_items):
         """
@@ -320,7 +311,6 @@ class NodeComposerInstrument(cohorte.instruments.CommonHttp):
 
         # Make a sorted tuple out of this set
         return tuple(sorted(all_names))
-
 
     def __make_story_scenes(self, history, characters):
         """
@@ -341,7 +331,6 @@ class NodeComposerInstrument(cohorte.instruments.CommonHttp):
                 No need to scale X-axis values
                 """
                 return 1
-
         else:
             # Prepare a scaling method to have indices in [0,50]
             def scale(stamp):
@@ -360,7 +349,6 @@ class NodeComposerInstrument(cohorte.instruments.CommonHttp):
                                                       components, characters))
 
         return tuple(scenes)
-
 
     def __make_story_scene(self, idx, name, start,
                            live_characters, all_characters):
@@ -382,16 +370,12 @@ class NodeComposerInstrument(cohorte.instruments.CommonHttp):
             "chars": [all_characters[name] for name in live_characters],
         }
 
-
     def _send_isolates(self, response):
         """
         Sends a circle packing graph about isolates content
         """
-        # Prepare the distribution dictionary
-        distribution = {}
-
         # Root: node name
-        distribution['name'] = self._node_name
+        distribution = {'name': self._node_name}
 
         # Get the status history
         hist_scenes = self._history.items()
@@ -400,21 +384,18 @@ class NodeComposerInstrument(cohorte.instruments.CommonHttp):
             last_dist = hist_scenes[-1][1]
 
             distribution['children'] = [
-                {'name': isolate, 'children': [{'name': name, 'size': 100}
-                                               for name in components]
-                } for isolate, components in last_dist.items()
+                {'name': isolate,
+                 'children': [{'name': name, 'size': 100}
+                              for name in components]}
+                for isolate, components in last_dist.items()
             ]
-
-
 
         # Escape content: must be Javascript a string declaration
         json_distribution = json.dumps(distribution, indent=True)
         json_distribution = json_distribution.replace("'", "\\'") \
-                                             .replace("\n", " \\\n")
-
+            .replace("\n", " \\\n")
 
         # Generate the page content
         page = ISOLATES_PAGE.format(statics=self.get_statics_path(),
                                     json_distribution=json_distribution)
-
         response.send_content(200, page)

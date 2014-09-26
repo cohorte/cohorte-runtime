@@ -43,6 +43,7 @@ import os
 
 # ------------------------------------------------------------------------------
 
+
 @Property('_statics', 'html.statics.virtual', '_static')
 @Property('_real_statics', 'html.statics.physical', './_html_statics')
 class CommonHttp(object):
@@ -60,13 +61,11 @@ class CommonHttp(object):
         self._statics = None
         self._real_statics = None
 
-
     def set_servlet_path(self, path):
         """
         Sets the path to the instruments servlet
         """
         self._path = '/' + self.normalize_path(path)
-
 
     def normalize_path(self, path):
         """
@@ -77,13 +76,11 @@ class CommonHttp(object):
         """
         return '/'.join(part for part in path.split('/') if part)
 
-
     def get_statics_path(self):
         """
         Returns the path to the static files virtual folder
         """
         return '/'.join((self._path, self._statics))
-
 
     def page_not_found(self, response, message, redirect_path=None):
         """
@@ -102,7 +99,6 @@ class CommonHttp(object):
 
         response.send_content(404, self.make_page("Page not found", content))
 
-
     def redirect(self, response, sub_path="/", code=404):
         """
         Redirects the browser to the given sub-path of the servlet
@@ -113,12 +109,10 @@ class CommonHttp(object):
         """
         redirection = '/' + self.normalize_path("{0}/{1}".join(self._path,
                                                                sub_path))
-
         response.set_response(404)
         response.set_header("Location", redirection)
         response.end_headers()
         response.write("")
-
 
     def make_link(self, text, *parts):
         """
@@ -131,7 +125,6 @@ class CommonHttp(object):
         target = self.normalize_path('/'.join(str(part) for part in parts))
         return '<a href="{0}/{1}">{2}</a>'.format(self._path, target, text)
 
-
     def make_list(self, items, tag="ul"):
         """
         Prepare a list in HTML
@@ -140,10 +133,9 @@ class CommonHttp(object):
         :param tag: One of ul or ol
         :return: The list in HTML
         """
-        return "<{0}>\n{1}</{0}>"\
-            .format(tag, "".join("\t<li>{0}</li>\n" \
-                                 .format(str(item)) for item in items))
-
+        return "<{0}>\n{1}</{0}>" \
+            .format(tag, "".join("\t<li>{0}</li>\n".format(str(item))
+                                 for item in items))
 
     def make_page(self, title, body, head=None):
         """
@@ -165,7 +157,6 @@ class CommonHttp(object):
 </body>
 </html>
 """.format(title=title or "", body=body or "", head=head or "")
-
 
     def send_static(self, response, filename):
         """

@@ -36,12 +36,10 @@ import traceback
 
 # ------------------------------------------------------------------------------
 
-DEFAULT_DEBUG_PATH = '/debug'
-""" Default servlet path """
-
 _logger = logging.getLogger(__name__)
 
-# ------------------------------------------------------------------------------
+DEFAULT_DEBUG_PATH = '/debug'
+""" Default servlet path """
 
 CSS_STYLE = """
 body {
@@ -92,6 +90,7 @@ table tr td pre {
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory('cohorte-debug-servlet-factory')
 @Provides(pelix.http.HTTP_SERVLET)
 @Property('_path', pelix.http.HTTP_SERVLET_PATH, DEFAULT_DEBUG_PATH)
@@ -109,7 +108,6 @@ class DebugServlet(object):
         # Bundle context
         self._context = None
 
-
     def make_all(self, request):
         """
         Aggregates all content makers
@@ -118,9 +116,8 @@ class DebugServlet(object):
         :return: The aggregation of the result of all other make_* methods
         """
         # Get the list of makers
-        makers = [member for member in dir(self)
-                  if member.startswith('make') and member != 'make_all']
-        makers.sort()
+        makers = sorted(member for member in dir(self)
+                        if member.startswith('make') and member != 'make_all')
 
         lines = []
         errors = []
@@ -131,9 +128,8 @@ class DebugServlet(object):
                 content = maker(request)
                 if content:
                     lines.append(content)
-
             except Exception as ex:
-                errors.append('<li>Error calling {0}: {1}</li>' \
+                errors.append('<li>Error calling {0}: {1}</li>'
                               .format(maker_name, ex))
 
         if errors:
@@ -143,37 +139,31 @@ class DebugServlet(object):
 
         return '\n'.join(lines)
 
-
     def make_basic(self, request):
         """
         Prints basic isolate information
         """
-        lines = []
-        lines.append('<dl>')
-
+        lines = ['<dl>']
         for prop_var in sorted(dir(cohorte)):
             if prop_var.startswith('PROP'):
                 key = getattr(cohorte, prop_var)
-                lines.append('<dt>{0}</dt>\n<dd>{1}</dd>' \
+                lines.append('<dt>{0}</dt>\n<dd>{1}</dd>'
                              .format(key, self._context.get_property(key)))
-
         lines.append('</dl>')
 
-        return "<h2>Isolate informations</h2>\n{body}\n" \
+        return "<h2>Isolate information</h2>\n{body}\n" \
             .format(body='\n'.join(lines))
-
 
     def make_bundles(self, request):
         """
         Lists the bundles installed
         """
-        lines = []
-        lines.append('<table>')
-        lines.append('<tr>')
-        lines.append('<th>Bundle ID</th>')
-        lines.append('<th>Bundle Name</th>')
-        lines.append('<th>Bundle State</th>')
-        lines.append('</tr>')
+        lines = ['<table>',
+                 '<tr>',
+                 '<th>Bundle ID</th>',
+                 '<th>Bundle Name</th>',
+                 '<th>Bundle State</th>',
+                 '</tr>']
 
         states = {pelix.framework.Bundle.ACTIVE: 'ACTIVE',
                   pelix.framework.Bundle.INSTALLED: 'INSTALLED',
@@ -195,20 +185,18 @@ class DebugServlet(object):
         return "<h2>Pelix bundles</h2>\n{table}\n" \
             .format(table='\n'.join(lines))
 
-
     def make_services(self, request):
         """
         Lists the services registered
         """
-        lines = []
-        lines.append('<table>')
-        lines.append('<tr>')
-        lines.append('<th>Service ID</th>')
-        lines.append('<th>Service Ranking</th>')
-        lines.append('<th>Specifications</th>')
-        lines.append('<th>Bundle</th>')
-        lines.append('<th>Properties</th>')
-        lines.append('</tr>')
+        lines = ['<table>',
+                 '<tr>',
+                 '<th>Service ID</th>',
+                 '<th>Service Ranking</th>',
+                 '<th>Specifications</th>',
+                 '<th>Bundle</th>',
+                 '<th>Properties</th>',
+                 '</tr>']
 
         for svc_ref in self._context.get_all_service_references(None, None):
             # New line
@@ -222,8 +210,8 @@ class DebugServlet(object):
 
             # Bundle
             bundle = svc_ref.get_bundle()
-            lines.append('<td>{0} ({1})</td>'.format(bundle.get_symbolic_name(),
-                                                     bundle.get_bundle_id()))
+            lines.append('<td>{0} ({1})</td>'.format(
+                bundle.get_symbolic_name(), bundle.get_bundle_id()))
 
             # All properties
             lines.append('<td><dl>')
@@ -237,7 +225,6 @@ class DebugServlet(object):
         return "<h2>Pelix services</h2>\n{table}\n" \
             .format(table='\n'.join(lines))
 
-
     def make_threads(self, request):
         """
         Prepares the section about process threads
@@ -245,12 +232,11 @@ class DebugServlet(object):
         # Get the current thread ID
         current_id = threading.current_thread().ident
 
-        lines = []
-        lines.append('<table>')
-        lines.append('<tr>')
-        lines.append('<th>Thread ID</th>')
-        lines.append('<th>Thread Stack</th>')
-        lines.append('</tr>')
+        lines = ['<table>',
+                 '<tr>',
+                 '<th>Thread ID</th>',
+                 '<th>Thread Stack</th>',
+                 '</tr>']
 
         for thread_id, stack in sys._current_frames().items():
             # New line
@@ -287,7 +273,6 @@ class DebugServlet(object):
         lines.append('</table>')
         return "<h2>Threads</h2>\n{table}\n".format(table='\n'.join(lines))
 
-
     def do_GET(self, request, response):
         """
         Handles a GET request
@@ -304,12 +289,10 @@ class DebugServlet(object):
         # Make the body
         if not action:
             content = self.make_all(request)
-
         else:
             maker = getattr(self, 'make_' + action, None)
             if not maker:
                 content = self.make_all(request)
-
             else:
                 subtitle = " - {0}".format(action)
                 content = maker(request)
@@ -331,7 +314,6 @@ class DebugServlet(object):
         # Send the result
         response.send_content(200, page)
 
-
     @Validate
     def validate(self, context):
         """
@@ -342,7 +324,6 @@ class DebugServlet(object):
         # Store the framework access
         self._context = context
         _logger.info("Debug servlet Ready")
-
 
     @Invalidate
     def invalidate(self, context):

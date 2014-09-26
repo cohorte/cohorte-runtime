@@ -45,6 +45,7 @@ import pelix.http
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(pelix.http.HTTP_SERVLET)
 @RequiresMap('_instruments', cohorte.instruments.SERVICE_INSTRUMENT_UI,
@@ -69,7 +70,6 @@ class InstrumentsServlet(cohorte.instruments.CommonHttp):
         # Servlet path
         self._path = None
 
-
     @Validate
     def validate(self, context):
         """
@@ -86,14 +86,12 @@ class InstrumentsServlet(cohorte.instruments.CommonHttp):
             for instrument in self._instruments.values():
                 instrument.set_servlet_path(self._path)
 
-
     @BindField('_instruments', if_valid=True)
     def bind_instrument(self, field, instrument, reference):
         """
         A new instrument is bound
         """
         instrument.set_servlet_path(self._path)
-
 
     def do_GET(self, request, response):
         """
@@ -111,12 +109,10 @@ class InstrumentsServlet(cohorte.instruments.CommonHttp):
         if not parts:
             # Index only
             self.send_index(response)
-
         elif path.startswith('/' + self._statics):
             # Static file
             filename = path[len(self._statics) + 1:]
             self.send_static(response, filename)
-
         else:
             # Name of the instrument
             name = parts[0]
@@ -130,16 +126,13 @@ class InstrumentsServlet(cohorte.instruments.CommonHttp):
             try:
                 # Find the matching instrument
                 handler = self._instruments[name].handle_request
-
             except KeyError:
                 # Unknown instrument
                 self.page_not_found(response,
                                     "Unknown instrument: {0}".format(name))
-
             else:
                 # Use it
                 handler(base_path, sub_path, request, response)
-
 
     def send_index(self, response):
         """
