@@ -57,6 +57,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory("cohorte-shell-agent-commands-factory")
 @Requires('_directory', herald.SERVICE_DIRECTORY)
 @Requires('_herald', herald.SERVICE_HERALD)
@@ -82,13 +83,11 @@ class ShellAgentCommands(object):
         # Herald filter property
         self._filters = None
 
-
     def get_namespace(self):
         """
         Retrieves the name space of this command handler
         """
         return "shell"
-
 
     def get_methods(self):
         """
@@ -96,7 +95,6 @@ class ShellAgentCommands(object):
         """
         return [("pids", self.pids),
                 ("shells", self.shells)]
-
 
     def get_methods_names(self):
         """
@@ -286,7 +284,6 @@ class ShellAgentCommands(object):
                     name = "<unknown>"
 
                 io_handler.write_line("{0} - {1}", name, uid)
-
 
     def shells(self, io_handler, isolate=None, kind=None):
         """

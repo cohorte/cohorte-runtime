@@ -34,6 +34,7 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory("cohorte-forker-shell-commands-factory")
 @Requires("_directory", herald.SERVICE_DIRECTORY)
 @Requires("_forker", cohorte.SERVICE_FORKER)
@@ -51,13 +52,11 @@ class SignalsCommands(object):
         self._directory = None
         self._forker = None
 
-
     def get_namespace(self):
         """
         Retrieves the name space of this command handler
         """
         return "forker"
-
 
     def get_methods(self):
         """
@@ -66,7 +65,6 @@ class SignalsCommands(object):
         return [("stop", self.stop_isolate),
                 ("ping", self.ping)]
 
-
     def get_methods_names(self):
         """
         Retrieves the list of tuples (command, method name) for this command
@@ -74,7 +72,6 @@ class SignalsCommands(object):
         """
         return [(command, method.__name__)
                 for command, method in self.get_methods()]
-
 
     def __ping_to_str(self, ping_result):
         """
@@ -85,16 +82,12 @@ class SignalsCommands(object):
         """
         if ping_result == 0:
             return "ALIVE"
-
         elif ping_result == 1:
             return "DEAD"
-
         elif ping_result == 2:
             return "STUCK"
-
         else:
             return "<UNKNOWN:{0}>".format(ping_result)
-
 
     def ping(self, io_handler, isolate=None):
         """
@@ -109,7 +102,6 @@ class SignalsCommands(object):
                                       self.__ping_to_str(result))
         except KeyError as ex:
             io_handler.write_line("Error: {0}", ex)
-
 
     def stop_isolate(self, io_handler, isolate):
         """

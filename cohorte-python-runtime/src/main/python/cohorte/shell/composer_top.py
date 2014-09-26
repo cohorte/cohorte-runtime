@@ -52,6 +52,7 @@ import json
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Requires('_reader', cohorte.SERVICE_FILE_READER)
 @Requires('_parser', cohorte.composer.SERVICE_PARSER,
@@ -79,16 +80,13 @@ class TopComposerCommands(object):
         self._composer = None
         self._distributor = None
         self._status = None
-
         self.logger = logging.getLogger('shell-composer-top')
-
 
     def get_namespace(self):
         """
         Retrieves the name space of this command handler
         """
         return "top"
-
 
     def get_methods(self):
         """
@@ -99,7 +97,6 @@ class TopComposerCommands(object):
                 ('load', self.instantiate_composition),
                 ('dump', self.dump_status),
                 ('stop', self.stop_composition), ]
-
 
     def read_file(self, io_handler, filename="autorun_conf.js", base="conf"):
         """
@@ -112,7 +109,6 @@ class TopComposerCommands(object):
         io_handler.write_line("{0}", json.dumps(data, sort_keys=True,
                                                 indent='  ',
                                                 separators=(',', ': ')))
-
 
     def distribute_composition(self, io_handler,
                                filename="autorun_conf.js", base="conf"):
@@ -137,7 +133,6 @@ class TopComposerCommands(object):
         # Pretty print
         io_handler.write_line('{0}', pformat(distribution, indent=2))
 
-
     def instantiate_composition(self, io_handler,
                                 filename="autorun_conf.js", base="conf"):
         """
@@ -159,7 +154,6 @@ class TopComposerCommands(object):
         io_handler.write_line("Started composition: {0} -> {1}",
                               composition.name, uid)
 
-
     def stop_composition(self, io_handler, uid):
         """
         Kills the distribution with the given UID
@@ -171,10 +165,8 @@ class TopComposerCommands(object):
         try:
             self._composer.stop(uid)
             io_handler.write_line("Composition {0} should be stopped", uid)
-
         except KeyError:
             io_handler.write_line("Unknown composition: {0}", uid)
-
 
     def dump_status(self, io_handler, node=None):
         """
@@ -186,7 +178,6 @@ class TopComposerCommands(object):
 
         if not node:
             io_handler.write_line("{0}", self._status.dump())
-
         else:
             node_components = self._status.get_components_for_node(node)
             io_handler.write_line("{0}", pformat(node_components))
