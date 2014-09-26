@@ -40,9 +40,9 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
 @Requires("_forker", cohorte.SERVICE_FORKER)
 @Provides(SHELL_COMMAND_SPEC)
 @Instantiate("cohorte-forker-shell-commands")
-class SignalsCommands(object):
+class ForkerCommands(object):
     """
-    Signals shell commands
+    Forker shell commands
     """
     def __init__(self):
         """
