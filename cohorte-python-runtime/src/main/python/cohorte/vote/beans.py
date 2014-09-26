@@ -40,6 +40,7 @@ import operator
 
 # ------------------------------------------------------------------------------
 
+
 class NextRound(Exception):
     """
     A new round is necessary for this vote
@@ -81,6 +82,7 @@ class CoupdEtat(Exception):
 
 # ------------------------------------------------------------------------------
 
+
 class Ballot(object):
     """
     Represents a ballot in a vote
@@ -95,14 +97,12 @@ class Ballot(object):
         self.__for = []
         self.__against = []
 
-
     def lock(self):
         """
         Locks the ballot, so that it can't be modified anymore
         """
         self.__for = tuple(self.__for)
         self.__against = tuple(self.__against)
-
 
     def get_elector(self):
         """
@@ -112,20 +112,17 @@ class Ballot(object):
         """
         return self.__elector
 
-
     def get_for(self):
         """
         Returns the candidates the elector voted for
         """
         return tuple(self.__for)
 
-
     def get_against(self):
         """
         Returns the candidates the elector voted against (black vote)
         """
         return tuple(self.__against)
-
 
     def append_for(self, candidate):
         """
@@ -136,7 +133,6 @@ class Ballot(object):
         if candidate not in self.__against and candidate not in self.__for:
             self.__for.append(candidate)
 
-
     def append_against(self, candidate):
         """
         The elector votes against the given candidate
@@ -146,7 +142,6 @@ class Ballot(object):
         if candidate not in self.__against and candidate not in self.__for:
             self.__against.append(candidate)
 
-
     def set_for(self, candidates):
         """
         Sets the candidates the elector votes for at once
@@ -155,7 +150,6 @@ class Ballot(object):
         :param candidates: An iterable of candidates
         """
         self.__for = list(candidates)
-
 
     def set_against(self, candidates):
         """
@@ -175,17 +169,18 @@ class SecretBallot(Ballot):
         """
         Sets up members
 
-        :param elector: Unused optional parameter, to support Ballot constructor
-                        signature
+        :param elector: Unused optional parameter, to support Ballot
+        constructor signature
         """
         super(SecretBallot, self).__init__(None)
 
 # ------------------------------------------------------------------------------
 
+
 class VoteResults(object):
     """
-    Stores the content of a vote, i.e. what to draw. Filled by the vote core and
-    the vote engine.
+    Stores the content of a vote, i.e. what to draw. Filled by the vote core
+    and the vote engine.
     """
     def __init__(self, name, kind, candidates, electors,
                  subject=None, parameters=None):
@@ -211,7 +206,6 @@ class VoteResults(object):
         # Prepare the first round
         self.next_round()
 
-
     def __str__(self):
         """
         String representation
@@ -226,7 +220,6 @@ class VoteResults(object):
             text = "{0} (Coup d'État !)".format(text)
 
         return text
-
 
     def next_round(self, candidates=None):
         """
@@ -243,7 +236,6 @@ class VoteResults(object):
                       'results': {},
                       'extra': []}
         self.rounds.append(self.round)
-
 
     def set_ballots(self, ballots):
         """
@@ -265,7 +257,6 @@ class VoteResults(object):
             results[name] = {'for': ballot.get_for(),
                              'against': ballot.get_against()}
 
-
     def set_results(self, results):
         """
         Intermediate results computed by the vote engine: scoring has been
@@ -281,7 +272,6 @@ class VoteResults(object):
         self.round['results'] = tuple(results)
         return results
 
-
     def set_vote_results(self, results):
         """
         Final results of the vote as seen by the core service after the engine
@@ -295,7 +285,6 @@ class VoteResults(object):
         else:
             # List of results
             self.results = tuple(results)
-
 
     def add_extra(self, title, values, kind='bar'):
         """

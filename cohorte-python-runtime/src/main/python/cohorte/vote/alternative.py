@@ -55,6 +55,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.vote.SERVICE_VOTE_ENGINE)
 @Property('_kind', cohorte.vote.PROP_VOTE_KIND, 'alternative')
@@ -70,13 +71,11 @@ class AlternativeEngine(object):
         # Supported kind of vote
         self._kind = None
 
-
     def get_kind(self):
         """
         Returns supported kind of vote
         """
         return self._kind
-
 
     def get_options(self):
         """
@@ -85,7 +84,6 @@ class AlternativeEngine(object):
         :return: An option -> description dictionary
         """
         return {}
-
 
     def analyze(self, vote_round, ballots, candidates, parameters, vote_bean):
         """
@@ -128,11 +126,9 @@ class AlternativeEngine(object):
             if best_candidate[0] >= majority:
                 # Candidate elected
                 return best_candidate[1]
-
             elif best_candidate[0] == majority - 1:
                 # It's a tie: keep the first one in the sorted list
                 return best_candidate[1]
-
             else:
                 # Get the least successful candidate
                 min_candidate = plain_results[-1][1]
@@ -148,16 +144,13 @@ class AlternativeEngine(object):
                             # Get the next vote of the electors of
                             # the excluded one
                             candidate = ballot_for.popleft()
-
                         except IndexError:
                             # No more vote for this candidate
                             pass
-
                         else:
-                            candidates_ballots.setdefault(candidate, []) \
-                                                            .append(ballot_for)
+                            candidates_ballots.setdefault(candidate, [])\
+                                .append(ballot_for)
                             results[candidate] = results.get(candidate, 0) + 1
-
                 except KeyError:
                     # No ballot to transfer (no vote at all)
                     pass

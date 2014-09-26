@@ -56,9 +56,11 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 def _normalize(values):
     """
-    Normalizes the given list of values: it must only contain numbers or strings
+    Normalizes the given list of values: it must only contain numbers or
+    strings
     """
     return [value if isinstance(value, (numbers.Number, str)) else str(value)
             for value in values]
@@ -83,9 +85,10 @@ def make_html_list(items, tag="ul"):
     :param tag: One of ul or ol
     :return: The list in HTML
     """
-    return "<{0}>\n{1}</{0}>".format(tag, "".join("\t<li>{0}</li>\n" \
-                                                  .format(cgi.escape(str(item)))
-                                                  for item in items))
+    return "<{0}>\n{1}</{0}>".format(
+        tag, "".join("\t<li>{0}</li>\n".format(cgi.escape(str(item)))
+                     for item in items))
+
 
 def make_chart(*series, **kwargs):
     """
@@ -108,7 +111,6 @@ def make_chart(*series, **kwargs):
         if isinstance(serie, dict):
             # If the results are stored as a candidate -> score dictionary
             xdata, ydata = zip(*((key, serie[key]) for key in serie))
-
         else:
             # Rotate results list((score, candidate)
             # ==> list(candidate), list(scores)
@@ -142,6 +144,7 @@ def make_chart(*series, **kwargs):
 
 # ------------------------------------------------------------------------------
 
+
 def count_ballots(ballots):
     """
     Counts the "for" and "against" ballots
@@ -169,6 +172,7 @@ def count_ballots(ballots):
     return results_for, results_against, tuple(sorted(blanks))
 
 # ------------------------------------------------------------------------------
+
 
 @ComponentFactory()
 @Provides(cohorte.vote.SERVICE_VOTE_CARTOONIST)
@@ -207,7 +211,7 @@ class Cartoonist(object):
             # Add the ballots chart
             html = append_code(html, "<h4>Ballots</h4>")
             ballots_for, ballots_against, blanks = \
-                                            count_ballots(round_data['ballots'])
+                count_ballots(round_data['ballots'])
             html = append_code(html, make_chart(ballots_for, ballots_against,
                                                 required=candidates))
 
@@ -227,13 +231,10 @@ class Cartoonist(object):
                 html = append_code(html, make_chart(extra['values']))
 
         # Print the result
-        html = append_code(html, "<h4>Results:</h4>\n{0}",
-                           make_html_list((str(result)
-                                           for result in content.results),
-                                          "ol"))
-
+        html = append_code(
+            html, "<h4>Results:</h4>\n{0}",
+            make_html_list((str(result) for result in content.results), "ol"))
         return html
-
 
     def make_page_html(self, votes, title="Vote results",
                        statics="./bower_components"):
@@ -245,12 +246,14 @@ class Cartoonist(object):
         :param statics: Relative path to static files (containing d3 and nvd3)
         :return: An HTML page
         """
-        html_content = "\n\n".join(self.make_chart_html(vote) for vote in votes)
+        html_content = "\n\n".join(self.make_chart_html(vote)
+                                   for vote in votes)
 
         return """<!DOCTYPE html>
 <html lang="en">
 <head>
-<link media="all" href="{statics}/nvd3/src/nv.d3.css" type="text/css" rel="stylesheet" />
+<link media="all" href="{statics}/nvd3/src/nv.d3.css" type="text/css"
+    rel="stylesheet" />
 <script src="{statics}/d3.min.js" type="text/javascript"></script>
 <script src="{statics}/nv.d3.min.js" type="text/javascript"></script>
 <title>{title}</title>

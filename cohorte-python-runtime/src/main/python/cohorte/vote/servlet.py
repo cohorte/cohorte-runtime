@@ -53,6 +53,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.vote.SERVICE_VOTE_STORE)
 @Provides(pelix.http.HTTP_SERVLET)
@@ -82,7 +83,6 @@ class VoteChartServlet(object):
         # Store all vote results
         self._all_votes = []
 
-
     @Invalidate
     def invalidate(self, context):
         """
@@ -90,7 +90,6 @@ class VoteChartServlet(object):
         """
         # Clean up
         del self._all_votes[:]
-
 
     def store_vote(self, vote):
         """
@@ -100,17 +99,14 @@ class VoteChartServlet(object):
         """
         self._all_votes.append(vote)
 
-
     def do_GET(self, request, response):
         """
         Handle requests
         """
         path = request.get_path()
-
         if path == self._path:
             # Root: print an index page
             return self.send_index(response)
-
         else:
             # Remove the servlet path
             path = path[len(self._path):]
@@ -122,22 +118,19 @@ class VoteChartServlet(object):
             if not parts:
                 # Index only
                 return self.send_index(response)
-
             elif path.startswith(self._statics):
                 # Static file
                 filename = path[len(self._statics):]
                 return self.send_static(response, filename)
-
             elif parts[-1] == 'all':
                 # Print all charts in a single page
                 return self.send_all(response)
-
             elif parts[-2] == 'chart':
                 # Print the given chart
                 vote = self._all_votes[int(parts[-1])]
                 # Let the cartoonist make the chart
-                page = self._cartoonist.make_page_html([vote], vote.name,
-                                                       self._get_statics_path())
+                page = self._cartoonist.make_page_html(
+                    [vote], vote.name, self._get_statics_path())
 
                 # Send it
                 return response.send_content(200, page)
@@ -145,13 +138,11 @@ class VoteChartServlet(object):
         # Unknown path: redirect to the index
         self._redirect_to_index(response)
 
-
     def _get_statics_path(self):
         """
         Returns the path to the static files virtual folder
         """
         return '/'.join((self._path, self._statics))
-
 
     def _redirect_to_index(self, response, code=404):
         """
@@ -162,14 +153,12 @@ class VoteChartServlet(object):
         response.end_headers()
         response.write("")
 
-
     def __make_link(self, text, *parts):
         """
         Prepares a link
         """
         return '<a href="{0}/{1}">{2}</a>' \
             .format(self._path, '/'.join(str(part) for part in parts), text)
-
 
     def __make_page(self, title, body):
         """
@@ -178,7 +167,8 @@ class VoteChartServlet(object):
         return """<!DOCTYPE html>
 <html lang="en">
 <head>
-<link media="all" href="{statics}/nv.d3.css" type="text/css" rel="stylesheet" />
+<link media="all" href="{statics}/nv.d3.css" type="text/css"
+    rel="stylesheet" />
 <script src="{statics}/d3.min.js" type="text/javascript"></script>
 <script src="{statics}/nv.d3.min.js" type="text/javascript"></script>
 <title>{title}</title>
@@ -190,7 +180,6 @@ class VoteChartServlet(object):
 </html>
 """.format(title=title, body=body, statics=self._get_statics_path())
 
-
     def send_all(self, response):
         """
         Sends a page containing all charts
@@ -201,7 +190,6 @@ class VoteChartServlet(object):
         # Send the page
         page = self.__make_page("All votes", body)
         response.send_content(200, page)
-
 
     def send_index(self, response):
         """
@@ -222,7 +210,6 @@ class VoteChartServlet(object):
         # Send the page
         response.send_content(200, self.__make_page("Cohorte Vote System",
                                                     body))
-
 
     def send_static(self, response, filename):
         """

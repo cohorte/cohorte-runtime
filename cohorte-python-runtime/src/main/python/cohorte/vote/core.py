@@ -52,6 +52,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.vote.SERVICE_VOTE_CORE)
 @Requires('_store', cohorte.vote.SERVICE_VOTE_STORE)
@@ -75,13 +76,11 @@ class VoteCore(object):
         # Votes counter
         self._nb_votes = 0
 
-
     def get_kinds(self):
         """
         Returns the list of supported kinds of vote
         """
         return [engine.get_kind() for engine in self._engines]
-
 
     def vote(self, electors, candidates, subject=None, name=None,
              kind=None, parameters=None):
@@ -106,7 +105,6 @@ class VoteCore(object):
             # Use the first engine
             engine = self._engines[0]
             kind = engine.get_kind()
-
         else:
             # Engine given
             for engine in self._engines:

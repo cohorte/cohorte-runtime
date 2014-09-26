@@ -53,6 +53,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.vote.SERVICE_VOTE_ENGINE)
 @Property('_kind', cohorte.vote.PROP_VOTE_KIND, 'approbation')
@@ -68,13 +69,11 @@ class ApprobationEngine(object):
         # Supported kind of vote
         self._kind = None
 
-
     def get_kind(self):
         """
         Returns supported kind of vote
         """
         return self._kind
-
 
     def get_options(self):
         """
@@ -89,7 +88,6 @@ class ApprobationEngine(object):
                            "Default: 0",
                 "exclusion": "Number of votes against a candidate before his "
                              "exclusion. Default: 0 (inactive)"}
-
 
     def analyze(self, vote_round, ballots, candidates, parameters, vote_bean):
         """
@@ -132,15 +130,15 @@ class ApprobationEngine(object):
                     candidate_penalties = results.get(candidate, 0) + 1
                     nb_penalties[candidate] = candidate_penalties
 
-                    if candidate_penalties > penalty_exclusion \
-                    and penalty_exclusion > 0:
+                    if candidate_penalties > penalty_exclusion > 0:
                         # Candidate is excluded !
                         excluded.append(candidate)
                         results[candidate] = exclusion_value
 
                     # Add the penalty to the votes
                     if penalty > 0:
-                        results[candidate] = results.get(candidate, 0) - penalty
+                        results[candidate] = \
+                            results.get(candidate, 0) - penalty
 
         # Store the results, as it makes a sorted list of tuples:
         # (votes, candidate)

@@ -55,6 +55,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.vote.SERVICE_VOTE_ENGINE)
 @Property('_kind', cohorte.vote.PROP_VOTE_KIND, 'presidentielle')
@@ -70,13 +71,11 @@ class PresidentielleFrEngine(object):
         # Supported kind of vote
         self._kind = None
 
-
     def get_kind(self):
         """
         Returns supported kind of vote
         """
         return self._kind
-
 
     def get_options(self):
         """
@@ -85,7 +84,6 @@ class PresidentielleFrEngine(object):
         :return: An option -> description dictionary
         """
         return {}
-
 
     def analyze(self, vote_round, ballots, candidates, parameters, vote_bean):
         """
@@ -107,7 +105,6 @@ class PresidentielleFrEngine(object):
                     # In this kind of election, we can't have additional
                     # candidates
                     results[candidate] = results.get(candidate, 0) + 1
-
             except IndexError:
                 # Blank vote
                 continue
@@ -122,7 +119,6 @@ class PresidentielleFrEngine(object):
         if results[0][0] >= majority:
             # We have a winner
             return results[0][1]
-
         else:
             # We need a new round, with the two best candidates
             raise beans.NextRound(result[1] for result in results[:2])
