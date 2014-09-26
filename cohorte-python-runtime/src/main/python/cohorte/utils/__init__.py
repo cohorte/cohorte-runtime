@@ -25,6 +25,7 @@ import os
 
 # ------------------------------------------------------------------------------
 
+
 def get_os_utils():
     """
     Retrieves an a utility class instance, according to the host operating
@@ -37,19 +38,19 @@ def get_os_utils():
         # Do not use the __import__ statement, as it would return the package,
         # not the module
         module = importlib.import_module(module_name)
-
     except ImportError as ex:
-        raise ImportError("Can't import Utilities for OS : %s (%s) - %s" \
+        raise ImportError("Can't import Utilities for OS : %s (%s) - %s"
                           % (os.name, module_name, str(ex)))
 
     utils = getattr(module, "OSUtils", None)
     if not utils:
-        raise ImportError("No OS utilities implementation found for %s (%s)" \
+        raise ImportError("No OS utilities implementation found for %s (%s)"
                           % (os.name, module_name))
 
     return utils()
 
 # ------------------------------------------------------------------------------
+
 
 def find_file_recursive(file_name, root_directory):
     """
@@ -88,6 +89,7 @@ def find_in_path(file_name):
         if is_file(file_path):
             return file_path
 
+
 def is_dir(path):
     """
     Tests if the given path points to a directory or to a link to a directory
@@ -109,6 +111,7 @@ def is_file(path):
 
 # ------------------------------------------------------------------------------
 
+
 def remove_quotes(path):
     """
     Removes the quotes surrounding the given string, if any
@@ -127,6 +130,7 @@ def remove_quotes(path):
 
 # ------------------------------------------------------------------------------
 
+
 class TimeoutExpired(Exception):
     """
     Exception thrown when a time out expired
@@ -142,6 +146,7 @@ class TimeoutExpired(Exception):
 
 # ------------------------------------------------------------------------------
 
+
 class BaseOSUtils(object):
     """
     Abstract OS-specific utility class
@@ -154,7 +159,6 @@ class BaseOSUtils(object):
         self.home = os.getenv(cohorte.ENV_HOME, os.getcwd())
         self.base = os.getenv(cohorte.ENV_BASE, self.home)
 
-
     def find_bundle_file(self, bundle_name):
         """
         Search for the given file in PSEM2M local repositories
@@ -164,7 +168,6 @@ class BaseOSUtils(object):
         """
         return self.find_file(bundle_name, "repo")
 
-
     def find_conf_file(self, file_name):
         """
         Search for the given file in PSEM2M configuration directories
@@ -173,7 +176,6 @@ class BaseOSUtils(object):
         :return: The first found file in a conf directory
         """
         return self.find_file(file_name, "conf")
-
 
     def find_file(self, file_name, *sub_dirs):
         """
@@ -190,15 +192,13 @@ class BaseOSUtils(object):
         for prefix in (self.base, self.home, os.getcwd()):
             # Compute the absolute file path
             for sub_dir in sub_dirs:
-                found_file = find_file_recursive(file_name, \
-                                                 os.path.join(prefix, sub_dir))
-
-                if found_file != None:
+                found_file = find_file_recursive(
+                    file_name, os.path.join(prefix, sub_dir))
+                if found_file is not None:
                     # Found
                     return found_file
 
         return None
-
 
     def find_java_interpreter(self, java_home):
         """
@@ -207,8 +207,8 @@ class BaseOSUtils(object):
         :param java_home: The preferred Java home
         :return: The path to the first Java interpreter found, or None
         """
-        raise NotImplementedError("This method must implemented by child class")
-
+        raise NotImplementedError(
+            "This method must implemented by child class")
 
     def find_python2_interpreter(self):
         """
@@ -216,8 +216,8 @@ class BaseOSUtils(object):
 
         :return: The path to the first Python 2 interpreter found, or None
         """
-        raise NotImplementedError("This method must implemented by child class")
-
+        raise NotImplementedError(
+            "This method must implemented by child class")
 
     def find_python3_interpreter(self):
         """
@@ -225,8 +225,8 @@ class BaseOSUtils(object):
 
         :return: The path to the first Python 3 interpreter found, or None
         """
-        raise NotImplementedError("This method must implemented by child class")
-
+        raise NotImplementedError(
+            "This method must implemented by child class")
 
     def read_framework_file(self, file_name):
         """

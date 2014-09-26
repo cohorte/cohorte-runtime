@@ -24,6 +24,7 @@ import time
 
 # ------------------------------------------------------------------------------
 
+
 class OSUtils(utils.BaseOSUtils):
     """
     Utility class implementation for POSIX
@@ -37,18 +38,17 @@ class OSUtils(utils.BaseOSUtils):
         """
         # Case 1 : Try "preferred" JVM (embedded one)
         java = self._test_java_path(java_home)
-        if java != None:
+        if java is not None:
             return java
 
         # Case 2 : Try with JAVA_HOME environment variable
         java_home = os.getenv(cohorte.ENV_JAVA_HOME)
         java = self._test_java_path(java_home)
-        if java != None:
+        if java is not None:
             return java
 
         # Case 3 : Try with all with PATH
         return utils.find_in_path("java")
-
 
     def find_python2_interpreter(self):
         """
@@ -76,7 +76,6 @@ class OSUtils(utils.BaseOSUtils):
         # Not found
         return None
 
-
     def find_python3_interpreter(self):
         """
         Finds a Python 3 interpreter
@@ -103,7 +102,6 @@ class OSUtils(utils.BaseOSUtils):
         # Not found
         return None
 
-
     def is_process_running(self, pid):
         """
         Tests if the given process is running
@@ -117,14 +115,11 @@ class OSUtils(utils.BaseOSUtils):
 
         try:
             os.kill(pid, 0)
-
         except OSError as ex:
             return ex.errno == errno.EPERM
-
         else:
             # No exception
             return True
-
 
     def kill_pid(self, pid):
         """
@@ -138,7 +133,6 @@ class OSUtils(utils.BaseOSUtils):
             raise ValueError("Invalid PID: %d" % pid)
 
         os.kill(pid, signal.SIGKILL)
-
 
     def wait_pid(self, pid, timeout=None):
         """
@@ -181,7 +175,6 @@ class OSUtils(utils.BaseOSUtils):
         while 1:
             try:
                 retpid, status = waitcall()
-
             except OSError as err:
                 if err.errno == errno.EINTR:
                     delay = check_timeout(delay)
@@ -216,7 +209,6 @@ class OSUtils(utils.BaseOSUtils):
                 else:
                     # should never happen
                     raise RuntimeError("Unknown process exit status")
-
 
     def _test_java_path(self, java_home):
         """

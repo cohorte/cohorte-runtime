@@ -61,13 +61,13 @@ WAIT_FAILED = 0xFFFFFFFF
 
 # ------------------------------------------------------------------------------
 
+
 def get_registry_java_home():
     """
     Retrieves the value of the JavaHome registry key
     """
     jre_keys = (r"SOFTWARE\JavaSoft\Java Runtime Environment",
                 r"SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment")
-
     for jre_key_name in jre_keys:
         try:
             jre_key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, jre_key_name)
@@ -83,7 +83,7 @@ def get_registry_java_home():
 
             # Get its JavaHome
             current_jre_key_name = jre_key_name + "\\" + value[0]
-            jre_key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, \
+            jre_key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
                                      current_jre_key_name)
 
             value = winreg.QueryValueEx(jre_key, "JavaHome")
@@ -93,7 +93,6 @@ def get_registry_java_home():
 
             # Value found
             return utils.remove_quotes(value[0])
-
         except WindowsError as ex:
             _logger.warning("Java path lookup error in the registry: %s (%s)",
                             ex, jre_key_name)
@@ -115,24 +114,23 @@ class OSUtils(utils.BaseOSUtils):
         # Case 1 : Try "preferred" JVM (embedded one)
         java_home = utils.remove_quotes(java_home)
         java = self._test_java_path(java_home)
-        if java != None:
+        if java is not None:
             return java
 
         # Case 2 : Use registry
         java_home = get_registry_java_home()
         java = self._test_java_path(java_home)
-        if java != None:
+        if java is not None:
             return java
 
         # Case 3 : Try with JAVA_HOME environment variable
         java_home = utils.remove_quotes(os.getenv(cohorte.ENV_JAVA_HOME))
         java = self._test_java_path(java_home)
-        if java != None:
+        if java is not None:
             return java
 
         # Case 4 : Try with all with PATH
         return utils.find_in_path("java.exe")
-
 
     def find_python2_interpreter(self):
         """
@@ -156,7 +154,6 @@ class OSUtils(utils.BaseOSUtils):
         # Try in the path
         return utils.find_in_path("python3.exe")
 
-
     def find_python3_interpreter(self):
         """
         Finds a Python 3 interpreter
@@ -179,7 +176,6 @@ class OSUtils(utils.BaseOSUtils):
         # Try in the path
         return utils.find_in_path("python.exe")
 
-
     def is_process_running(self, pid):
         """
         Tests if the given process is running
@@ -193,8 +189,8 @@ class OSUtils(utils.BaseOSUtils):
 
         try:
             # Windows loves handles
-            handle = win32api.OpenProcess(PROCESS_QUERY_INFORMATION, False, pid)
-
+            handle = win32api.OpenProcess(PROCESS_QUERY_INFORMATION,
+                                          False, pid)
         except pywintypes.error as ex:
             # PID not in the system anymore
             if ex.winerror == ERROR_INVALID_PARAMETER:
@@ -216,7 +212,6 @@ class OSUtils(utils.BaseOSUtils):
         # Return real state
         return exit_code == STILL_ACTIVE
 
-
     def kill_pid(self, pid):
         """
         Kills the given PID, if possible
@@ -232,7 +227,6 @@ class OSUtils(utils.BaseOSUtils):
         try:
             handle = win32api.OpenProcess(PROCESS_TERMINATE, False, pid)
             win32api.TerminateProcess(handle, -1)
-
         except pywintypes.error as ex:
             # PID not in the system anymore
             if ex.winerror == ERROR_INVALID_PARAMETER:
@@ -240,12 +234,9 @@ class OSUtils(utils.BaseOSUtils):
 
             # Other kind of exception
             raise ex
-
         finally:
             if handle is not None:
                 win32api.CloseHandle(handle)
-
-
 
     def wait_pid(self, pid, timeout=None):
         """
@@ -274,7 +265,6 @@ class OSUtils(utils.BaseOSUtils):
             # Windows loves handles
             handle = win32api.OpenProcess(
                 SYNCHRONIZE | PROCESS_QUERY_INFORMATION, False, pid)
-
         except pywintypes.error as ex:
             # PID not in the system anymore
             if ex.winerror == ERROR_INVALID_PARAMETER:
@@ -290,7 +280,6 @@ class OSUtils(utils.BaseOSUtils):
         if timeout is None:
             # There is no "None" on Windows
             timeout = INFINITE
-
         else:
             # Convert to an integer in milliseconds
             timeout = int(timeout * 1000)
@@ -302,11 +291,9 @@ class OSUtils(utils.BaseOSUtils):
                 raise utils.TimeoutExpired(pid)
 
             return win32process.GetExitCodeProcess(handle)
-
         finally:
             # Always clean up
             win32api.CloseHandle(handle)
-
 
     def _test_java_path(self, java_home):
         """

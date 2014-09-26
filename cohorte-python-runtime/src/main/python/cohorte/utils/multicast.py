@@ -50,6 +50,10 @@ if os.name == "nt":
 
             # Prepare structure
             class sockaddr_in6(ctypes.Structure):
+                """
+                Definition of the C structure sockaddr_in6
+                """
+                # pylint: disable=C0103
                 _fields_ = [("sin6_family", ctypes.c_short),
                             ("sin6_port", ctypes.c_ushort),
                             ("sin6_flowinfo", ctypes.c_ulong),
@@ -91,6 +95,7 @@ else:
 
 # ------------------------------------------------------------------------------
 
+
 def make_mreq(family, address):
     """
     Makes a mreq structure object for the given address and socket family.
@@ -128,6 +133,7 @@ def make_mreq(family, address):
 
 # ------------------------------------------------------------------------------
 
+
 def create_multicast_socket(address, port, join=True):
     """
     Creates a multicast socket according to the given address and port.
@@ -145,7 +151,7 @@ def create_multicast_socket(address, port, join=True):
         addrs_info = socket.getaddrinfo(address, port, socket.AF_UNSPEC,
                                         socket.SOCK_DGRAM)
     except socket.gaierror:
-        raise ValueError("Error retrieving address informations ({0}, {1})" \
+        raise ValueError("Error retrieving address information ({0}, {1})"
                          .format(address, port))
 
     if len(addrs_info) > 1:
@@ -202,7 +208,7 @@ def create_multicast_socket(address, port, join=True):
             # Allow multicast packets to get back on this host
             sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, 1)
 
-    return (sock, addr_info[4][0])
+    return sock, addr_info[4][0]
 
 
 def close_multicast_socket(sock, address):

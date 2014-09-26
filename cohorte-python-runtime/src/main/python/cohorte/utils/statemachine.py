@@ -20,6 +20,7 @@ import logging
 
 # ------------------------------------------------------------------------------
 
+
 class State(object):
     """
     Represents a state
@@ -38,13 +39,11 @@ class State(object):
         self.__callback = callback
         self.__transitions = {}
 
-
     def __str__(self):
         """
         Description of the state
         """
         return "{{{0}}}".format(self.__name)
-
 
     @property
     def data(self):
@@ -53,14 +52,12 @@ class State(object):
         """
         return self.__data
 
-
     @property
     def name(self):
         """
         Returns the name of the state
         """
         return self.__name
-
 
     def copy(self):
         """
@@ -73,22 +70,21 @@ class State(object):
         state.__transitions = self.__transitions.copy()
         return state
 
-
     def add_transition(self, transition):
         """
         Adds a transition: if the event if encountered, then the state
-        is changed to new_state and callback(state, event, new_state) is called.
+        is changed to new_state and callback(state, event, new_state) is
+        called.
 
         :param transition: A Transition object
         :raise KeyError: The transition has already been defined
         """
         event = transition.event
         if event in self.__transitions:
-            raise KeyError("Already known transition: ({0}, {1})" \
+            raise KeyError("Already known transition: ({0}, {1})"
                            .format(self.__name, event))
 
         self.__transitions[event] = transition
-
 
     def get_transition(self, event):
         """
@@ -98,7 +94,6 @@ class State(object):
         :return: The transition for the event, or None
         """
         return self.__transitions.get(event)
-
 
     def notify(self):
         """
@@ -128,13 +123,11 @@ class Transition(object):
         self.__next = new_state
         self.__callback = callback
 
-
     def __str__(self):
         """
         Description of the transition
         """
         return "({0}, {1}) -> {2}".format(self.state, self.event, self.next)
-
 
     @property
     def event(self):
@@ -143,7 +136,6 @@ class Transition(object):
         """
         return self.__event
 
-
     @property
     def state(self):
         """
@@ -151,14 +143,12 @@ class Transition(object):
         """
         return self.__state
 
-
     @property
     def next(self):
         """
         New state after transition
         """
         return self.__next
-
 
     def notify(self):
         """
@@ -170,6 +160,7 @@ class Transition(object):
             self.__callback(self.__state, self.__event, self.__next)
 
 # ------------------------------------------------------------------------------
+
 
 class StateMachine(object):
     """
@@ -196,13 +187,11 @@ class StateMachine(object):
         # Prepare the logger
         self._logger = logging.getLogger(self.__name)
 
-
     def __str__(self):
         """
         Description of the state machine
         """
         return "{0}({1})".format(self.__name, self.__state)
-
 
     @property
     def data(self):
@@ -211,14 +200,12 @@ class StateMachine(object):
         """
         return self.__data
 
-
     @property
     def name(self):
         """
         The name of the FSM or 'FSM'
         """
         return self.__name
-
 
     @property
     def state(self):
@@ -227,7 +214,6 @@ class StateMachine(object):
         """
         if self.__state is not None:
             return self.__state.name
-
 
     def copy(self, name=None, data=None):
         """
@@ -245,7 +231,6 @@ class StateMachine(object):
         # Make a copy of the state
         fsm.__states = [state.copy() for state in fsm.__states]
         return fsm
-
 
     def add_state(self, name, data=None, callback=None):
         """
@@ -266,11 +251,11 @@ class StateMachine(object):
         # Store the state object
         self.__states[name] = State(name, data, callback)
 
-
     def add_transition(self, state, event, new_state, callback=None):
         """
         Adds a transition: if the (state, event) if matched, then the state
-        is changed to new_state and callback(state, event, new_state) is called.
+        is changed to new_state and callback(state, event, new_state) is
+        called.
 
         :param state: Original state
         :param event: Transition event
@@ -284,7 +269,6 @@ class StateMachine(object):
             # Get the states
             state = self.__states[state]
             new_state = self.__states[new_state]
-
         except KeyError as ex:
             # Convert the exception
             raise ValueError(ex)
@@ -294,7 +278,6 @@ class StateMachine(object):
 
         # Register it
         state.add_transition(transition)
-
 
     def set_start(self, name):
         """
@@ -306,7 +289,7 @@ class StateMachine(object):
         :raise ValueError: Unknown state
         """
         if self.__state is not None:
-            raise KeyError("Current state already set to {0}" \
+            raise KeyError("Current state already set to {0}"
                            .format(self.__state))
 
         if name not in self.__states:
@@ -315,7 +298,6 @@ class StateMachine(object):
         # Change the state and notify the change
         self.__state = self.__states[name]
         self.__state.notify()
-
 
     def handle(self, event):
         """
@@ -332,13 +314,12 @@ class StateMachine(object):
         # Find the transition
         transition = self.__state.get_transition(event)
         if transition is None:
-            raise ValueError("No transition for ({0}, {1})" \
+            raise ValueError("No transition for ({0}, {1})"
                              .format(self.__state, event))
 
         # Call the transition callback before changing state
         try:
             transition.notify()
-
         except Exception as ex:
             self._logger.exception("Error calling the transition callback: %s",
                                    ex)
@@ -349,7 +330,6 @@ class StateMachine(object):
         # Call the state callback
         try:
             self.__state.notify()
-
         except Exception as ex:
             self._logger.exception("Error calling the state callback: %s", ex)
 

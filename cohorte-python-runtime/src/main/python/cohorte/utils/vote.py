@@ -46,6 +46,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 class CoupdEtat(Exception):
     """
     Election result is forced
@@ -90,6 +91,7 @@ class NextTurn(Exception):
 
 # ------------------------------------------------------------------------------
 
+
 @functools.total_ordering
 class _Vote(object):
     """
@@ -104,20 +106,17 @@ class _Vote(object):
         self.__candidate = candidate
         self.__votes = 0
 
-
     def __hash__(self):
         """
         Vote hash is the one if the candidate
         """
         return hash(self.__candidate)
 
-
     def __eq__(self, other):
         """
         Equality based on the candidate
         """
         return self.__candidate == other.__candidate
-
 
     def __str__(self):
         """
@@ -126,7 +125,6 @@ class _Vote(object):
         return '{0:s} ({1:d} votes)'.format(self.__candidate, self.__votes)
 
     __repr__ = __str__
-
 
     def __lt__(self, other):
         """
@@ -137,14 +135,12 @@ class _Vote(object):
 
         return self.__votes < other.__votes
 
-
     @property
     def candidate(self):
         """
         The candidate associated to the vote
         """
         return self.__candidate
-
 
     @property
     def votes(self):
@@ -153,13 +149,11 @@ class _Vote(object):
         """
         return self.__votes
 
-
     def reset(self):
         """
         Resets the number of votes
         """
         self.__votes = 0
-
 
     def vote(self):
         """
@@ -168,6 +162,7 @@ class _Vote(object):
         self.__votes += 1
 
 # ------------------------------------------------------------------------------
+
 
 class MatchVote(object):
     """
@@ -180,7 +175,6 @@ class MatchVote(object):
         :param electors: Electors for this vote
         """
         self._electors = frozenset(electors)
-
 
     def _compute_majority(self, votes, default=None):
         """
@@ -210,6 +204,7 @@ class MatchVote(object):
 
         # Threshold to go on next turn: > 10% of voters
         threshold = (nb_voters / 10) + 1
+
         def predicate(result):
             """
             Predicate to filter candidates according to their results
@@ -221,7 +216,6 @@ class MatchVote(object):
                       for result in itertools.takewhile(predicate, results)}
 
         raise NextTurn(candidates)
-
 
     def _compute_results(self, votes, default=None):
         """
@@ -235,16 +229,13 @@ class MatchVote(object):
         if not votes:
             # No one elected: force a new isolate
             return default
-
         elif len(votes) == 1:
             # Only 1 of the candidates has been retained
             _logger.critical("Only 1 of the candidates has been retained")
             return next(iter(votes)).candidate
-
         else:
             # Compute isolates with majority or raises a NextTurn exception
             return self._compute_majority(votes)
-
 
     def vote(self, subject, initial_candidates, default=None, max_turns=3):
         """
@@ -257,8 +248,8 @@ class MatchVote(object):
         :return: The elected candidate
         """
         # Candidate −> Votes
-        candidates = tuple(_Vote(candidate) for candidate in initial_candidates)
-
+        candidates = tuple(_Vote(candidate)
+                           for candidate in initial_candidates)
         try:
             for _ in range(max_turns):
                 try:
@@ -269,7 +260,6 @@ class MatchVote(object):
                     # Get the results
                     elected = self._compute_results(candidates, default)
                     break
-
                 except NextTurn as ex:
                     # Still not decided
                     candidates = tuple(_Vote(candidate)

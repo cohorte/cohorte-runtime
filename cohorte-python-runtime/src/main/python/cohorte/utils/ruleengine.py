@@ -29,6 +29,7 @@ import re
 
 # ------------------------------------------------------------------------------
 
+
 class RuleEngine(Intellect):
     """
     Extension of the Intellect rule engine
@@ -46,7 +47,6 @@ class RuleEngine(Intellect):
         # Dispatched methods (Name -> Method)
         self._dispatch = {}
 
-
     def __check_name(self, name):
         """
         Checks if the given name is a valid Python identifier
@@ -60,7 +60,6 @@ class RuleEngine(Intellect):
 
         # Match the name token
         return re.match(r'^[a-z_][a-z0-9_]*$', name, re.I) is not None
-
 
     def add_callable(self, method, name=None):
         """
@@ -78,7 +77,6 @@ class RuleEngine(Intellect):
         if not name:
             # Compute the name of method
             name = method.__name__
-
         elif not self.__check_name(name):
             # The name can't be a Python identifier
             raise ValueError("Invalid method name: {0}".format(name))
@@ -91,7 +89,6 @@ class RuleEngine(Intellect):
         self._dispatch[name] = Callable(method)
         return name
 
-
     def remove_callable(self, name):
         """
         Removes the method with the given name
@@ -101,14 +98,12 @@ class RuleEngine(Intellect):
         """
         del self._dispatch[name]
 
-
     def clear(self):
         """
         Clears rule engine knowledge, policies and the dispatch dictionary
         """
         self._dispatch.clear()
         self.forget_all()
-
 
     def __getattr__(self, item):
         """
@@ -121,7 +116,6 @@ class RuleEngine(Intellect):
         try:
             # Get the item
             return self._dispatch[item]
-
         except KeyError:
             # Item not found
             raise AttributeError("Unknown attribute: {0}".format(item))
