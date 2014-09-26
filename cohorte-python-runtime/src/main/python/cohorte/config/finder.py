@@ -152,7 +152,16 @@ class FileFinder(object):
                 # Keep relative paths, as they can be platform-relative
                 base_dirs.add(base_file)
 
+            # Remove the platform parts (home or base)
+            filtered_dirs = set()
             for base_dir in base_dirs:
+                local_dir = self._extract_platform_path(base_dir)
+                if local_dir is not None:
+                    filtered_dirs.add(local_dir)
+                else:
+                    filtered_dirs.add(base_dir)
+
+            for base_dir in filtered_dirs:
                 # Try the base directory directly (as a relative directory)
                 path = os.path.join(base_dir, filename)
                 for found_file in self._internal_find(path):
