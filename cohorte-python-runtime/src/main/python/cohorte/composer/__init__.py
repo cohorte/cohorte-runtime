@@ -35,8 +35,7 @@ SERVICE_COMPOSER_TOP = 'cohorte.composer.top'
 SERVICE_COMPOSER_NODE = 'cohorte.composer.node'
 """ Specification of the Node Composer service """
 
-# FIXME: 'cohorte.composer.isolate'
-SERVICE_COMPOSER_ISOLATE = 'java:/org.cohorte.composer.api.IIsolateComposer'
+SERVICE_COMPOSER_ISOLATE = 'cohorte.composer.isolate'
 """ Specification of the Isolate Composer service """
 
 # Distributors #
