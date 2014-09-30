@@ -5,7 +5,6 @@
  */
 package org.cohorte.composer.isolate;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.felix.ipojo.annotations.Component;
@@ -66,6 +65,9 @@ public class IsolateComposer implements IIsolateComposer {
     @ServiceProperty(name = ComposerConstants.PROP_NODE_UID)
     private String pNodeUid;
 
+    /** Isolate composer status */
+    private LocalStatus pStatus;
+
     /**
      * Component creation
      *
@@ -89,10 +91,8 @@ public class IsolateComposer implements IIsolateComposer {
         final String name = pContext
                 .getProperty(IPlatformProperties.PROP_ISOLATE_NAME);
 
-        // TODO: Get the components
-
         // Return the bean
-        return new Isolate(name, "java", new HashSet<RawComponent>());
+        return new Isolate(name, "java", pStatus.getComponents());
     }
 
     /*
@@ -114,6 +114,9 @@ public class IsolateComposer implements IIsolateComposer {
     @Override
     public void instantiate(final Set<RawComponent> aComponents) {
 
+        // Store the new components
+        pStatus.store(aComponents);
+
         // Instantiate the components
         pAgent.handle(aComponents);
     }
@@ -128,17 +131,21 @@ public class IsolateComposer implements IIsolateComposer {
         pIsolateName = null;
         pNodeName = null;
         pNodeUid = null;
+        pStatus = null;
 
         pLogger.log(LogService.LOG_INFO, "Isolate composer invalidated");
     }
 
     /*
      * (non-Javadoc)
-     *
+     * 
      * @see org.cohorte.composer.api.IIsolateComposer#kill(java.util.Set)
      */
     @Override
     public void kill(final Set<String> aNames) {
+
+        // Update the status storage
+        pStatus.remove(aNames);
 
         // Kill the components
         for (final String name : aNames) {
@@ -151,6 +158,9 @@ public class IsolateComposer implements IIsolateComposer {
      */
     @Validate
     public void validate() {
+
+        // Prepare the status storage
+        pStatus = new LocalStatus(pLogger);
 
         // Store isolate information
         pIsolateName = pContext

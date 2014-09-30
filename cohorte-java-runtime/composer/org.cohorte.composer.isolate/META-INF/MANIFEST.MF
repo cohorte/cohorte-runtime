@@ -34,52 +34,53 @@ iPOJO-Components: instance { $name="cohorte-composer-isolate" $compone
  rg.osgi.framework.BundleContext" }field { $name="pIsolateName" $type=
  "java.lang.String" }field { $name="pLogger" $type="org.osgi.service.l
  og.LogService" }field { $name="pNodeName" $type="java.lang.String" }f
- ield { $name="pNodeUid" $type="java.lang.String" }method { $name="get
- _isolate_info" $return="org.cohorte.composer.api.Isolate" }method { $
- name="get_isolate_uid" $return="java.lang.String" }method { $name="in
- stantiate" $arguments="{java.util.Set}" $names="{aComponents}" }metho
- d { $name="invalidate" }method { $name="kill" $arguments="{java.util.
- Set}" $names="{aNames}" }method { $name="validate" }}}component { $na
- me="org.cohorte.composer.isolate.ipojo.IPojoAgent" $classname="org.co
- horte.composer.isolate.ipojo.IPojoAgent" provides { $specifications="
- {org.cohorte.composer.api.IAgent}" }requires { $field="pLogger" }requ
- ires { $aggregate="true" $optional="true" $id="ipojo-factories" callb
- ack { $method="bindFactory" $type="bind" }callback { $method="unbindF
- actory" $type="unbind" }}callback { $transition="invalidate" $method=
- "invalidate" }callback { $transition="validate" $method="validate" }m
- anipulation { $classname="org.cohorte.composer.isolate.ipojo.IPojoAge
- nt" interface { $name="org.cohorte.composer.api.IAgent" }interface { 
- $name="org.apache.felix.ipojo.InstanceStateListener" }field { $name="
- pContext" $type="org.osgi.framework.BundleContext" }field { $name="pF
- actories" $type="java.util.Map" }field { $name="pFactoriesFieldsIds" 
- $type="java.util.Map" }field { $name="pInstances" $type="java.util.Ma
- p" }field { $name="pIsolateName" $type="java.lang.String" }field { $n
- ame="pLogger" $type="org.osgi.service.log.LogService" }field { $name=
- "pNodeName" $type="java.lang.String" }field { $name="pRemainingFactor
- ies" $type="java.util.Map" }field { $name="pRemainingNames" $type="ja
- va.util.Map" }field { $name="pValidated" $type="boolean" }method { $n
- ame="bindFactory" $arguments="{org.apache.felix.ipojo.Factory}" $name
- s="{aFactory}" }method { $name="computeCommonProperties" $return="jav
- a.util.Properties" $arguments="{org.cohorte.composer.api.RawComponent
- }" $names="{aComponent}" }method { $name="computeFilters" $return="ja
- va.util.Map" $arguments="{org.cohorte.composer.api.RawComponent}" $na
- mes="{aComponent}" }method { $name="computeInstanceProperties" $retur
- n="java.util.Properties" $arguments="{org.cohorte.composer.api.RawCom
- ponent}" $names="{aComponent}" }method { $name="computeServicePropert
- ies" $return="java.util.Properties" $arguments="{org.cohorte.composer
- .api.RawComponent}" $names="{aComponent}" }method { $name="generateFi
- eldsFilters" $return="java.util.Properties" $arguments="{org.cohorte.
- composer.api.RawComponent,java.util.Map}" $names="{aComponent,aFieldI
- dMapping}" }method { $name="getRemainingByFactory" $return="java.util
- .Set" $arguments="{java.lang.String}" $names="{aFactory}" }method { $
- name="handle" $return="java.util.Set" $arguments="{java.util.Set}" $n
- ames="{aComponents}" }method { $name="invalidate" }method { $name="ki
- ll" $arguments="{java.lang.String}" $names="{aName}" }method { $name=
- "removeRemaining" $arguments="{org.cohorte.composer.api.RawComponent}
- " $names="{aComponent}" }method { $name="stateChanged" $arguments="{o
- rg.apache.felix.ipojo.ComponentInstance,int}" $names="{aComponentInst
- ance,aState}" }method { $name="tryInstantiate" $return="boolean" $arg
- uments="{org.cohorte.composer.api.RawComponent}" $names="{aComponent}
- " }method { $name="unbindFactory" $arguments="{org.apache.felix.ipojo
- .Factory}" $names="{aFactory}" }method { $name="validate" }}}
+ ield { $name="pNodeUid" $type="java.lang.String" }field { $name="pSta
+ tus" $type="org.cohorte.composer.isolate.LocalStatus" }method { $name
+ ="get_isolate_info" $return="org.cohorte.composer.api.Isolate" }metho
+ d { $name="get_isolate_uid" $return="java.lang.String" }method { $nam
+ e="instantiate" $arguments="{java.util.Set}" $names="{aComponents}" }
+ method { $name="invalidate" }method { $name="kill" $arguments="{java.
+ util.Set}" $names="{aNames}" }method { $name="validate" }}}component 
+ { $name="org.cohorte.composer.isolate.ipojo.IPojoAgent" $classname="o
+ rg.cohorte.composer.isolate.ipojo.IPojoAgent" provides { $specificati
+ ons="{org.cohorte.composer.api.IAgent}" }requires { $field="pLogger" 
+ }requires { $aggregate="true" $optional="true" $id="ipojo-factories" 
+ callback { $method="bindFactory" $type="bind" }callback { $method="un
+ bindFactory" $type="unbind" }}callback { $transition="invalidate" $me
+ thod="invalidate" }callback { $transition="validate" $method="validat
+ e" }manipulation { $classname="org.cohorte.composer.isolate.ipojo.IPo
+ joAgent" interface { $name="org.cohorte.composer.api.IAgent" }interfa
+ ce { $name="org.apache.felix.ipojo.InstanceStateListener" }field { $n
+ ame="pContext" $type="org.osgi.framework.BundleContext" }field { $nam
+ e="pFactories" $type="java.util.Map" }field { $name="pFactoriesFields
+ Ids" $type="java.util.Map" }field { $name="pInstances" $type="java.ut
+ il.Map" }field { $name="pIsolateName" $type="java.lang.String" }field
+  { $name="pLogger" $type="org.osgi.service.log.LogService" }field { $
+ name="pNodeName" $type="java.lang.String" }field { $name="pRemainingF
+ actories" $type="java.util.Map" }field { $name="pRemainingNames" $typ
+ e="java.util.Map" }field { $name="pValidated" $type="boolean" }method
+  { $name="bindFactory" $arguments="{org.apache.felix.ipojo.Factory}" 
+ $names="{aFactory}" }method { $name="computeCommonProperties" $return
+ ="java.util.Properties" $arguments="{org.cohorte.composer.api.RawComp
+ onent}" $names="{aComponent}" }method { $name="computeFilters" $retur
+ n="java.util.Map" $arguments="{org.cohorte.composer.api.RawComponent}
+ " $names="{aComponent}" }method { $name="computeInstanceProperties" $
+ return="java.util.Properties" $arguments="{org.cohorte.composer.api.R
+ awComponent}" $names="{aComponent}" }method { $name="computeServicePr
+ operties" $return="java.util.Properties" $arguments="{org.cohorte.com
+ poser.api.RawComponent}" $names="{aComponent}" }method { $name="gener
+ ateFieldsFilters" $return="java.util.Properties" $arguments="{org.coh
+ orte.composer.api.RawComponent,java.util.Map}" $names="{aComponent,aF
+ ieldIdMapping}" }method { $name="getRemainingByFactory" $return="java
+ .util.Set" $arguments="{java.lang.String}" $names="{aFactory}" }metho
+ d { $name="handle" $return="java.util.Set" $arguments="{java.util.Set
+ }" $names="{aComponents}" }method { $name="invalidate" }method { $nam
+ e="kill" $arguments="{java.lang.String}" $names="{aName}" }method { $
+ name="removeRemaining" $arguments="{org.cohorte.composer.api.RawCompo
+ nent}" $names="{aComponent}" }method { $name="stateChanged" $argument
+ s="{org.apache.felix.ipojo.ComponentInstance,int}" $names="{aComponen
+ tInstance,aState}" }method { $name="tryInstantiate" $return="boolean"
+  $arguments="{org.cohorte.composer.api.RawComponent}" $names="{aCompo
+ nent}" }method { $name="unbindFactory" $arguments="{org.apache.felix.
+ ipojo.Factory}" $names="{aFactory}" }method { $name="validate" }}}
 

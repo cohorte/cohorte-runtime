@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * Represents a component, as described in the configuration file. This bean is
  * meant to be transmitted by remote services.
- * 
+ *
  * @author Thomas Calmant
  */
 public class RawComponent {
@@ -21,6 +21,9 @@ public class RawComponent {
 
     /** Name of the bundle providing the component factory */
     private String pBundleName;
+
+    /** Bundle version string */
+    private String pBundleVersion;
 
     /** Factory name */
     private String pFactory;
@@ -56,7 +59,7 @@ public class RawComponent {
 
     /**
      * Parameterized constructor
-     * 
+     *
      * @param aFactory
      *            Name of the component factory
      * @param aName
@@ -70,7 +73,7 @@ public class RawComponent {
 
     /**
      * Returns the JSON class for Python
-     * 
+     *
      * @return
      */
     public Object[] get__jsonclass__() {
@@ -81,9 +84,17 @@ public class RawComponent {
     /**
      * @return the bundleName
      */
-    public String getBundleName() {
+    public String getBundle_name() {
 
         return pBundleName;
+    }
+
+    /**
+     * @return the bundleVersion
+     */
+    public String getBundle_version() {
+
+        return pBundleVersion;
     }
 
     /**
@@ -162,9 +173,18 @@ public class RawComponent {
      * @param aBundleName
      *            the bundleName to set
      */
-    public void setBundleName(final String aBundleName) {
+    public void setBundle_name(final String aBundleName) {
 
         pBundleName = aBundleName;
+    }
+
+    /**
+     * @param aBundleVersion
+     *            the bundleVersion to set
+     */
+    public void setBundle_version(final String aBundleVersion) {
+
+        pBundleVersion = aBundleVersion;
     }
 
     /**
