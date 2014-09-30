@@ -45,6 +45,7 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
     Instantiate, Property, Validate, Invalidate, BindField
 
 # Pelix remote services
+import pelix.constants
 import pelix.remote
 
 # Standard library
