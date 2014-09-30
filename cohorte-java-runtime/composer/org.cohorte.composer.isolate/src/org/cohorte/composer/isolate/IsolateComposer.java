@@ -21,7 +21,9 @@ import org.cohorte.composer.api.IAgent;
 import org.cohorte.composer.api.IIsolateComposer;
 import org.cohorte.composer.api.Isolate;
 import org.cohorte.composer.api.RawComponent;
+import org.cohorte.remote.IRemoteServicesConstants;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
 import org.osgi.service.log.LogService;
 import org.psem2m.isolates.constants.IPlatformProperties;
 
@@ -31,14 +33,13 @@ import org.psem2m.isolates.constants.IPlatformProperties;
  * @author Thomas Calmant
  */
 @Component
-@Provides(specifications = IIsolateComposer.class,
-        properties = {
-                @StaticServiceProperty(name = "service.exported.interfaces",
-                        type = "String",
-                        value = "org.cohorte.composer.api.IIsolateComposer"),
-                @StaticServiceProperty(name = "cohorte.remote.synonyms",
-                        type = "String[]",
-                        value = "{python:/cohorte.composer.isolate}") })
+@Provides(specifications = IIsolateComposer.class, properties = {
+        @StaticServiceProperty(name = Constants.SERVICE_EXPORTED_INTERFACES,
+                type = "String",
+                value = "org.cohorte.composer.api.IIsolateComposer"),
+        @StaticServiceProperty(name = IRemoteServicesConstants.PROP_SYNONYMS,
+                type = "String",
+                value = ComposerConstants.SYNONYM_ISOLATE_COMPOSER) })
 @Instantiate(name = "cohorte-composer-isolate")
 public class IsolateComposer implements IIsolateComposer {
 

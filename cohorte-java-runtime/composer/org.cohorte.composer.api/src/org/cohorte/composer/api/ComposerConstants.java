@@ -7,7 +7,7 @@ package org.cohorte.composer.api;
 
 /**
  * Isolate composer constants
- * 
+ *
  * @author Thomas Calmant
  */
 public interface ComposerConstants {
@@ -23,4 +23,7 @@ public interface ComposerConstants {
 
     /** UID of the hosting node */
     String PROP_NODE_UID = "cohorte.composer.node.uid";
+
+    /** Name of the isolate composer specification in Python */
+    String SYNONYM_ISOLATE_COMPOSER = "python:/cohorte.composer.isolate";
 }
