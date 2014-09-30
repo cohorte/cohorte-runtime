@@ -44,6 +44,7 @@ import itertools
 
 # ------------------------------------------------------------------------------
 
+
 class Event(object):
     """
     A composition or component event bean
@@ -69,7 +70,6 @@ class Event(object):
         # Event custom details
         self.data = None
 
-
     def __str__(self):
         """
         String representation
@@ -78,6 +78,7 @@ class Event(object):
                                                 self.kind, self.good)
 
 # ------------------------------------------------------------------------------
+
 
 class EligibleIsolate(object):
     """
@@ -112,7 +113,6 @@ class EligibleIsolate(object):
         # Components returned by self.components()
         self.__visible_components = set(self.__components)
 
-
     def __str__(self):
         """
         String representation
@@ -122,7 +122,6 @@ class EligibleIsolate(object):
 
         return "{0} {1}".format(self.__name, self.language)
 
-
     def __repr__(self):
         """
         String representation
@@ -130,10 +129,8 @@ class EligibleIsolate(object):
         if not self.language:
             return "NeutralIsolate"
 
-        return "EligibleIsolate({0}, {1}, {2})".format(self.__name,
-                                                       self.language,
-                                                       self.__components)
-
+        return "EligibleIsolate({0}, {1}, {2})" \
+            .format(self.__name, self.language, self.__components)
 
     def to_isolate(self):
         """
@@ -141,7 +138,6 @@ class EligibleIsolate(object):
         """
         return beans.Isolate(self.__name, self.language,
                              self.__visible_components)
-
 
     def hide(self, components):
         """
@@ -151,17 +147,15 @@ class EligibleIsolate(object):
         """
         self.__visible_components.difference_update(components)
 
-
     def unhide(self, component):
         """
-        Unhides the given component. The component must be in the original list,
+        Unhides the given component. The component must be in the original list
         or this method does nothing
 
         :param component: A component to unhide
         """
         if component in self.__components:
             self.__visible_components.add(component)
-
 
     def accepted_rename(self):
         """
@@ -170,12 +164,11 @@ class EligibleIsolate(object):
         :raise ValueError: A name was already given
         """
         if self.__name:
-            raise ValueError("Isolate already have a name: {0}" \
+            raise ValueError("Isolate already have a name: {0}"
                              .format(self.__name))
 
         self.__name = self.__proposed_name
         self.__proposed_name = None
-
 
     def propose_rename(self, new_name):
         """
@@ -185,7 +178,7 @@ class EligibleIsolate(object):
         :return: True if the proposal is acceptable
         """
         if self.__name:
-            raise ValueError("Isolate already have a name: {0}" \
+            raise ValueError("Isolate already have a name: {0}"
                              .format(self.__name))
 
         if self.__proposed_name:
@@ -194,13 +187,11 @@ class EligibleIsolate(object):
         self.__proposed_name = new_name
         return True
 
-
     def rejected_rename(self):
         """
         Possible name rejected
         """
         self.__proposed_name = None
-
 
     def generate_name(self, node):
         """
@@ -218,14 +209,12 @@ class EligibleIsolate(object):
 
         return self.__name
 
-
     @property
     def name(self):
         """
         Returns the name of the isolate
         """
         return self.__name
-
 
     @property
     def proposed_name(self):
@@ -234,14 +223,12 @@ class EligibleIsolate(object):
         """
         return self.__proposed_name
 
-
     @property
     def components(self):
         """
         Returns the (frozen) set of components associated to this isolate
         """
         return frozenset(self.__visible_components)
-
 
     @property
     def new_components(self):
@@ -250,7 +237,6 @@ class EligibleIsolate(object):
         """
         return frozenset(self.__visible_components)
 
-
     @property
     def factories(self):
         """
@@ -258,7 +244,6 @@ class EligibleIsolate(object):
         the components associated to this isolate
         """
         return frozenset(component.factory for component in self.__components)
-
 
     def add_component(self, component):
         """
@@ -273,6 +258,7 @@ class EligibleIsolate(object):
 
 # ------------------------------------------------------------------------------
 
+
 class WrappedEligibleIsolate(EligibleIsolate):
     """
     An existing isolate is proposed to the vote
@@ -283,12 +269,10 @@ class WrappedEligibleIsolate(EligibleIsolate):
 
         :param isolate: An Isolate bean
         """
-        super(WrappedEligibleIsolate, self).__init__(isolate.name,
-                                                     isolate.language,
-                                                     isolate.components)
+        super(WrappedEligibleIsolate, self).__init__(
+            isolate.name, isolate.language, isolate.components)
         self.__isolate = isolate
         self.__added_components = set()
-
 
     def to_isolate(self):
         """
@@ -297,14 +281,12 @@ class WrappedEligibleIsolate(EligibleIsolate):
         self.__isolate.components = set(self.components)
         return self.__isolate
 
-
     @property
     def new_components(self):
         """
         Returns the (frozen) set of components added to this isolate
         """
         return frozenset(self.__added_components)
-
 
     def add_component(self, component):
         """

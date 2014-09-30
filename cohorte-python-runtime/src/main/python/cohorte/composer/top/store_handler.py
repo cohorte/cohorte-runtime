@@ -54,6 +54,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Requires('_composer', cohorte.composer.SERVICE_COMPOSER_TOP)
 @Requires('_status', cohorte.composer.SERVICE_STATUS_TOP)
@@ -80,7 +81,6 @@ class TopStorageHandler(object):
         # Thread safety
         self.__lock = threading.RLock()
 
-
     @BindField('_stores', if_valid=True)
     def _bind_store(self, field, svc, svc_ref):
         """
@@ -92,7 +92,6 @@ class TopStorageHandler(object):
 
             # Store what we started
             self.store_all(svc)
-
 
     @Validate
     def _validate(self, context):
@@ -112,14 +111,12 @@ class TopStorageHandler(object):
         # Register to status modifications
         self._status.add_listener(self)
 
-
     @Invalidate
     def _invalidate(self, context):
         """
         Component invalidated
         """
         self._status.remove_listener(self)
-
 
     def distribution_added(self, uid, name, distribution):
         """
@@ -134,10 +131,8 @@ class TopStorageHandler(object):
             for storage in self._stores:
                 try:
                     storage.store(uid, content)
-
                 except Exception as ex:
                     _logger.error("Error storing distribution: %s", ex)
-
 
     def distribution_removed(self, uid):
         """
@@ -148,7 +143,6 @@ class TopStorageHandler(object):
         with self.__lock:
             for store in self._stores:
                 store.remove(uid)
-
 
     def handle_store(self, store):
         """
@@ -172,11 +166,9 @@ class TopStorageHandler(object):
             try:
                 _logger.debug("Reloading %s - %s...", name, uid)
                 self._composer.reload_distribution(name, distribution, uid)
-
             except KeyError:
                 # Already known distribution
                 pass
-
 
     def store_all(self, store):
         """

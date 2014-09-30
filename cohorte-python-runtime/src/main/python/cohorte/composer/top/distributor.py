@@ -47,10 +47,11 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_DISTRIBUTOR_NODE)
-@Requires('_distance_criteria', cohorte.composer.SERVICE_TOP_CRITERION_DISTANCE,
-          aggregate=True)
+@Requires('_distance_criteria',
+          cohorte.composer.SERVICE_TOP_CRITERION_DISTANCE, aggregate=True)
 @Instantiate('cohorte-composer-top-distributor')
 class NodeDistributor(object):
     """
@@ -63,7 +64,6 @@ class NodeDistributor(object):
         # Distance criteria
         self._distance_criteria = []
 
-
     def distribute(self, composition):
         """
         Computes the distribution of the components of the given composition
@@ -72,7 +72,6 @@ class NodeDistributor(object):
         :return: A dictionary: Node name -> set(RawComponent)
         """
         return self.redistribute(composition.all_components())
-
 
     def redistribute(self, components):
         """

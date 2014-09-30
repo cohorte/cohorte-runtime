@@ -53,6 +53,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_STATUS_TOP)
 @Instantiate('cohorte-composer-top-status')
@@ -76,7 +77,6 @@ class TopStatusStorage(object):
         # Listeners
         self.__listeners = set()
 
-
     def dump(self):
         """
         Dumps the content of the storage
@@ -94,7 +94,6 @@ class TopStatusStorage(object):
 
         return '\n'.join(lines)
 
-
     def add_listener(self, listener):
         """
         Registers a Top status listener
@@ -104,7 +103,6 @@ class TopStatusStorage(object):
         if listener is not None:
             self.__listeners.add(listener)
 
-
     def remove_listener(self, listener):
         """
         Removes a Top status listener
@@ -112,7 +110,6 @@ class TopStatusStorage(object):
         :param listener: Listener to remove
         """
         self.__listeners.discard(listener)
-
 
     def store(self, name, distribution, uid=None):
         """
@@ -150,7 +147,6 @@ class TopStatusStorage(object):
 
         return uid
 
-
     def get(self, uid):
         """
         Retrieves the distribution with the given UID
@@ -160,7 +156,6 @@ class TopStatusStorage(object):
         :raise KeyError: Unknown UID
         """
         return self._storage[uid]
-
 
     def get_name(self, uid):
         """
@@ -172,7 +167,6 @@ class TopStatusStorage(object):
         """
         return self._uids[uid]
 
-
     def list(self):
         """
         Returns the list of stored UIDs
@@ -180,7 +174,6 @@ class TopStatusStorage(object):
         :return: A list of UIDs of compositions
         """
         return list(self._storage.keys())
-
 
     def pop(self, uid):
         """
@@ -203,7 +196,6 @@ class TopStatusStorage(object):
 
         # Remove and return the distribution
         return self._storage.pop(uid)
-
 
     def get_components_for_node(self, node_name):
         """

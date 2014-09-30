@@ -58,6 +58,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_DISTRIBUTOR_ISOLATE)
 @Instantiate('cohorte-composer-node-distributor')
@@ -74,7 +75,6 @@ class IsolateDistributor(object):
 
         # Names of components considered unstable
         self.__unstable = set()
-
 
     def distribute(self, components, existing_isolates):
         """
@@ -103,7 +103,6 @@ class IsolateDistributor(object):
                     isolate = map_isolates[isolate_name]
                     isolate.add_component(component)
                     updated_isolates.add(isolate)
-
                 except KeyError:
                     # Create a new bean
                     isolate = EligibleIsolate(component.isolate,
@@ -111,7 +110,6 @@ class IsolateDistributor(object):
                                               [component])
                     map_isolates[isolate_name] = isolate
                     new_isolates.add(isolate)
-
             else:
                 # Component must be treated afterwards
                 remaining.add(component)
@@ -126,23 +124,23 @@ class IsolateDistributor(object):
         for component in remaining:
             if component.name in self.__unstable:
                 # Component is known as unstable: isolate it
-                isolate = EligibleIsolate(None, component.language, [component])
+                isolate = EligibleIsolate(None, component.language,
+                                          [component])
                 new_isolates.add(isolate)
-
             else:
                 # Store stable component, grouped by language
                 remaining_stable.setdefault(component.language, set()) \
-                                                                .add(component)
+                    .add(component)
 
         for language, components in remaining_stable.items():
             # Gather components according to their compatibility
-            updated, added = self.__csp_dist(map_isolates, components, language)
+            updated, added = self.__csp_dist(map_isolates, components,
+                                             language)
             updated_isolates.update(updated)
             new_isolates.update(added)
 
         # Return tuples of updated and new isolates beans
         return tuple(updated_isolates), tuple(new_isolates)
-
 
     def __csp_dist(self, map_isolates, components, language):
         """
@@ -161,10 +159,8 @@ class IsolateDistributor(object):
         # Compute boundaries
         max_isolates = max(len(components_names), len(isolates_names)) + 1
 
-
         # Prepare the incompatibility matrix
         incompat_matrix = self.__make_incompatibility_matrix(components_names)
-
 
         # Prepare the problem solver
         solver = ortools.Solver("Components distribution",
@@ -177,8 +173,7 @@ class IsolateDistributor(object):
             for j in range(max_isolates):
                 iso[i, j] = solver.IntVar(0, 1, "{0} on {1}".format(name, j))
 
-
-        # ... assigned isolats (for the objective)
+        # ... assigned isolates (for the objective)
         assigned_isolates = [solver.IntVar(0, 1, "Isolate {0}".format(i))
                              for i in range(max_isolates)]
 
@@ -199,17 +194,16 @@ class IsolateDistributor(object):
 
         # ... assigned isolates values must be updated
         for j in range(max_isolates):
-            solver.Add(assigned_isolates[j] \
+            solver.Add(assigned_isolates[j]
                        >= nb_isolate_components[j] / nb_components)
 
         # ... Avoid incompatible components on the same isolate
         for i in range(len(incompat_matrix)):
             for j in range(max_isolates):
                 # Pair on same isolate: sum = 2
-                solver.Add(iso[incompat_matrix[i][0], j] \
-                           + iso[incompat_matrix[i][1], j] \
+                solver.Add(iso[incompat_matrix[i][0], j]
+                           + iso[incompat_matrix[i][1], j]
                            <= assigned_isolates[j])
-
 
         # Define the objective: minimize the number of isolates
         nb_assigned_isolates = solver.Sum(assigned_isolates)
@@ -219,7 +213,8 @@ class IsolateDistributor(object):
         solver.Solve()
 
         # Print results
-        _logger.info("Number of isolates.: %s", int(solver.Objective().Value()))
+        _logger.info("Number of isolates.: %s",
+                     int(solver.Objective().Value()))
         _logger.info("Isolates used......: %s",
                      [int(assigned_isolates[i].SolutionValue())
                       for i in range(max_isolates)])
@@ -237,13 +232,10 @@ class IsolateDistributor(object):
         _logger.info("WallTime...: %s", solver.WallTime())
         _logger.info("Iterations.: %s", solver.Iterations())
 
-
         # TODO: Prepare result isolates
         updated_isolates = set()
         added_isolates = [EligibleIsolate(None, language, components)]
-
         return updated_isolates, added_isolates
-
 
     def __make_incompatibility_matrix(self, components_names):
         """
@@ -264,15 +256,14 @@ class IsolateDistributor(object):
                 try:
                     idx_incompat = components_names.index(incompat_name)
                     # Store a sorted tuple (hashable)
-                    incompat_matrix.add(tuple(sorted((idx_name, idx_incompat))))
-
+                    incompat_matrix.add(tuple(
+                        sorted((idx_name, idx_incompat))))
                 except ValueError:
                     # An incompatible component is not in the composition
                     pass
 
         # Return a sorted tuple or sorted tuples
         return tuple(sorted(incompat_matrix))
-
 
     def handle_event(self, event):
         """

@@ -55,6 +55,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_COMMANDER_NODE)
 @Property('_node_uid', cohorte.composer.PROP_NODE_UID)
@@ -90,7 +91,6 @@ class NodeCommander(object):
         # Node UID
         self._node_uid = None
 
-
     @BindField('_injected_composers')
     def _bind_composer(self, _, service, svc_ref):
         """
@@ -109,13 +109,11 @@ class NodeCommander(object):
                 # Handle the new composer
                 self.__handle_composer(svc_ref, service)
 
-
     @UpdateField('_injected_composers')
     def _update_composer(self, field, service, svc_ref, old_properties):
         """
         Called by iPOPO when the properties of a bound composer changed
         """
-
         if not self.__validated:
             # Do nothing if not in a valid state
             return
@@ -135,16 +133,13 @@ class NodeCommander(object):
             if not old_name:
                 # Previously ignored
                 self._bind_composer(field, service, svc_ref)
-
             elif not new_name:
                 # Now ignored
                 self._unbind_composer(field, service, svc_ref)
-
             else:
                 # Changed node name
                 self._unbind_composer(field, service, svc_ref)
                 self._bind_composer(field, service, svc_ref)
-
 
     @UnbindField('_injected_composers')
     def _unbind_composer(self, _, service, svc_ref):
@@ -170,7 +165,6 @@ class NodeCommander(object):
                 # Forget this composer
                 del self._isolate_composer[name]
 
-
     @Invalidate
     def invalidate(self, context):
         """
@@ -178,7 +172,6 @@ class NodeCommander(object):
         """
         self.__validated = False
         self._node_uid = None
-
 
     @Validate
     def validate(self, context):
@@ -192,7 +185,6 @@ class NodeCommander(object):
         for service, svc_ref in self._injected_composers_refs.items():
             self.__handle_composer(svc_ref, service)
 
-
     def __check_node(self, svc_ref):
         """
         Compares the node UID of the given service reference with the local one
@@ -202,7 +194,6 @@ class NodeCommander(object):
         """
         return self._node_uid == \
             svc_ref.get_property(cohorte.composer.PROP_NODE_UID)
-
 
     def __handle_composer(self, svc_ref, composer):
         """
@@ -228,7 +219,6 @@ class NodeCommander(object):
         # Give it its orders
         self.__push_orders(isolate_name, composer)
 
-
     def __push_orders(self, isolate_name, composer):
         """
         Pushes orders to a newly bound composer
@@ -240,11 +230,9 @@ class NodeCommander(object):
         if components:
             try:
                 composer.instantiate(components)
-
             except Exception as ex:
                 _logger.exception("Error calling composer on isolate %s: %s",
                                   isolate_name, ex)
-
 
     def isolate_lost(self, name):
         """
@@ -257,10 +245,8 @@ class NodeCommander(object):
                 # Remove its references
                 service = self._isolate_composer.pop(name)
                 del self._injected_composers_refs[service]
-
             except KeyError:
                 _logger.debug("No composer associated to isolate %s", name)
-
 
     def get_running_isolates(self):
         """
@@ -276,19 +262,16 @@ class NodeCommander(object):
             try:
                 # Request the description of the composer
                 isolate_info = composer.get_isolate_info()
-
             except Exception as ex:
                 # Something went wrong
                 _logger.error("Error retrieving information about a composer: "
                               "%s", ex)
-
             else:
                 # Type enforcement
                 isolate_info.components = set(isolate_info.components)
                 isolates.add(isolate_info)
 
         return isolates
-
 
     def start(self, isolates):
         """
@@ -300,16 +283,13 @@ class NodeCommander(object):
             try:
                 # Try to call the bound composer
                 self._isolate_composer[isolate.name] \
-                                                .instantiate(isolate.components)
-
+                    .instantiate(isolate.components)
             except KeyError:
                 # Unknown node
                 pass
-
             except Exception as ex:
                 # Error calling the composer
                 _logger.exception("Error calling isolate %s: %s", isolate, ex)
-
 
     def kill(self, components):
         """
@@ -324,7 +304,6 @@ class NodeCommander(object):
                 name = component.name
                 isolate = self._status.get_isolate_for_component(name)
                 distribution.setdefault(isolate, set()).add(name)
-
             except KeyError:
                 # Component has not been bound...
                 pass
@@ -334,10 +313,8 @@ class NodeCommander(object):
             try:
                 # Get the service
                 composer = self._isolate_composer[isolate]
-
             except KeyError:
                 _logger.error("No composer for isolate %s", isolate)
-
             else:
                 try:
                     # Call it
@@ -345,7 +322,6 @@ class NodeCommander(object):
 
                     # Update the status
                     self._status.remove(names)
-
                 except Exception as ex:
                     _logger.exception("Error calling composer on %s: %s",
                                       isolate, ex)

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -- Content-Encoding: UTF-8 --
 """
-Node Composer: Vote by reliability
+Node Composer: Vote according to components compatibility, i.e. if they never
+crashed when in the same isolate
 
 :author: Thomas Calmant
 :copyright: Copyright 2013, isandlaTech
@@ -60,6 +61,7 @@ Rating to use if not yet known.
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_NODE_CRITERION_DISTANCE)
 @Requires('_status', cohorte.composer.SERVICE_STATUS_NODE)
@@ -85,13 +87,11 @@ class CompatibilityCriterion(object):
         # Injected
         self._status = None
 
-
     def __str__(self):
         """
         String representation
         """
         return "Components compatibility rating"
-
 
     @Validate
     def validate(self, context):
@@ -101,7 +101,6 @@ class CompatibilityCriterion(object):
         # TODO: load initial ratings from a file/db...
         self._ratings.clear()
 
-
     @Invalidate
     def invalidate(self, context):
         """
@@ -110,7 +109,6 @@ class CompatibilityCriterion(object):
         self._ratings.clear()
         self._last_crash.clear()
         self._incompatible.clear()
-
 
     def _update_rating(self, pair, delta):
         """
@@ -134,7 +132,6 @@ class CompatibilityCriterion(object):
             _logger.critical("Pair %s is now incompatible", pair)
             self._incompatible.add(pair)
 
-
     def handle_event(self, event):
         """
         Does nothing: this elector only cares about what is written in
@@ -146,10 +143,8 @@ class CompatibilityCriterion(object):
 
         if event.kind == 'timer':
             self.on_timer(components)
-
         elif event.kind == 'isolate.lost':
             self.on_crash(components)
-
 
     def on_crash(self, components):
         """
@@ -168,7 +163,6 @@ class CompatibilityCriterion(object):
             if now - last_crash < 60:
                 # Less than 60s since last crash
                 delta = -5
-
             else:
                 # More than 60s...
                 delta = -1
@@ -181,7 +175,6 @@ class CompatibilityCriterion(object):
 
             # Update the last crash information
             self._last_crash[pair] = now
-
 
     def on_timer(self, components):
         """
@@ -200,7 +193,6 @@ class CompatibilityCriterion(object):
                 if now - last_crash > 60:
                     # More than 60s since the last crash
                     delta = +5
-
                 else:
                     # Less than 60s...
                     delta = +1
@@ -210,7 +202,6 @@ class CompatibilityCriterion(object):
                     delta *= 2
 
                 self._update_rating(pair, delta)
-
 
     def vote(self, candidates, subject, ballot):
         """

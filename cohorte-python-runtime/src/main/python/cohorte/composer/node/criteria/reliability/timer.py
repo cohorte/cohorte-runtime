@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -- Content-Encoding: UTF-8 --
 """
-Node Composer: Vote by reliability
+Node Composer: Regularly triggers the "timer" event for components that haven't
+failed since last check.
 
 :author: Thomas Calmant
 :copyright: Copyright 2013, isandlaTech
@@ -53,6 +54,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Requires('_distributor', cohorte.composer.SERVICE_DISTRIBUTOR_ISOLATE)
 @Requires('_status', cohorte.composer.SERVICE_STATUS_NODE)
@@ -82,13 +84,11 @@ class TimerUpdater(object):
         # A lock
         self._lock = threading.Lock()
 
-
     def __str__(self):
         """
         String representation
         """
         return "Timer"
-
 
     @Validate
     def validate(self, context):
@@ -98,7 +98,6 @@ class TimerUpdater(object):
         # Setup the timer
         self.__start_timer()
 
-
     @Invalidate
     def invalidate(self, context):
         """
@@ -107,14 +106,12 @@ class TimerUpdater(object):
         self._timer.cancel()
         self._timer = None
 
-
     def __start_timer(self):
         """
         Starts the timer
         """
         self._timer = threading.Timer(self._timer_delta, self.send_event)
         self._timer.start()
-
 
     def send_event(self):
         """
@@ -125,7 +122,7 @@ class TimerUpdater(object):
             for name in self._status.get_isolates():
                 # Filter components: keep those with factories that didn't
                 # fail since the last tick
-                components = [component for component \
+                components = [component for component
                               in self._status.get_components_for_isolate(name)
                               if component.factory not in self._erroneous]
 
@@ -148,7 +145,6 @@ class TimerUpdater(object):
         # Prepare next call
         self.__start_timer()
 
-
     def handle_event(self, event):
         """
         Does nothing: this elector only cares about what is written in
@@ -163,7 +159,6 @@ class TimerUpdater(object):
                 # Get the implicated factories
                 self._erroneous.update(component.factory
                                        for component in event.components)
-
 
     def vote(self, candidates, subject, ballot):
         """

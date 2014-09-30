@@ -59,6 +59,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_DISTRIBUTOR_ISOLATE)
 @Requires('_distance_criteria',
@@ -88,7 +89,6 @@ class IsolateDistributor(object):
         # Distribution loop index
         self._nb_distribution = 0
 
-
     def _get_matching_isolates(self, component, isolates):
         """
         Returns the isolates that match the given component.
@@ -107,7 +107,6 @@ class IsolateDistributor(object):
 
         return [isolate for isolate in isolates
                 if isolate.language in authorized_languages]
-
 
     def distribute(self, components, existing_isolates):
         """
@@ -198,7 +197,6 @@ class IsolateDistributor(object):
                     other_isolate.hide((component,))
 
         return tuple(updated_isolates), tuple(new_isolates)
-
 
     def handle_event(self, event):
         """

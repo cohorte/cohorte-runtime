@@ -58,6 +58,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_COMPOSER_ISOLATE)
 @Property('_node_uid', cohorte.composer.PROP_NODE_UID)
@@ -95,7 +96,6 @@ class IsolateComposer(object):
         self._remaining = set()
         self.__lock = threading.RLock()
 
-
     @Validate
     def validate(self, context):
         """
@@ -105,7 +105,6 @@ class IsolateComposer(object):
         self._node_uid = context.get_property(cohorte.PROP_NODE_UID)
         self._node_name = context.get_property(cohorte.PROP_NODE_NAME)
         self._isolate_name = context.get_property(cohorte.PROP_NAME)
-
 
     @Invalidate
     def invalidate(self, context):
@@ -119,7 +118,6 @@ class IsolateComposer(object):
         self._node_name = None
         self._isolate_name = None
 
-
     @BindField('_agent', if_valid=True)
     def _bind_agent(self, field, service, svc_ref):
         """
@@ -128,7 +126,6 @@ class IsolateComposer(object):
         # Tell it to handle remaining components
         service.handle(self._remaining)
         self._remaining.clear()
-
 
     def _install_bundles(self, bundles):
         """
@@ -140,7 +137,8 @@ class IsolateComposer(object):
         pre_installed = dict((bundle.get_symbolic_name(),
                               Version(bundle.get_version()))
                              for bundle in self._context.get_bundles())
-        to_install = dict((name, Version(version)) for name, version in bundles)
+        to_install = dict((name, Version(version))
+                          for name, version in bundles)
 
         for name, installed_version in pre_installed.items():
             try:
@@ -151,7 +149,6 @@ class IsolateComposer(object):
 
                 # No need to install it
                 del to_install[name]
-
             except KeyError:
                 # Bundle not used here
                 pass
@@ -173,7 +170,6 @@ class IsolateComposer(object):
                 _logger.error("Error starting bundle %s: %s",
                               bundle.get_symbolic_name(), ex)
 
-
     def get_isolate_uid(self):
         """
         Returns the UID of the isolate hosting this composer
@@ -181,7 +177,6 @@ class IsolateComposer(object):
         :return: An isolate UID
         """
         return self._context.get_property(cohorte.PROP_UID)
-
 
     def get_isolate_info(self):
         """
@@ -198,7 +193,6 @@ class IsolateComposer(object):
         # Make the bean
         return beans.Isolate(self._isolate_name, language,
                              self._status.get_components())
-
 
     def instantiate(self, components):
         """
@@ -221,7 +215,6 @@ class IsolateComposer(object):
             else:
                 # Wait for an agent to come
                 self._remaining.update(components)
-
 
     def kill(self, names):
         """

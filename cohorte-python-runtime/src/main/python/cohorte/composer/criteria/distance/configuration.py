@@ -44,6 +44,7 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_TOP_CRITERION_DISTANCE)
 @Requires('_configuration', cohorte.SERVICE_CONFIGURATION_READER)
@@ -57,7 +58,6 @@ class ConfigurationCriterion(object):
         Sets up members
         """
         self._configuration = None
-
 
     def _get_isolate_node(self, isolate_name):
         """
@@ -78,7 +78,6 @@ class ConfigurationCriterion(object):
         except IOError:
             # Ignore I/O error: the isolate has no specific configuration
             pass
-
 
     def group(self, components, groups):
         """

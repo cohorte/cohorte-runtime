@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -- Content-Encoding: UTF-8 --
 """
-Node Composer: Vote by configuration
+Node Composer: Vote according to the composition configuration
 
 :author: Thomas Calmant
 :copyright: Copyright 2013, isandlaTech
@@ -54,6 +54,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_NODE_CRITERION_DISTANCE)
 @Instantiate('cohorte-composer-node-criterion-configuration')
@@ -68,14 +69,12 @@ class ConfigurationIsolateCriterion(object):
         """
         return "Configuration"
 
-
     def handle_event(self, event):
         """
         Does nothing: this elector only cares about what is written in
         configuration files
         """
         pass
-
 
     def vote(self, candidates, subject, ballot):
         """
@@ -96,12 +95,10 @@ class ConfigurationIsolateCriterion(object):
             if candidate.name == isolate:
                 # Found the corresponding isolate
                 raise vote.CoupdEtat(candidate)
-
             elif not candidate.name and candidate.propose_rename(isolate):
                 # No name yet, same language and renaming accepted
                 ballot.append_for(candidate)
                 found_match = True
-
             else:
                 # Wrong isolate: vote against it
                 ballot.append_against(candidate)

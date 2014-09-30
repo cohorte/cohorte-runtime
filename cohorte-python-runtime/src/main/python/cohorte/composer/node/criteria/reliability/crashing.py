@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -- Content-Encoding: UTF-8 --
 """
-Node Composer: Vote by reliability
+Node Composer: Vote according to components stability (crashes vs time)
 
 :author: Thomas Calmant
 :copyright: Copyright 2013, isandlaTech
@@ -53,6 +53,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_NODE_CRITERION_RELIABILITY)
 @Instantiate('cohorte-composer-node-criterion-crash')
@@ -74,13 +75,11 @@ class CrashCriterion(object):
         # Unstable components names
         self._unstable = set()
 
-
     def __str__(self):
         """
         String representation
         """
         return "Components reliability rating"
-
 
     @Validate
     def validate(self, context):
@@ -90,7 +89,6 @@ class CrashCriterion(object):
         # TODO: load initial ratings
         self._ratings.clear()
 
-
     @Invalidate
     def invalidate(self, context):
         """
@@ -99,7 +97,6 @@ class CrashCriterion(object):
         self._ratings.clear()
         self._last_crash.clear()
         self._unstable.clear()
-
 
     def _update_rating(self, component, delta):
         """
@@ -122,7 +119,6 @@ class CrashCriterion(object):
             # Lower threshold reached: components are incompatible
             self._unstable.add(component)
 
-
     def handle_event(self, event):
         """
         Does nothing: this elector only cares about what is written in
@@ -134,10 +130,8 @@ class CrashCriterion(object):
 
         if event.kind == 'timer':
             self.on_timer(components)
-
         elif event.kind == 'isolate.lost':
             self.on_crash(components)
-
 
     def on_crash(self, components):
         """
@@ -164,7 +158,6 @@ class CrashCriterion(object):
 
             # Update the last crash information
             self._last_crash[name] = now
-
 
     def on_timer(self, components):
         """
@@ -206,7 +199,6 @@ class CrashCriterion(object):
         return sum(self._ratings.setdefault(name, 90)
                    for name in names) / len(names)
 
-
     def vote(self, candidates, subject, ballot):
         """
         Votes the isolate that matches the best the stability of the given
@@ -225,17 +217,15 @@ class CrashCriterion(object):
         for candidate in candidates:
             if candidate.components:
                 if len(candidate.components) == 1 \
-                and subject in candidate.components:
+                        and subject in candidate.components:
                     # Single one in the isolate where we were
                     distances.append((0, candidate))
-
                 elif subject.name in self._unstable:
                     # Don't try to go with other components...
                     ballot.append_against(candidate)
-
                 elif rating > 20:
-                    # Only accept to work with other components if the given one
-                    # is stable enough (> 20% stability rating)
+                    # Only accept to work with other components if the given
+                    # one is stable enough (> 20% stability rating)
                     # Compute the mean and variance of the current components
                     # ratings
                     mean = self.compute_stats(candidate.components)
@@ -252,7 +242,6 @@ class CrashCriterion(object):
                 else:
                     # First component of this isolate
                     distances.append((5, candidate))
-
 
         # Sort computed distances (lower is better)
         distances.sort(key=operator.itemgetter(0))

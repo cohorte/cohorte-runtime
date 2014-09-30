@@ -54,6 +54,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_TOP_STORAGE)
 @Property('_export', pelix.remote.PROP_EXPORTED_INTERFACES, '*')
@@ -75,7 +76,6 @@ class TopStorage(object):
         # UID -> content
         self.__content = {}
 
-
     def get_uids(self):
         """
         Returns the list of stored UIDs
@@ -84,7 +84,6 @@ class TopStorage(object):
         """
         return list(self.__content.keys())
 
-
     def load(self, uid):
         """
         Returns the content associated to the given UID, or None
@@ -92,9 +91,8 @@ class TopStorage(object):
         :param uid: A UID
         :return: The associated content or None
         """
-        _logger.critical("Loading %s", uid)
+        _logger.info("Retrieving top composition %s", uid)
         return self.__content.get(uid)
-
 
     def remove(self, uid):
         """
@@ -104,18 +102,16 @@ class TopStorage(object):
         :return: True if the UID was known
         """
         try:
-            _logger.critical("Removing %s", uid)
+            _logger.info("Removing top composition %s", uid)
             del self.__content[uid]
             return True
-
         except KeyError:
             return False
-
 
     def store(self, uid, content):
         """
         Stores the given content, associated to the given UID. Overwrites the
         previous content, if any.
         """
-        _logger.critical("Storing %s", uid)
+        _logger.info("Storing top composition %s", uid)
         self.__content[uid] = content

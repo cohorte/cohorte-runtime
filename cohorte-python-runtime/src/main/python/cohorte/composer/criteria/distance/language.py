@@ -48,6 +48,7 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_TOP_CRITERION_DISTANCE)
 @Requires('_repositories', cohorte.repositories.SERVICE_REPOSITORY_FACTORIES,
@@ -74,3 +75,4 @@ class LanguageCriterion(object):
                  * Dictionary of grouped components (group -> components)
                  * List of components that haven't been grouped
         """
+        return {}, components

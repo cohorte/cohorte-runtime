@@ -45,6 +45,7 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_COMPOSER_TOP)
 @Requires('_distributor', cohorte.composer.SERVICE_DISTRIBUTOR_NODE)
@@ -66,7 +67,6 @@ class TopComposer(object):
         self._commander = None
         self._context = None
         self._node_starter = None
-
 
     def _set_default_node(self, distribution):
         """
@@ -91,7 +91,6 @@ class TopComposer(object):
         distribution.setdefault(default_node, set()).update(unassigned)
         return distribution
 
-
     @Validate
     def validate(self, context):
         """
@@ -99,14 +98,12 @@ class TopComposer(object):
         """
         self._context = context
 
-
     @Invalidate
     def invalidate(self, context):
         """
         Component invalidated
         """
         self._context = None
-
 
     def __start(self, name, distribution, uid):
         """
@@ -130,7 +127,6 @@ class TopComposer(object):
         self._commander.start(distribution)
         return uid
 
-
     def start(self, composition):
         """
         Instantiates the given composition
@@ -143,7 +139,6 @@ class TopComposer(object):
 
         # Instantiate them
         return self.__start(composition.name, distribution, None)
-
 
     def reload_distribution(self, name, distribution, uid):
         """
@@ -158,17 +153,14 @@ class TopComposer(object):
         try:
             # See if it is already in the status
             self._status.get(uid)
-
         except KeyError:
             # Unknown distribution, instantiate it out of the exception block
             pass
-
         else:
             # Already known: error
             raise KeyError("Already used distribution UID: %s", uid)
 
         return self.__start(name, distribution, uid)
-
 
     def stop(self, uid):
         """

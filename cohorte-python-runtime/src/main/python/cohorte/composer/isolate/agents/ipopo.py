@@ -56,6 +56,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_AGENT_ISOLATE)
 @Requires('_ipopo', constants.IPOPO_SERVICE_SPECIFICATION)
@@ -83,7 +84,6 @@ class IPopoAgent(object):
         # Thread safety
         self.__lock = threading.RLock()
 
-
     def handle_ipopo_event(self, event):
         """
         Handles an iPOPO event
@@ -99,7 +99,6 @@ class IPopoAgent(object):
                 try:
                     # Instantiate waiting components
                     self.handle(self.__remaining[factory])
-
                 except KeyError:
                     # Unknown factory
                     pass
@@ -108,12 +107,10 @@ class IPopoAgent(object):
                 # Factory gone, put components in remaining state
                 try:
                     self.__remaining.setdefault(factory, set()) \
-                                        .update(self.__components.pop(factory))
-
+                        .update(self.__components.pop(factory))
                 except KeyError:
                     # No instantiated components for this factory
                     pass
-
 
     @Validate
     def validate(self, _):
@@ -123,7 +120,6 @@ class IPopoAgent(object):
         # Register to iPOPO events
         self._ipopo.add_listener(self)
 
-
     @Invalidate
     def invalidate(self, _):
         """
@@ -131,7 +127,6 @@ class IPopoAgent(object):
         """
         # Unregister from iPOPO events
         self._ipopo.remove_listener(self)
-
 
     def _compute_properties(self, component):
         """
@@ -142,12 +137,11 @@ class IPopoAgent(object):
 
         # TODO: prepares properties (filters...)
 
-        # TODO: add position informations (name, node, isolate, ...)
+        # TODO: add position information (name, node, isolate, ...)
 
         # Export the component interfaces
         properties.setdefault(pelix.remote.PROP_EXPORTED_INTERFACES, "*")
         return properties
-
 
     def __try_instantiate(self, component):
         """
@@ -181,15 +175,10 @@ class IPopoAgent(object):
             # Store it
             self.__components.setdefault(factory, set()).add(component)
             return True
-
         except TypeError:
             # Missing factory: maybe later
-            _logger.warning("iPOPO agent: factory missing for %s :(", component)
+            _logger.warning("iPOPO agent: factory missing for %s", component)
             return False
-
-        _logger.warning("iPOPO agent failed to instantiate %s :(", component)
-        return False
-
 
     def handle(self, components):
         """
@@ -203,7 +192,6 @@ class IPopoAgent(object):
             # Beans of the components to instantiate
             components = set(components)
             instantiated = set()
-
             for component in components:
                 try:
                     # Check if component is already running
@@ -219,11 +207,9 @@ class IPopoAgent(object):
                         # -> this will avoid different hashes due to network
                         # transmission
                         component = stored
-
                 except KeyError:
                     # Not yet known component
                     pass
-
 
                 # Store the name
                 self.__names[component.name] = component
@@ -236,15 +222,13 @@ class IPopoAgent(object):
                     else:
                         # Factory not found, keep track of the component
                         self.__remaining.setdefault(component.factory, set()) \
-                                                                .add(component)
-
+                            .add(component)
                 except Exception as ex:
                     # Other errors
                     _logger.exception("Error instantiating component %s: %s",
                                       component, ex)
 
             return instantiated
-
 
     def kill(self, name):
         """
@@ -263,12 +247,10 @@ class IPopoAgent(object):
             try:
                 # Kill the component
                 self._ipopo.kill(name)
-
             except ValueError:
                 # iPOPO didn't know about the component,
                 # remove it from the remaining ones
                 storage = self.__remaining
-
             else:
                 # Bean is stored in the instantiated components dictionary
                 storage = self.__components
@@ -279,11 +261,10 @@ class IPopoAgent(object):
                 components.remove(component)
                 if not components:
                     del storage[component.factory]
-
             except KeyError:
                 # Strange: the component is not where it is supposed to be
                 _logger.warning("Component %s is not stored where it is "
                                 "supposed to be (%s components)", name,
-                                "instantiated" if storage is self.__components \
+                                "instantiated" if storage is self.__components
                                 else "remaining")
                 return

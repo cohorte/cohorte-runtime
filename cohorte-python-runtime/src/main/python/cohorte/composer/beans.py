@@ -35,6 +35,7 @@ __docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 
+
 class RawComposition(object):
     """
     Represents a composition, as described in the configuration file
@@ -44,7 +45,8 @@ class RawComposition(object):
         Sets up members
 
         :param name: Name of the composition
-        :param filename: Name of the composition root file (to be shown in logs)
+        :param filename: Name of the composition root file
+        (to be shown in logs)
         :raise ValueError: Invalid parameters
         """
         if not name:
@@ -82,6 +84,7 @@ class RawComposition(object):
 
 # ------------------------------------------------------------------------------
 
+
 class RawComposite(object):
     """
     Represents a composite, as described in the configuration file
@@ -98,7 +101,7 @@ class RawComposite(object):
             raise ValueError("Composite name can't be empty")
 
         elif '.' in name:
-            raise ValueError("{0}: A composite name can't contain a '.' (dot)" \
+            raise ValueError("{0}: A composite name can't contain a '.' (dot)"
                              .format(name))
 
         # Read-only
@@ -142,6 +145,7 @@ class RawComposite(object):
 
 # ------------------------------------------------------------------------------
 
+
 class RawComponent(object):
     """
     Represents a component, as described in the configuration file.
@@ -180,20 +184,17 @@ class RawComponent(object):
         # Wires: Field name -> Component name
         self.wires = {}
 
-
     def __repr__(self):
         """
         String representation of the component
         """
         return "RawComponent({0}, {1})".format(self.factory, self.name)
 
-
     def __hash__(self):
         """
         A component is unique on a node by its name
         """
         return hash(self.name)
-
 
     def __eq__(self, other):
         """
@@ -202,6 +203,7 @@ class RawComponent(object):
         return self.name == other.name
 
 # ------------------------------------------------------------------------------
+
 
 class Isolate(object):
     """
@@ -231,7 +233,6 @@ class Isolate(object):
         else:
             self.components = set(components)
 
-
     def __repr__(self):
         """
         String representation
@@ -239,13 +240,11 @@ class Isolate(object):
         return "Isolate({0}, {1}, {2})".format(self.name, self.language,
                                                self.components)
 
-
     def __hash__(self):
         """
         An isolate is unique on a node by its name
         """
         return hash(self.name)
-
 
     def __eq__(self, other):
         """

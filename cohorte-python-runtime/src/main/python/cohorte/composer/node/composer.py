@@ -61,6 +61,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 class FactoriesMissing(Exception):
     """
     Some factories are missing
@@ -83,6 +84,7 @@ class FactoriesMissing(Exception):
                               for factory in self.factories))
 
 # ------------------------------------------------------------------------------
+
 
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_COMPOSER_NODE)
@@ -123,13 +125,12 @@ class NodeComposer(object):
         self._directory = None
 
         # Thread to start isolates
-        self._pool = pelix.threadpool.ThreadPool(1,
-                                                 logname="NodeComposer-Starter")
+        self._pool = pelix.threadpool.ThreadPool(
+            1, logname="NodeComposer-Starter")
 
         # Redistribution timer
         self._timer = None
         self._lock = threading.Lock()
-
 
     @Invalidate
     def invalidate(self, context):
@@ -141,7 +142,6 @@ class NodeComposer(object):
         self._node_name = None
         self._node_uid = None
 
-
     @Validate
     def validate(self, context):
         """
@@ -151,19 +151,18 @@ class NodeComposer(object):
         self._node_uid = context.get_property(cohorte.PROP_NODE_UID)
         self._pool.start()
 
-
     def __start_timer(self, delay=10):
         """
         Starts the redistribution timer
 
-        :param delay: Delay until the next call for redistribution (default: 10)
+        :param delay: Delay until the next call for redistribution
+        (default: 10)
         """
         if self._timer is not None:
             self._timer.cancel()
 
         self._timer = threading.Timer(delay, self._redistribute)
         self._timer.start()
-
 
     def __stop_timer(self):
         """
@@ -172,7 +171,6 @@ class NodeComposer(object):
         if self._timer is not None:
             self._timer.cancel()
             self._timer = None
-
 
     def _compute_bundles(self, components):
         """
@@ -190,7 +188,6 @@ class NodeComposer(object):
             try:
                 # TODO: try to reuse existing bundles (same name)
                 bundles[component] = self._finder.normalize(component)
-
             except ValueError:
                 # Factory not found
                 not_found.add(component.factory)
@@ -199,7 +196,6 @@ class NodeComposer(object):
             raise FactoriesMissing(not_found)
 
         return bundles
-
 
     def _compute_kind(self, isolate):
         """
@@ -211,20 +207,16 @@ class NodeComposer(object):
         language = isolate.language
         if language in cohorte.composer.LANGUAGES_PYTHON:
             return 'pelix'
-
         elif language == cohorte.composer.LANGUAGE_JAVA:
             return 'osgi'
-
         else:
             return 'boot'
-
 
     def get_running_isolates(self):
         """
         Retrieves the set of isolate beans describing the current status
         """
         return self._commander.get_running_isolates()
-
 
     def _distribute(self, components, existing_isolates):
         """
@@ -241,9 +233,8 @@ class NodeComposer(object):
                              for isolate in existing_isolates]
 
         # Distribute components
-        updated_isolates, new_isolates = self._distributor.distribute(\
-                                                              components,
-                                                              eligible_isolates)
+        updated_isolates, new_isolates = self._distributor.distribute(
+            components, eligible_isolates)
 
         # Generate the name of new isolates
         for isolate in new_isolates:
@@ -259,8 +250,7 @@ class NodeComposer(object):
             dist_beans.add(isolate)
 
         # FIXME: enhance returned tuple
-        return (dist_beans, new_beans)
-
+        return dist_beans, new_beans
 
     def _start_isolate(self, isolate, bundles):
         """
@@ -283,7 +273,6 @@ class NodeComposer(object):
                                     isolate.language, 'isolate',
                                     isolate_bundles)
 
-
     def instantiate(self, components):
         """
         Instantiates the given components
@@ -298,7 +287,6 @@ class NodeComposer(object):
             try:
                 # Compute the implementation language of the components
                 bundles = self._compute_bundles(components)
-
             except FactoriesMissing as ex:
                 _logger.error("Error computing bundles providing components: "
                               "%s", ex)
@@ -318,7 +306,8 @@ class NodeComposer(object):
             # Store the distribution
             self._status.store(distribution)
 
-            # Tell the commander to start the instantiation on existing isolates
+            # Tell the commander to start the instantiation on existing
+            # isolates
             self._commander.start(distribution.difference(new_isolates))
 
             # Tell the monitor to start the new isolates.
@@ -329,7 +318,6 @@ class NodeComposer(object):
 
             # Schedule next redistribution
             self.__start_timer()
-
 
     def _redistribute(self):
         """
@@ -354,8 +342,8 @@ class NodeComposer(object):
             all_to_remove = []
 
             for isolate in isolates:
-                current_components = set(self._status \
-                                      .get_components_for_isolate(isolate.name))
+                current_components = set(
+                    self._status.get_components_for_isolate(isolate.name))
 
                 added = set(isolate.components).difference(current_components)
                 removed = current_components.difference(isolate.components)
@@ -411,7 +399,6 @@ class NodeComposer(object):
             # Schedule next redistribution
             self.__start_timer()
 
-
     def kill_isolates(self, names):
         """
         Kills the isolates with the given names on the local node
@@ -425,7 +412,6 @@ class NodeComposer(object):
                     self._monitor.stop_isolate(peer.uid)
                 except Exception as ex:
                     _logger.exception("Error stopping isolate: %s", ex)
-
 
     def kill(self, components):
         """
@@ -443,7 +429,6 @@ class NodeComposer(object):
 
             # Clear status
             self._status.clear()
-
 
     def handle_isolate_lost(self, name, node):
         """
@@ -481,7 +466,6 @@ class NodeComposer(object):
 
         # Recompute the clustering of the original components
         self.instantiate(lost)
-
 
     def peer_registered(self, peer):
         """

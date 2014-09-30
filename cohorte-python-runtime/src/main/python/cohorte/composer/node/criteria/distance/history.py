@@ -53,6 +53,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_NODE_CRITERION_DISTANCE)
 @Requires('_status', cohorte.composer.SERVICE_STATUS_NODE)
@@ -72,13 +73,11 @@ class HistoryCriterion(object):
         # Injected
         self._status = None
 
-
     def __str__(self):
         """
         String representation
         """
         return "Components gathering based on history"
-
 
     @Validate
     def validate(self, context):
@@ -88,7 +87,6 @@ class HistoryCriterion(object):
         # TODO: load previous crashes from a file/db...
         self._crashes.clear()
 
-
     @Invalidate
     def invalidate(self, context):
         """
@@ -96,7 +94,6 @@ class HistoryCriterion(object):
         """
         # TODO: store crashes to a file/db...
         self._crashes.clear()
-
 
     def handle_event(self, event):
         """
@@ -107,7 +104,6 @@ class HistoryCriterion(object):
         components = set(component.name for component in event.components)
         if event.kind == 'isolate.lost':
             self.on_crash(components)
-
 
     def on_crash(self, components):
         """
@@ -136,7 +132,6 @@ class HistoryCriterion(object):
         _logger.info("%d crash(es) in history:\n%s", len(self._crashes),
                      '\n'.join('- ' + ', '.join(crash)
                                for crash in self._crashes))
-
 
     def vote(self, candidates, subject, ballot):
         """

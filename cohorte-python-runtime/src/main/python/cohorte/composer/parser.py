@@ -46,6 +46,7 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_PARSER)
 @Requires('_reader', cohorte.SERVICE_FILE_READER)
@@ -78,7 +79,6 @@ class CompositionParser(object):
         # Parse the content
         return self.parse_composition(filename, data)
 
-
     def parse_composition(self, filename, data):
         """
         Parses the given composition file
@@ -100,7 +100,6 @@ class CompositionParser(object):
 
         composition.root = root
         return composition
-
 
     def parse_composite(self, parent, composite_dict):
         """
@@ -130,7 +129,6 @@ class CompositionParser(object):
         # Return the composite only if it contains something
         if composite.components or composite.composites:
             return composite
-
 
     def parse_component(self, component_dict):
         """

@@ -52,6 +52,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_STATUS_ISOLATE)
 @Instantiate('cohorte-composer-isolate-status')
@@ -72,7 +73,6 @@ class IsolateStatusStorage(object):
         # Instantiated components
         self._instantiated = set()
 
-
     def dump(self):
         """
         Dumps the content of the storage
@@ -83,7 +83,6 @@ class IsolateStatusStorage(object):
                      for component in self._components.values())
 
         return '\n'.join(lines)
-
 
     def store(self, components):
         """
@@ -105,7 +104,6 @@ class IsolateStatusStorage(object):
 
         return added_components
 
-
     def remove(self, names):
         """
         Removes the given components from the storage
@@ -121,7 +119,6 @@ class IsolateStatusStorage(object):
             except KeyError:
                 _logger.warning("Unknown component: %s", name)
 
-
     def set_running(self, name):
         """
         Considers the component instantiated. Does nothing if the component
@@ -133,7 +130,6 @@ class IsolateStatusStorage(object):
         component = self._components[name]
         self._remaining.discard(component)
         self._instantiated.add(component)
-
 
     def set_killed(self, name):
         """
@@ -147,7 +143,6 @@ class IsolateStatusStorage(object):
         self._instantiated.discard(component)
         self._remaining.add(component)
 
-
     def get_components(self):
         """
         Retrieves the set of all components associated to this isolate
@@ -156,7 +151,6 @@ class IsolateStatusStorage(object):
         """
         return set(self._components.values())
 
-
     def get_remaining(self):
         """
         Returns the components that still need to be instantiated
@@ -164,7 +158,6 @@ class IsolateStatusStorage(object):
         :return: A copy of the remaining components set
         """
         return self._remaining.copy()
-
 
     def get_running(self):
         """

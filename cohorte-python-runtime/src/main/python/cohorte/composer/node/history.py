@@ -43,6 +43,7 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
     Invalidate
 
 # Standard library
+from pprint import pformat
 import logging
 import threading
 import time
@@ -52,6 +53,7 @@ import time
 _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
+
 
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_HISTORY_NODE)
@@ -68,7 +70,6 @@ class NodeHistory(object):
         self._storage = {}
         self._lock = threading.Lock()
 
-
     @Invalidate
     def invalidate(self, context):
         """
@@ -76,14 +77,12 @@ class NodeHistory(object):
         """
         self.clear()
 
-
     def clear(self):
         """
         Clears the storage
         """
         with self._lock:
             self._storage.clear()
-
 
     def keep_recent(self, timestamp):
         """
@@ -98,14 +97,12 @@ class NodeHistory(object):
                 if stamp < timestamp:
                     del self._storage[stamp]
 
-
     def items(self):
         """
         Returns a sorted list of (time stamp, {isolate -> [names]}) tuples
         """
         with self._lock:
             return sorted(self._storage.items())
-
 
     def store(self, distribution):
         """
@@ -119,9 +116,7 @@ class NodeHistory(object):
         with self._lock:
             # Store our distribution
             self._storage[timestamp] = dict((isolate, tuple(components))
-                                            for isolate, components \
+                                            for isolate, components
                                             in distribution.items())
-
-            from pprint import pformat
-            _logger.critical("Stored in history:\n%s",
-                             pformat(self._storage[timestamp]))
+            _logger.info("Node composer stored in history:\n%s",
+                         pformat(self._storage[timestamp]))

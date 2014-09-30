@@ -54,6 +54,7 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_STATUS_NODE)
 @Requires('_history', cohorte.composer.SERVICE_HISTORY_NODE, optional=True)
@@ -81,7 +82,6 @@ class NodeStatusStorage(object):
         # Safety...
         self.__lock = threading.Lock()
 
-
     def clear(self):
         """
         Clears the status of all of its information
@@ -90,7 +90,6 @@ class NodeStatusStorage(object):
             self._component_isolate.clear()
             self._components.clear()
             self._isolate_components.clear()
-
 
     def dump(self):
         """
@@ -105,7 +104,6 @@ class NodeStatusStorage(object):
 
             return '\n'.join(lines)
 
-
     def store(self, isolates):
         """
         Updates the storage with the given isolate distribution
@@ -117,7 +115,7 @@ class NodeStatusStorage(object):
                 # Isolate name -> Components
                 isolate_name = isolate.name
                 self._isolate_components.setdefault(isolate_name, set()) \
-                                                     .update(isolate.components)
+                    .update(isolate.components)
 
                 # Component name -> Isolate name / RawComponent
                 for component in isolate.components:
@@ -131,11 +129,10 @@ class NodeStatusStorage(object):
                 distribution = dict((isolate_name,
                                      sorted(component.name
                                             for component in components))
-                                    for isolate_name, components \
+                                    for isolate_name, components
                                     in self._isolate_components.copy().items())
 
                 self._history.store(distribution)
-
 
     def remove(self, names):
         """
@@ -155,10 +152,8 @@ class NodeStatusStorage(object):
                     if not isolate_components:
                         # No more component on this isolate
                         del self._isolate_components[isolate]
-
                 except KeyError:
                     _logger.warning("Unknown component: %s", name)
-
 
     def get_isolates(self):
         """
@@ -168,7 +163,6 @@ class NodeStatusStorage(object):
         """
         return sorted(self._isolate_components.keys())
 
-
     def get_components(self):
         """
         Returns the list of all known components
@@ -176,7 +170,6 @@ class NodeStatusStorage(object):
         :return: A list of RawComponent beans
         """
         return list(self._components.values())
-
 
     def get_components_for_isolate(self, isolate_name):
         """
@@ -189,7 +182,6 @@ class NodeStatusStorage(object):
         # Return a copy
         return self._isolate_components.get(isolate_name, set()).copy()
 
-
     def get_isolate_for_component(self, component_name):
         """
         Retrieves the isolate that must host the given component
@@ -199,7 +191,6 @@ class NodeStatusStorage(object):
         :raise KeyError: Unknown component
         """
         return self._component_isolate[component_name]
-
 
     def neighbours(self, components):
         """
@@ -213,7 +204,6 @@ class NodeStatusStorage(object):
         try:
             isolate = self._component_isolate[components[0]]
             return components in self._isolate_components[isolate]
-
         except KeyError:
             # Unknown isolate/components
             return False
