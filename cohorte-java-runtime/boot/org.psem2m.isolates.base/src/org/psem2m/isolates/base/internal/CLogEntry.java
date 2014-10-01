@@ -1,8 +1,19 @@
 /**
- * File:   CLogEntry.java
- * Author: Thomas Calmant
- * Date:   12 sept. 2011
+ * Copyright 2014 isandlaTech
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package org.psem2m.isolates.base.internal;
 
 import org.osgi.framework.Bundle;
@@ -11,7 +22,7 @@ import org.osgi.service.log.LogEntry;
 
 /**
  * Implementation of an OSGi log entry
- * 
+ *
  * @author Thomas Calmant
  */
 public class CLogEntry implements LogEntry {
@@ -36,7 +47,7 @@ public class CLogEntry implements LogEntry {
 
     /**
      * Sets up the log entry
-     * 
+     *
      * @param aServiceReference
      *            Source service reference
      * @param aDefaultBundle
@@ -70,7 +81,7 @@ public class CLogEntry implements LogEntry {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.osgi.service.log.LogEntry#getBundle()
      */
     @Override
@@ -81,7 +92,7 @@ public class CLogEntry implements LogEntry {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.osgi.service.log.LogEntry#getException()
      */
     @Override
@@ -92,7 +103,7 @@ public class CLogEntry implements LogEntry {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.osgi.service.log.LogEntry#getLevel()
      */
     @Override
@@ -103,7 +114,7 @@ public class CLogEntry implements LogEntry {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.osgi.service.log.LogEntry#getMessage()
      */
     @Override
@@ -114,7 +125,7 @@ public class CLogEntry implements LogEntry {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.osgi.service.log.LogEntry#getServiceReference()
      */
     @Override
@@ -125,7 +136,7 @@ public class CLogEntry implements LogEntry {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.osgi.service.log.LogEntry#getTime()
      */
     @Override

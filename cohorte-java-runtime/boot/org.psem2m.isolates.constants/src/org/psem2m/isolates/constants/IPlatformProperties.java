@@ -1,115 +1,121 @@
-/*******************************************************************************
- * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+/**
+ * Copyright 2014 isandlaTech
  *
- * Contributors:
- *    ogattaz (isandlaTech) - initial API and implementation
- *    tcalmant (isandlaTech) - Debug constant
- *******************************************************************************/
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.psem2m.isolates.constants;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
- * 
+ *
  */
 public interface IPlatformProperties {
 
-	/**
-	 * The debug port used by the forker
-	 * 
-	 * If present, the platform is ran in debug mode and the isolates must be
-	 * started in remote debug mode, connecting to localhost:debug_port+n, with
-	 * n > 0.
-	 */
-	String PROP_BASE_DEBUG_PORT = "org.psem2m.debug.port";
+    /**
+     * The debug port used by the forker
+     * 
+     * If present, the platform is ran in debug mode and the isolates must be
+     * started in remote debug mode, connecting to localhost:debug_port+n, with
+     * n > 0.
+     */
+    String PROP_BASE_DEBUG_PORT = "org.psem2m.debug.port";
 
-	/**
-	 * URL to the configuration broker
-	 */
-	String PROP_BROKER_URL = "cohorte.configuration.broker.url";
+    /**
+     * URL to the configuration broker
+     */
+    String PROP_BROKER_URL = "cohorte.configuration.broker.url";
 
-	/**
-	 * contains the name of the current isolates.
-	 * 
-	 * <pre>
-	 * -Dcohorte.isolate.name=development
-	 * </pre>
-	 */
-	String PROP_ISOLATE_NAME = "cohorte.isolate.name";
-	/**
-	 * contains the uuid of the current isolates.
-	 * 
-	 * <pre>
-	 * -Dcohorte.isolate.uid=POSD-UEZS-NBG9-JA72
-	 * </pre>
-	 */
-	String PROP_ISOLATE_UID = "cohorte.isolate.uid";
+    /**
+     * contains the name of the current isolates.
+     * 
+     * <pre>
+     * -Dcohorte.isolate.name=development
+     * </pre>
+     */
+    String PROP_ISOLATE_NAME = "cohorte.isolate.name";
 
-	/**
-	 * contains the node name of the current isolates.
-	 * 
-	 * <pre>
-	 * -Dcohorte.node.uid=GFRY-HYRZ-LOIS-85HY
-	 * </pre>
-	 */
-	String PROP_NODE_NAME = "cohorte.node.name";
+    /**
+     * contains the uuid of the current isolates.
+     * 
+     * <pre>
+     * -Dcohorte.isolate.uid=POSD-UEZS-NBG9-JA72
+     * </pre>
+     */
+    String PROP_ISOLATE_UID = "cohorte.isolate.uid";
 
-	/**
-	 * contains the node uuid of the current isolates.
-	 * 
-	 * <pre>
-	 * -Dcohorte.node.uid=GFRY-HYRZ-LOIS-85HY
-	 * </pre>
-	 */
-	String PROP_NODE_UID = "cohorte.node.uid";
+    /**
+     * contains the node name of the current isolates.
+     * 
+     * <pre>
+     * -Dcohorte.node.uid=GFRY-HYRZ-LOIS-85HY
+     * </pre>
+     */
+    String PROP_NODE_NAME = "cohorte.node.name";
 
-	/**
-	 * contains the absolute path of the BASE folder of the current application
-	 */
-	String PROP_PLATFORM_BASE = "cohorte.base";
+    /**
+     * contains the node uuid of the current isolates.
+     * 
+     * <pre>
+     * -Dcohorte.node.uid=GFRY-HYRZ-LOIS-85HY
+     * </pre>
+     */
+    String PROP_NODE_UID = "cohorte.node.uid";
 
-	/**
-	 * contains the absolute path of the HOME folder of the current application
-	 */
-	String PROP_PLATFORM_HOME = "cohorte.home";
+    /**
+     * contains the absolute path of the BASE folder of the current application
+     */
+    String PROP_PLATFORM_BASE = "cohorte.base";
 
-	/**
-	 * Contains the name (or IP) of the current isolate host machine
-	 */
-	String PROP_PLATFORM_HOST_NAME = "org.psem2m.platform.host.name";
+    /**
+     * contains the absolute path of the HOME folder of the current application
+     */
+    String PROP_PLATFORM_HOME = "cohorte.home";
 
-	/**
-	 * if "true", allows the redirection of the output of the OSGi log service
-	 * in the logger of the current isolate.
-	 * 
-	 * <pre>
-	 * -Dorg.psem2m.platform.isolate.redirect.logservice=true
-	 * </pre>
-	 */
-	String PROP_PLATFORM_REDIRECT_LOGSVC = "org.psem2m.platform.isolate.redirect.logservice";
+    /**
+     * Contains the name (or IP) of the current isolate host machine
+     */
+    String PROP_PLATFORM_HOST_NAME = "org.psem2m.platform.host.name";
 
-	/**
-	 * Special isolates ID prefix
-	 */
-	String SPECIAL_INTERNAL_ISOLATES_PREFIX = "org.psem2m.internals.isolates.";
+    /**
+     * if "true", allows the redirection of the output of the OSGi log service
+     * in the logger of the current isolate.
+     * 
+     * <pre>
+     * -Dorg.psem2m.platform.isolate.redirect.logservice=true
+     * </pre>
+     */
+    String PROP_PLATFORM_REDIRECT_LOGSVC = "org.psem2m.platform.isolate.redirect.logservice";
 
-	/**
-	 * Forkers isolate ID prefix
-	 */
-	String SPECIAL_ISOLATE_ID_FORKER = SPECIAL_INTERNAL_ISOLATES_PREFIX
-			+ "forker";
+    /**
+     * Special isolates ID prefix
+     */
+    String SPECIAL_INTERNAL_ISOLATES_PREFIX = "org.psem2m.internals.isolates.";
 
-	/**
-	 * Monitors isolate ID prefix
-	 */
-	String SPECIAL_ISOLATE_ID_MONITOR = SPECIAL_INTERNAL_ISOLATES_PREFIX
-			+ "monitor";
+    /**
+     * Forkers isolate ID prefix
+     */
+    String SPECIAL_ISOLATE_ID_FORKER = SPECIAL_INTERNAL_ISOLATES_PREFIX
+            + "forker";
 
-	/**
-	 * Special isolate name: forker
-	 */
-	String SPECIAL_NAME_FORKER = "cohorte.internals.forker";
+    /**
+     * Monitors isolate ID prefix
+     */
+    String SPECIAL_ISOLATE_ID_MONITOR = SPECIAL_INTERNAL_ISOLATES_PREFIX
+            + "monitor";
+
+    /**
+     * Special isolate name: forker
+     */
+    String SPECIAL_NAME_FORKER = "cohorte.internals.forker";
 }

@@ -1,13 +1,19 @@
-/*******************************************************************************
- * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+/**
+ * Copyright 2014 isandlaTech
  *
- * Contributors:
- *    ogattaz  (isandlaTech) - 30 nov. 2011 - initial API and implementation
- *******************************************************************************/
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.psem2m.isolates.ui.admin.panels;
 
 import java.awt.event.MouseEvent;
@@ -22,9 +28,10 @@ import javax.swing.table.TableColumnModel;
 
 /**
  * @author ogattaz
- * 
+ *
  */
 public class CColumnHeaderTips extends MouseMotionAdapter {
+
     // Current column whose tooltip is being displayed.
     // This variable is used to minimize the calls to setToolTipText().
     TableColumn curCol;
@@ -36,10 +43,10 @@ public class CColumnHeaderTips extends MouseMotionAdapter {
     public void mouseMoved(final MouseEvent evt) {
 
         TableColumn col = null;
-        JTableHeader header = (JTableHeader) evt.getSource();
-        JTable table = header.getTable();
-        TableColumnModel colModel = table.getColumnModel();
-        int vColIndex = colModel.getColumnIndexAtX(evt.getX());
+        final JTableHeader header = (JTableHeader) evt.getSource();
+        final JTable table = header.getTable();
+        final TableColumnModel colModel = table.getColumnModel();
+        final int vColIndex = colModel.getColumnIndexAtX(evt.getX());
 
         // Return if not clicked on any column header
         if (vColIndex >= 0) {
@@ -54,7 +61,7 @@ public class CColumnHeaderTips extends MouseMotionAdapter {
 
     /**
      * If tooltip is null, removes any tooltip text.
-     * 
+     *
      * @param col
      * @param tooltip
      */

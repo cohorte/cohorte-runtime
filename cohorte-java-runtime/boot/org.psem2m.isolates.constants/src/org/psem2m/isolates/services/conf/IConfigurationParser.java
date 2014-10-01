@@ -1,8 +1,19 @@
 /**
- * File:   IConfigurationParser.java
- * Author: Thomas Calmant
- * Date:   23 janv. 2013
+ * Copyright 2014 isandlaTech
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package org.psem2m.isolates.services.conf;
 
 import java.util.Collection;
@@ -12,14 +23,14 @@ import org.psem2m.isolates.services.conf.beans.IsolateConf;
 
 /**
  * Parses configuration files
- * 
+ *
  * @author Thomas Calmant
  */
 public interface IConfigurationParser {
 
     /**
      * Parses the description of an isolate in the given file
-     * 
+     *
      * @param aFileName
      *            A configuration file
      * @return The description of the isolate
@@ -28,7 +39,7 @@ public interface IConfigurationParser {
 
     /**
      * Parses the description map of an isolate
-     * 
+     *
      * @param aConfiguration
      *            A configuration map
      * @return The description of the isolate
@@ -37,7 +48,7 @@ public interface IConfigurationParser {
 
     /**
      * Prepares the configuration dictionary of an isolate
-     * 
+     *
      * @param aUID
      *            Isolate UID
      * @param aName

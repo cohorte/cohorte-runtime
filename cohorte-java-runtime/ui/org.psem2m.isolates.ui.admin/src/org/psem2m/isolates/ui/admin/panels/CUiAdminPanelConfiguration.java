@@ -1,13 +1,19 @@
-/*******************************************************************************
- * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+/**
+ * Copyright 2014 isandlaTech
  *
- * Contributors:
- *    ogattaz  (isandlaTech) - 18 nov. 2011 - initial API and implementation
- *******************************************************************************/
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.psem2m.isolates.ui.admin.panels;
 
 import java.util.Properties;
@@ -35,9 +41,10 @@ import org.psem2m.utilities.CXStringUtils;
 
 /**
  * @author ogattaz
- * 
+ *
  */
-@Component(name = "psem2m-ui-admin-panel-configuration-factory", publicFactory = false)
+@Component(name = "psem2m-ui-admin-panel-configuration-factory",
+        publicFactory = false)
 @Instantiate(name = "psem2m-ui-admin-panel-configuration")
 public class CUiAdminPanelConfiguration extends CPojoBase implements
         IUiAdminPanelControler {
@@ -116,7 +123,7 @@ public class CUiAdminPanelConfiguration extends CPojoBase implements
     }
 
     /**
-     * 
+     *
      */
     private void initContent() {
 
@@ -139,7 +146,7 @@ public class CUiAdminPanelConfiguration extends CPojoBase implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.base.activators.CPojoBase#invalidatePojo()
      */
     @Override
@@ -163,7 +170,7 @@ public class CUiAdminPanelConfiguration extends CPojoBase implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.ui.admin.api.IUiAdminPanelControler#setUiAdminFont
      * (org.psem2m.isolates.ui.admin.api.EUiAdminFont)
@@ -176,7 +183,7 @@ public class CUiAdminPanelConfiguration extends CPojoBase implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.base.activators.CPojoBase#validatePojo()
      */
     @Override

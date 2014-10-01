@@ -1,15 +1,26 @@
 /**
- * File:   IIsolateDescr.java
- * Author: Thomas Calmant
- * Date:   2 sept. 2011
+ * Copyright 2014 isandlaTech
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package org.psem2m.isolates.services.conf;
 
 import java.io.Serializable;
 
 /**
  * Describes an isolate configuration
- * 
+ *
  * @author Thomas Calmant
  */
 public interface IIsolateDescr extends Serializable {
@@ -22,7 +33,7 @@ public interface IIsolateDescr extends Serializable {
 
     /**
      * Multiple meanings for this one :
-     * 
+     *
      * <ul>
      * <li>List of bundles to be installed in a Java OSGi isolate : List of
      * Strings (bundle symbolic names)</li>
@@ -58,7 +69,7 @@ public interface IIsolateDescr extends Serializable {
     /**
      * The OSGi framework JAR file name, to be used in the Java isolate class
      * path : String (can be absent or null)
-     * 
+     *
      * The OSGi framework resolution goes as follow :
      * <ol>
      * <li>File given in this entry (osgiFramework)</li>
@@ -67,7 +78,7 @@ public interface IIsolateDescr extends Serializable {
      * <li>The file stated in the platform.framework file, in the configuration
      * directory</li>
      * </ol>
-     * 
+     *
      * If no framework JAR file can be found, the launch fails.
      */
     String ISOLATE_OSGI_FRAMEWORK = "osgiFramework";

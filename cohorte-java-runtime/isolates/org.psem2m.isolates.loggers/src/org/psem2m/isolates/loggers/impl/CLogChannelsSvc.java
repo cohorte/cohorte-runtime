@@ -1,13 +1,19 @@
-/*******************************************************************************
- * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+/**
+ * Copyright 2014 isandlaTech
  *
- * Contributors:
- *    ogattaz (isandlaTech) - initial API and implementation
- *******************************************************************************/
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.psem2m.isolates.loggers.impl;
 
 import java.io.File;
@@ -26,23 +32,39 @@ import org.psem2m.utilities.logging.CActivityLoggerBasicConsole;
 import org.psem2m.utilities.logging.IActivityLoggerBase;
 
 /**
- * 
+ *
  * This service is a Service factory.
- * 
- * 
+ *
+ *
  * @author isandlatech (www.isandlatech.com) - ogattaz
- * 
+ *
  */
 public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 
     /**
+     * @author ogattaz
+     *
+     */
+    class CActivityLoggerConsole extends CActivityLoggerBasicConsole implements
+            ILogChannelSvc {
+
+        /**
+         * @param aLoggerName
+         */
+        CActivityLoggerConsole(final String aLoggerName) {
+
+            super();
+            // open();
+        }
+
+    }
+
+    /**
      * @author isandlatech (www.isandlatech.com) - ogattaz
-     * 
+     *
      */
     class CActivityLoggerPsem2m extends CActivityLoggerBasic implements
             ILogChannelSvc {
-    	
-    	
 
         /**
          * @param aLoggerName
@@ -62,26 +84,10 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
         }
 
     }
-    
-    /**
-     * @author ogattaz
-     *
-     */
-    class CActivityLoggerConsole extends CActivityLoggerBasicConsole implements
-    ILogChannelSvc {
-    	/**
-    	 * @param aLoggerName
-    	 */
-    	CActivityLoggerConsole(final String aLoggerName){
-    		super();
-    		//open();
-    	}
-    	
-    }
 
     /**
      * Service reference managed by iPojo (see metadata.xml)
-     * 
+     *
      * This service is the logger of the current bundle
      **/
     private IIsolateLoggerSvc pIsolateLoggerSvc;
@@ -102,13 +108,14 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.utilities.CXObjectBase#destroy()
      */
     @Override
     public void destroy() {
 
-        for (Entry<String, ILogChannelSvc> wLoggerEntry : pLoggers.entrySet()) {
+        for (final Entry<String, ILogChannelSvc> wLoggerEntry : pLoggers
+                .entrySet()) {
             wLoggerEntry.getValue().close();
         }
         pLoggers.clear();
@@ -120,8 +127,9 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
     @Override
     public List<ILogChannelSvc> getChannels() {
 
-        List<ILogChannelSvc> wLoggers = new ArrayList<ILogChannelSvc>();
-        for (Entry<String, ILogChannelSvc> wLoggerEntry : pLoggers.entrySet()) {
+        final List<ILogChannelSvc> wLoggers = new ArrayList<ILogChannelSvc>();
+        for (final Entry<String, ILogChannelSvc> wLoggerEntry : pLoggers
+                .entrySet()) {
             wLoggers.add(wLoggerEntry.getValue());
         }
 
@@ -134,8 +142,9 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
     @Override
     public List<String> getChannelsIds() {
 
-        List<String> wIds = new ArrayList<String>();
-        for (Entry<String, ILogChannelSvc> wLoggerEntry : pLoggers.entrySet()) {
+        final List<String> wIds = new ArrayList<String>();
+        for (final Entry<String, ILogChannelSvc> wLoggerEntry : pLoggers
+                .entrySet()) {
             wIds.add(wLoggerEntry.getKey());
         }
         return wIds;
@@ -143,7 +152,7 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.loggers.ILogChannelsSvc#getLogChannel(java.lang.String
      * )
@@ -152,7 +161,7 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
     public ILogChannelSvc getLogChannel(final String aChannelId)
             throws Exception {
 
-        ILogChannelSvc wLogger = pLoggers.get(aChannelId);
+        final ILogChannelSvc wLogger = pLoggers.get(aChannelId);
         if (wLogger != null) {
             return wLogger;
         }
@@ -169,7 +178,7 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
     private ILogChannelSvc instanciateLogChannel(final String aChannelId,
             final File aLogDir) throws Exception {
 
-        File wLogFile = new File(aLogDir, aChannelId + "_%g.log");
+        final File wLogFile = new File(aLogDir, aChannelId + "_%g.log");
         return new CActivityLoggerPsem2m(aChannelId,
                 wLogFile.getAbsolutePath(), IActivityLoggerBase.ALL,
                 1024 * 1024 * 100, 5);
@@ -177,7 +186,7 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
      */
     @Override
@@ -196,7 +205,7 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
     public ILogChannelSvc newLogChannel(final String aChannelId)
             throws Exception {
 
-        ILogChannelSvc wLogger = instanciateLogChannel(aChannelId,
+        final ILogChannelSvc wLogger = instanciateLogChannel(aChannelId,
                 pPlatformDirsSvc.getIsolateLogDir());
 
         pLoggers.put(aChannelId, wLogger);
@@ -206,7 +215,7 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.base.CPojoBase#validatePojo()
      */
     @Override
@@ -220,7 +229,7 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 
             // ...
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             pIsolateLoggerSvc.logSevere(this, "validatePojo", e);
         }
     }

@@ -1,8 +1,19 @@
 /**
- * File:   Utilities.java
- * Author: Thomas Calmant
- * Date:   21 juin 2011
+ * Copyright 2014 isandlaTech
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package org.psem2m.isolates.base;
 
 import java.io.ByteArrayOutputStream;
@@ -24,14 +35,14 @@ import org.psem2m.isolates.constants.IPlatformProperties;
 
 /**
  * Various utility methods
- * 
+ *
  * @author Thomas Calmant
  */
 public final class Utilities {
 
     /**
      * Converts the given object to a one-dimension array of the given type
-     * 
+     *
      * @param aArrayObject
      *            An array object
      * @param aTypeArray
@@ -89,7 +100,7 @@ public final class Utilities {
 
     /**
      * The retrieves the URL of the Jar file containing the given class
-     * 
+     *
      * @param aClass
      *            Class to look for
      * @return The Jar file containing the class
@@ -103,9 +114,9 @@ public final class Utilities {
     /**
      * Tries to convert the given array or collection into an array of the given
      * type.
-     * 
+     *
      * If the conversion can't be done, the method returns null.
-     * 
+     *
      * @param aObject
      *            An array or a collection to be converted
      * @param aRequestedClass
@@ -203,9 +214,9 @@ public final class Utilities {
     /**
      * Tries to convert the given array or collection into a list of the given
      * type.
-     * 
+     *
      * If the conversion can't be done, the method returns null.
-     * 
+     *
      * @param aObject
      *            An array or a collection to be converted
      * @param aRequestedClass
@@ -271,7 +282,7 @@ public final class Utilities {
 
     /**
      * Converts an input stream into a byte array
-     * 
+     *
      * @param aInputStream
      *            An input stream
      * @return The input stream content, null on error
@@ -304,7 +315,7 @@ public final class Utilities {
     /**
      * Objects joining operation, using the {@link String#valueOf(Object)}
      * method.
-     * 
+     *
      * @param aJoinSequence
      *            Sequence between strings
      * @param aJoinedObjects
@@ -333,7 +344,7 @@ public final class Utilities {
 
     /**
      * String joining operation, like in Python str.join().
-     * 
+     *
      * @param aJoinSequence
      *            Sequence between strings
      * @param aJoinedStrings
@@ -363,11 +374,11 @@ public final class Utilities {
     /**
      * Returns a valid directory from the given path (it may return the parent
      * directory).
-     * 
+     *
      * @param aPath
      *            base directory path
      * @return A valid directory path
-     * 
+     *
      * @throws IOException
      *             The directory already exists or can't be created
      */
@@ -393,18 +404,18 @@ public final class Utilities {
 
     /**
      * Tests if the given string matches the filter.
-     * 
+     *
      * The filter is the regular filename filter and not a regular expression.
      * Allowed are *.* or ???.xml, etc.
-     * 
+     *
      * Found at : <a href="http://blogs.igalia.com/eocanha/?p=67">blogs.igalia
      * .com/eocanha/?p=67</a>
-     * 
+     *
      * @param aTested
      *            Tested string
      * @param aFilter
      *            Filename filter-like string
-     * 
+     *
      * @return True if matches and false if either null or no match
      */
     public static boolean matchFilter(final String aTested, final String aFilter) {
@@ -437,7 +448,7 @@ public final class Utilities {
 
     /**
      * Deletes the given directory recursively
-     * 
+     *
      * @param aDirectory
      *            Directory to delete
      */

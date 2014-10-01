@@ -1,8 +1,19 @@
 /**
- * File:   OsgiObjectInputStream.java
- * Author: Thomas Calmant
- * Date:   22 sept. 2011
+ * Copyright 2014 isandlaTech
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package org.psem2m.isolates.base;
 
 import java.io.IOException;
@@ -15,7 +26,7 @@ import org.osgi.framework.BundleContext;
 
 /**
  * A class loader aware ObjectInputStream.
- * 
+ *
  * @author Thomas Calmant
  */
 public class OsgiObjectInputStream extends ObjectInputStream {
@@ -25,15 +36,15 @@ public class OsgiObjectInputStream extends ObjectInputStream {
 
     /**
      * Prepares the ObjectInputStream
-     * 
+     *
      * @param aBundleContext
      *            A valid bundle context
      * @param aInputStream
      *            An input stream
-     * 
+     *
      * @throws IOException
      *             The {@link ObjectInputStream} constructor failed
-     * 
+     *
      * @see ObjectInputStream#ObjectInputStream(InputStream)
      */
     public OsgiObjectInputStream(final BundleContext aBundleContext,
@@ -45,7 +56,7 @@ public class OsgiObjectInputStream extends ObjectInputStream {
 
     /**
      * Tries to load the given class by looking into all available bundles.
-     * 
+     *
      * @param aBundles
      *            An array containing all bundles to search into
      * @param aClassName
@@ -87,11 +98,11 @@ public class OsgiObjectInputStream extends ObjectInputStream {
     /**
      * Resolves the given class using the Thread class loader, then by calling
      * all active bundles.
-     * 
+     *
      * Based on code from <a href=
      * "http://tech-tauk.blogspot.com/2010/05/thread-context-classlaoder-in.html"
      * >Tech Talk</a>
-     * 
+     *
      * @see java.io.ObjectInputStream#resolveClass(java.io.ObjectStreamClass)
      */
     @Override

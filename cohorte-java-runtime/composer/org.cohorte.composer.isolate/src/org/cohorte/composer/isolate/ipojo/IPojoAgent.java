@@ -1,8 +1,19 @@
 /**
- * File:   IPojoAgent.java
- * Author: Thomas Calmant
- * Date:   22 oct. 2013
+ * Copyright 2014 isandlaTech
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package org.cohorte.composer.isolate.ipojo;
 
 import java.util.LinkedHashMap;
@@ -39,7 +50,7 @@ import org.psem2m.isolates.constants.IPlatformProperties;
 
 /**
  * The iPOJO composer agent
- * 
+ *
  * @author Thomas Calmant
  */
 @Component
@@ -86,7 +97,7 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
 
     /**
      * Sets up the component
-     * 
+     *
      * @param aContext
      *            The bundle context
      */
@@ -98,7 +109,7 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
 
     /**
      * Called by iPOJO when a Factory service is bound
-     * 
+     *
      * @param aFactory
      *            A new factory service
      */
@@ -165,7 +176,7 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
     /**
      * Prepares the basic properties that a component and its provided service
      * must have
-     * 
+     *
      * @param aComponent
      *            A component bean
      * @return The basic properties of the given component
@@ -188,7 +199,7 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
 
     /**
      * Prepares the binding filters for iPOJO
-     * 
+     *
      * @param aComponent
      *            A component bean
      * @return A dictionary Field name -&gt; LDAP filter string
@@ -227,7 +238,7 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
 
     /**
      * Sets up the properties that must be associated to the component
-     * 
+     *
      * @param aComponent
      *            A component bean
      * @return The component instance properties
@@ -274,7 +285,7 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
     /**
      * Sets up the properties that must be associated to the service provided by
      * the component
-     * 
+     *
      * @param aComponent
      *            A component bean
      * @return The service properties
@@ -292,7 +303,7 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
     /**
      * Generates the iPOJO properties to force the filters to apply to
      * configured required field
-     * 
+     *
      * @param aComponent
      *            A component bean
      * @param aFieldIdMapping
@@ -349,7 +360,7 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
 
     /**
      * Retrieves or creates the set of remaining components of the given factory
-     * 
+     *
      * @param aFactory
      *            A factory name
      * @return The set of remaining components (never null)
@@ -367,7 +378,7 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.cohorte.composer.api.IAgent#handle(java.util.Set)
      */
     @Override
@@ -416,7 +427,7 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.cohorte.composer.api.IAgent#kill(java.lang.String)
      */
     @Override
@@ -441,7 +452,7 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
 
     /**
      * Removes the given component from the remaining components maps
-     * 
+     *
      * @param aComponent
      *            The component to be removed
      */
@@ -460,7 +471,7 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.apache.felix.ipojo.InstanceStateListener#stateChanged(org.apache.
      * felix.ipojo.ComponentInstance, int)
@@ -490,7 +501,7 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
 
     /**
      * Tries to instantiate a component
-     * 
+     *
      * @param aComponent
      *            The component to instantiate
      * @return True if the component has been instantiated
@@ -546,7 +557,7 @@ public class IPojoAgent implements IAgent, InstanceStateListener {
 
     /**
      * Called by iPOJO when a factory service is unbound
-     * 
+     *
      * @param aFactory
      *            A factory service going away
      */

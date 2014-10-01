@@ -1,18 +1,24 @@
-/*******************************************************************************
- * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+/**
+ * Copyright 2014 isandlaTech
  *
- * Contributors:
- *    ogattaz (isandlaTech) - initial API and implementation
- *******************************************************************************/
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package org.psem2m.isolates.ui.admin.impl;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
@@ -24,7 +30,6 @@ import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
@@ -40,395 +45,425 @@ import org.psem2m.isolates.ui.admin.api.IUiAdminPanel;
 
 /**
  * The main Frame of the service IUISvc
- * 
+ *
  * @author ogattaz
- * 
+ *
  */
 public class CFrameMain extends javax.swing.JFrame {
 
-	/**
-	 * 
-	 * @author ogattaz
-	 * 
-	 */
-	class CFontSizeActionListener implements ActionListener {
-
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see
-		 * java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent
-		 * )
-		 */
-		@Override
-		public void actionPerformed(final ActionEvent aActionEvent) {
-
-			final JComboBox wCombo = (JComboBox) aActionEvent.getSource();
-
-			final String wUiAdminFontLib = (String) wCombo.getSelectedItem();
-
-			final EUiAdminFont wUiAdminFont = EUiAdminFont.fontFromLib(wUiAdminFontLib);
-
-			if (hasLogger()) {
-				getLogger().logInfo(this, "", "UiAdminFontLib=[%s] UiAdminFont=[%s]",
-						wUiAdminFontLib, wUiAdminFont.name());
-			}
-
-			if (pUiAdminSvc != null) {
-				pUiAdminSvc.setUiAdminFont(wUiAdminFont);
-			}
-
-		}
-	}
-
-	/** the format of the title of the main Frame **/
-	private final static String FRAME_TITLE_FORMAT = "Cohorte viewer - isolate [%s]";
-
-	/** to be serialized ... **/
-	private static final long serialVersionUID = -2939661125543649591L;
-
-	/**
-	 * Auto-generated main method to display this JFrame
-	 */
-	public static void main(final String[] args) {
-
-		SwingUtilities.invokeLater(new Runnable() {
-
-			@Override
-			public void run() {
-
-				final CFrameMain inst = new CFrameMain();
-				inst.setLocationRelativeTo(null);
-				inst.setVisible(true);
-
-			}
-		});
-	}
-
-	private final CFrameMainConfig pFrameConfig;
-
-	private IIsolateLoggerSvc pLogger;
-
-	private JTabbedPane pMainTabbedPane;
-
-	private JLabel pPreferenceLabelReadability;
-
-	private JPanel pPreferencesChoices;
-
-	private JLabel pPreferencesFontLabel;
-
-	private JComboBox pPreferencesFontSizeComboBox;
-
-	private JPanel pPreferencesPanel;
-
-	private CUiAdminSvc pUiAdminSvc;
-
-	/**
+    /**
+     * 
+     * @author ogattaz
      * 
      */
-	public CFrameMain() {
+    class CFontSizeActionListener implements ActionListener {
 
-		super();
+        /*
+         * (non-Javadoc)
+         * 
+         * @see
+         * java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent
+         * )
+         */
+        @Override
+        public void actionPerformed(final ActionEvent aActionEvent) {
 
-		final CBundleUiActivator activator = CBundleUiActivator.getInstance();
-		if (activator != null) {
-			pFrameConfig = new CFrameMainConfig(activator.getContext());
-		} else {
-			pFrameConfig = new CFrameMainConfig(null);
-		}
+            final JComboBox wCombo = (JComboBox) aActionEvent.getSource();
 
-		initGUI();
-	}
+            final String wUiAdminFontLib = (String) wCombo.getSelectedItem();
 
-	/**
-	 * @param aCUiAdminSvc
-	 * @param aLogger
-	 */
-	CFrameMain(final CUiAdminSvc aCUiAdminSvc) {
+            final EUiAdminFont wUiAdminFont = EUiAdminFont
+                    .fontFromLib(wUiAdminFontLib);
 
-		this();
-		pLogger = aCUiAdminSvc.getLogger();
-		pUiAdminSvc = aCUiAdminSvc;
-		if (hasLogger()) {
-			getLogger().logInfo(this, "<init>", "CFrameMain instanciated");
-		}
-	}
+            if (hasLogger()) {
+                getLogger().logInfo(this, "",
+                        "UiAdminFontLib=[%s] UiAdminFont=[%s]",
+                        wUiAdminFontLib, wUiAdminFont.name());
+            }
 
-	/**
-	 * @param aCUiAdminPanel
-	 * @throws Exception
-	 */
-	void addUiAdminPanel(final CUiAdminPanel aCUiAdminPanel, final EUiAdminPanelLocation aLocation) {
+            if (pUiAdminSvc != null) {
+                pUiAdminSvc.setUiAdminFont(wUiAdminFont);
+            }
 
-		final JPanel wNewPanel = new JPanel();
+        }
+    }
 
-		aCUiAdminPanel.setFrameAndPanel(this, wNewPanel);
+    /** the format of the title of the main Frame **/
+    private final static String FRAME_TITLE_FORMAT = "Cohorte viewer - isolate [%s]";
 
-		int wIdx;
+    /** to be serialized ... **/
+    private static final long serialVersionUID = -2939661125543649591L;
 
-		if (aLocation.isFIRST()) {
-			wIdx = 0;
-		} else if (aLocation.isLAST()) {
-			wIdx = pMainTabbedPane.getTabCount() - 1;
-		} else {
-			// TODO => ASCENDING & DESCENDING,
-			wIdx = 0;
-		}
-
-		// public void insertTab(String title, Icon icon,Component
-		// component, String tip, int index)
-		pMainTabbedPane.insertTab(aCUiAdminPanel.getName(), aCUiAdminPanel.getIcon(), wNewPanel,
-				aCUiAdminPanel.getTip(), wIdx);
-		pMainTabbedPane.setSelectedIndex(wIdx);
-	}
-
-	/**
-     * 
+    /**
+     * Auto-generated main method to display this JFrame
      */
-	void destroy() {
+    public static void main(final String[] args) {
 
-		dispose();
+        SwingUtilities.invokeLater(new Runnable() {
 
-		pLogger = null;
-		pUiAdminSvc = null;
-	}
+            @Override
+            public void run() {
 
-	/**
-	 * @return
-	 */
-	CFrameMainConfig getFrameMainConfig() {
+                final CFrameMain inst = new CFrameMain();
+                inst.setLocationRelativeTo(null);
+                inst.setVisible(true);
 
-		return pFrameConfig;
-	}
+            }
+        });
+    }
 
-	/**
-	 * @return
-	 */
-	IIsolateLoggerSvc getLogger() {
+    private final CFrameMainConfig pFrameConfig;
 
-		return pLogger;
-	}
+    private IIsolateLoggerSvc pLogger;
 
-	/**
-	 * @return
-	 */
-	boolean hasLogger() {
+    private JTabbedPane pMainTabbedPane;
 
-		return getLogger() != null;
-	}
+    private JLabel pPreferenceLabelReadability;
 
-	/**
-     * 
+    private JPanel pPreferencesChoices;
+
+    private JLabel pPreferencesFontLabel;
+
+    private JComboBox pPreferencesFontSizeComboBox;
+
+    private JPanel pPreferencesPanel;
+
+    private CUiAdminSvc pUiAdminSvc;
+
+    /**
+     *
      */
-	private void initGUI() {
+    public CFrameMain() {
 
-		try {
-			setLocation(getFrameMainConfig().getLeft(), getFrameMainConfig().getTop());
-			setTitle("Cohorte sdk");
+        super();
 
-			getContentPane().setBackground(getFrameMainConfig().getColor());
+        final CBundleUiActivator activator = CBundleUiActivator.getInstance();
+        if (activator != null) {
+            pFrameConfig = new CFrameMainConfig(activator.getContext());
+        } else {
+            pFrameConfig = new CFrameMainConfig(null);
+        }
 
-			this.setPreferredSize(getFrameMainConfig().getWidthHeight());
-			setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-			getContentPane().setLayout(new BorderLayout(0, 0));
-			{
-				pMainTabbedPane = new JTabbedPane(SwingConstants.TOP);
-				getContentPane().add(pMainTabbedPane);
+        initGUI();
+    }
 
-				{
-					pPreferencesPanel = new JPanel();
-					pMainTabbedPane.addTab("Preferences", null, pPreferencesPanel, null);
-					pPreferencesPanel.setLayout(new BorderLayout(0, 0));
-					{
-						{
-							pPreferencesChoices = new JPanel();
-							pPreferencesPanel.add(pPreferencesChoices);
-							final GridBagLayout gbl_pPreferencesChoices = new GridBagLayout();
-							gbl_pPreferencesChoices.columnWidths = new int[] { 199, 26, 100, 0 };
-							gbl_pPreferencesChoices.rowHeights = new int[] { 27, 0, 0, 0 };
-							gbl_pPreferencesChoices.columnWeights = new double[] { 0.0, 0.0, 0.0,
-									Double.MIN_VALUE };
-							gbl_pPreferencesChoices.rowWeights = new double[] { 0.0, 0.0, 0.0,
-									Double.MIN_VALUE };
-							pPreferencesChoices.setLayout(gbl_pPreferencesChoices);
-							{
-								pPreferenceLabelReadability = new JLabel("Readability");
-								final GridBagConstraints gbc_pPreferenceLabelReadability = new GridBagConstraints();
-								gbc_pPreferenceLabelReadability.insets = new Insets(0, 0, 5, 5);
-								gbc_pPreferenceLabelReadability.gridx = 0;
-								gbc_pPreferenceLabelReadability.gridy = 1;
-								pPreferencesChoices.add(pPreferenceLabelReadability,
-										gbc_pPreferenceLabelReadability);
-							}
-							{
-								pPreferencesFontLabel = new JLabel("Font");
-								final GridBagConstraints gbc_PreferencesFontLabel = new GridBagConstraints();
-								gbc_PreferencesFontLabel.anchor = GridBagConstraints.WEST;
-								gbc_PreferencesFontLabel.insets = new Insets(0, 0, 0, 5);
-								gbc_PreferencesFontLabel.gridx = 1;
-								gbc_PreferencesFontLabel.gridy = 2;
-								pPreferencesChoices.add(pPreferencesFontLabel,
-										gbc_PreferencesFontLabel);
-							}
-							pPreferencesFontSizeComboBox = new JComboBox();
-							final GridBagConstraints gbc_PreferencesFontSizeComboBox = new GridBagConstraints();
-							gbc_PreferencesFontSizeComboBox.anchor = GridBagConstraints.NORTHWEST;
-							gbc_PreferencesFontSizeComboBox.gridx = 2;
-							gbc_PreferencesFontSizeComboBox.gridy = 2;
-							pPreferencesChoices.add(pPreferencesFontSizeComboBox,
-									gbc_PreferencesFontSizeComboBox);
-							pPreferencesFontSizeComboBox.setModel(new DefaultComboBoxModel(
-									EUiAdminFont.getLibs()));
-							pPreferencesFontSizeComboBox.setSelectedIndex(1);
+    /**
+     * @param aCUiAdminSvc
+     * @param aLogger
+     */
+    CFrameMain(final CUiAdminSvc aCUiAdminSvc) {
 
-							pPreferencesFontSizeComboBox
-									.addActionListener(new CFontSizeActionListener());
+        this();
+        pLogger = aCUiAdminSvc.getLogger();
+        pUiAdminSvc = aCUiAdminSvc;
+        if (hasLogger()) {
+            getLogger().logInfo(this, "<init>", "CFrameMain instanciated");
+        }
+    }
 
-						}
-					}
-					{
-						JPanel pPreferencesNorthPanel = new JPanel();
-						pPreferencesPanel.add(pPreferencesNorthPanel, BorderLayout.NORTH);
-						pPreferencesNorthPanel.setLayout(new BoxLayout(pPreferencesNorthPanel,
-								BoxLayout.Y_AXIS));
-						pPreferencesNorthPanel.setBackground(Color.WHITE);
+    /**
+     * @param aCUiAdminPanel
+     * @throws Exception
+     */
+    void addUiAdminPanel(final CUiAdminPanel aCUiAdminPanel,
+            final EUiAdminPanelLocation aLocation) {
 
-						{
-							ImageIcon wIconCohorteLogoText = new ImageIcon(
-									CFrameMain.class
-											.getResource("/org/psem2m/isolates/ui/admin/impl/COHORTE logo text.png"));
-							// 657 × 83 pixels => 327 x 42
-							wIconCohorteLogoText = new ImageIcon(wIconCohorteLogoText.getImage()
-									.getScaledInstance(327, 42, Image.SCALE_SMOOTH));
+        final JPanel wNewPanel = new JPanel();
 
-							ImageIcon wIconCohorteLogo = new ImageIcon(
-									CFrameMain.class
-											.getResource("/org/psem2m/isolates/ui/admin/impl/COHORTE logo.png"));
+        aCUiAdminPanel.setFrameAndPanel(this, wNewPanel);
 
-							// 1268 × 1043 pixels => 327 x 42
-							wIconCohorteLogo = new ImageIcon(wIconCohorteLogo.getImage()
-									.getScaledInstance(200, 190, Image.SCALE_SMOOTH));
+        int wIdx;
 
-							JLabel wlabelCohorteLogoText = new JLabel();
-							wlabelCohorteLogoText.setIcon(wIconCohorteLogoText);
+        if (aLocation.isFIRST()) {
+            wIdx = 0;
+        } else if (aLocation.isLAST()) {
+            wIdx = pMainTabbedPane.getTabCount() - 1;
+        } else {
+            // TODO => ASCENDING & DESCENDING,
+            wIdx = 0;
+        }
 
-							JPanel wPanelCohorteLogoText = new JPanel();
-							wPanelCohorteLogoText.setAlignmentX(JComponent.CENTER_ALIGNMENT);
-							wPanelCohorteLogoText.add(wlabelCohorteLogoText);
+        // public void insertTab(String title, Icon icon,Component
+        // component, String tip, int index)
+        pMainTabbedPane.insertTab(aCUiAdminPanel.getName(),
+                aCUiAdminPanel.getIcon(), wNewPanel, aCUiAdminPanel.getTip(),
+                wIdx);
+        pMainTabbedPane.setSelectedIndex(wIdx);
+    }
 
-							pPreferencesNorthPanel.add(wPanelCohorteLogoText);
+    /**
+     *
+     */
+    void destroy() {
 
-							JLabel wlabelCohorteLogo = new JLabel();
-							wlabelCohorteLogo.setIcon(wIconCohorteLogo);
+        dispose();
 
-							JPanel wPanelCohorteLogo = new JPanel();
-							wPanelCohorteLogo.setAlignmentX(JComponent.CENTER_ALIGNMENT);
-							wPanelCohorteLogo.add(wlabelCohorteLogo);
+        pLogger = null;
+        pUiAdminSvc = null;
+    }
 
-							pPreferencesNorthPanel.add(wPanelCohorteLogo);
+    /**
+     * @return
+     */
+    CFrameMainConfig getFrameMainConfig() {
 
-						}
-					}
-					{
-						JPanel pPreferencesSouthPanel = new JPanel();
-						pPreferencesPanel.add(pPreferencesSouthPanel, BorderLayout.SOUTH);
-						pPreferencesSouthPanel.setLayout(new BoxLayout(pPreferencesSouthPanel,
-								BoxLayout.Y_AXIS));
-						pPreferencesSouthPanel.setBackground(Color.WHITE);
+        return pFrameConfig;
+    }
 
-						{
-							ImageIcon wIconLig = new ImageIcon(
-									CFrameMain.class
-											.getResource("/org/psem2m/isolates/ui/admin/impl/LIG_masque.png"));
+    /**
+     * @return
+     */
+    IIsolateLoggerSvc getLogger() {
 
-							// 688 x 263 => 344 x 131
-							wIconLig = new ImageIcon(wIconLig.getImage().getScaledInstance(344,
-									131, Image.SCALE_SMOOTH));
+        return pLogger;
+    }
 
-							ImageIcon wIconErods = new ImageIcon(
-									CFrameMain.class
-											.getResource("/org/psem2m/isolates/ui/admin/impl/ERODS.png"));
+    /**
+     * @return
+     */
+    boolean hasLogger() {
 
-							ImageIcon wIconIsandla = new ImageIcon(
-									CFrameMain.class
-											.getResource("/org/psem2m/isolates/ui/admin/impl/isandlaTech logo masque.png"));
-							// 804 x 119 => 402 x 59
-							wIconIsandla = new ImageIcon(wIconIsandla.getImage().getScaledInstance(
-									402, 59, Image.SCALE_SMOOTH));
+        return getLogger() != null;
+    }
 
-							JPanel wSouthPanelLogos = new JPanel();
-							pPreferencesSouthPanel.add(wSouthPanelLogos);
-							wSouthPanelLogos.setLayout(new BorderLayout(0, 0));
+    /**
+     *
+     */
+    private void initGUI() {
 
-							JLabel wLabelLogoLig = new JLabel();
-							wLabelLogoLig.setIcon(wIconLig);
+        try {
+            setLocation(getFrameMainConfig().getLeft(), getFrameMainConfig()
+                    .getTop());
+            setTitle("Cohorte sdk");
 
-							JPanel wPanelLogoLig = new JPanel();
-							wPanelLogoLig.setAlignmentX(JComponent.CENTER_ALIGNMENT);
-							wPanelLogoLig.add(wLabelLogoLig);
+            getContentPane().setBackground(getFrameMainConfig().getColor());
 
-							wSouthPanelLogos.add(wPanelLogoLig, BorderLayout.NORTH);
+            this.setPreferredSize(getFrameMainConfig().getWidthHeight());
+            setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+            getContentPane().setLayout(new BorderLayout(0, 0));
+            {
+                pMainTabbedPane = new JTabbedPane(SwingConstants.TOP);
+                getContentPane().add(pMainTabbedPane);
 
-							JLabel wLabelErodsUrl = new JLabel();
-							wLabelErodsUrl.setIcon(wIconErods);
+                {
+                    pPreferencesPanel = new JPanel();
+                    pMainTabbedPane.addTab("Preferences", null,
+                            pPreferencesPanel, null);
+                    pPreferencesPanel.setLayout(new BorderLayout(0, 0));
+                    {
+                        {
+                            pPreferencesChoices = new JPanel();
+                            pPreferencesPanel.add(pPreferencesChoices);
+                            final GridBagLayout gbl_pPreferencesChoices = new GridBagLayout();
+                            gbl_pPreferencesChoices.columnWidths = new int[] {
+                                    199, 26, 100, 0 };
+                            gbl_pPreferencesChoices.rowHeights = new int[] {
+                                    27, 0, 0, 0 };
+                            gbl_pPreferencesChoices.columnWeights = new double[] {
+                                    0.0, 0.0, 0.0, Double.MIN_VALUE };
+                            gbl_pPreferencesChoices.rowWeights = new double[] {
+                                    0.0, 0.0, 0.0, Double.MIN_VALUE };
+                            pPreferencesChoices
+                                    .setLayout(gbl_pPreferencesChoices);
+                            {
+                                pPreferenceLabelReadability = new JLabel(
+                                        "Readability");
+                                final GridBagConstraints gbc_pPreferenceLabelReadability = new GridBagConstraints();
+                                gbc_pPreferenceLabelReadability.insets = new Insets(
+                                        0, 0, 5, 5);
+                                gbc_pPreferenceLabelReadability.gridx = 0;
+                                gbc_pPreferenceLabelReadability.gridy = 1;
+                                pPreferencesChoices.add(
+                                        pPreferenceLabelReadability,
+                                        gbc_pPreferenceLabelReadability);
+                            }
+                            {
+                                pPreferencesFontLabel = new JLabel("Font");
+                                final GridBagConstraints gbc_PreferencesFontLabel = new GridBagConstraints();
+                                gbc_PreferencesFontLabel.anchor = GridBagConstraints.WEST;
+                                gbc_PreferencesFontLabel.insets = new Insets(0,
+                                        0, 0, 5);
+                                gbc_PreferencesFontLabel.gridx = 1;
+                                gbc_PreferencesFontLabel.gridy = 2;
+                                pPreferencesChoices.add(pPreferencesFontLabel,
+                                        gbc_PreferencesFontLabel);
+                            }
+                            pPreferencesFontSizeComboBox = new JComboBox();
+                            final GridBagConstraints gbc_PreferencesFontSizeComboBox = new GridBagConstraints();
+                            gbc_PreferencesFontSizeComboBox.anchor = GridBagConstraints.NORTHWEST;
+                            gbc_PreferencesFontSizeComboBox.gridx = 2;
+                            gbc_PreferencesFontSizeComboBox.gridy = 2;
+                            pPreferencesChoices.add(
+                                    pPreferencesFontSizeComboBox,
+                                    gbc_PreferencesFontSizeComboBox);
+                            pPreferencesFontSizeComboBox
+                                    .setModel(new DefaultComboBoxModel(
+                                            EUiAdminFont.getLibs()));
+                            pPreferencesFontSizeComboBox.setSelectedIndex(1);
 
-							JPanel wPanelErodsUrl = new JPanel();
-							wPanelErodsUrl.setAlignmentX(JComponent.CENTER_ALIGNMENT);
-							wPanelErodsUrl.add(wLabelErodsUrl);
+                            pPreferencesFontSizeComboBox
+                                    .addActionListener(new CFontSizeActionListener());
 
-							wSouthPanelLogos.add(wPanelErodsUrl, BorderLayout.CENTER);
+                        }
+                    }
+                    {
+                        final JPanel pPreferencesNorthPanel = new JPanel();
+                        pPreferencesPanel.add(pPreferencesNorthPanel,
+                                BorderLayout.NORTH);
+                        pPreferencesNorthPanel.setLayout(new BoxLayout(
+                                pPreferencesNorthPanel, BoxLayout.Y_AXIS));
+                        pPreferencesNorthPanel.setBackground(Color.WHITE);
 
-							JLabel wLabelLogoIsandlaTech = new JLabel();
-							wLabelLogoIsandlaTech.setIcon(wIconIsandla);
+                        {
+                            ImageIcon wIconCohorteLogoText = new ImageIcon(
+                                    CFrameMain.class
+                                            .getResource("/org/psem2m/isolates/ui/admin/impl/COHORTE logo text.png"));
+                            // 657 × 83 pixels => 327 x 42
+                            wIconCohorteLogoText = new ImageIcon(
+                                    wIconCohorteLogoText.getImage()
+                                            .getScaledInstance(327, 42,
+                                                    Image.SCALE_SMOOTH));
 
-							JPanel wPanelLogoIsandlaTech = new JPanel();
-							wPanelLogoIsandlaTech.setAlignmentX(JComponent.CENTER_ALIGNMENT);
-							wPanelLogoIsandlaTech.add(wLabelLogoIsandlaTech);
+                            ImageIcon wIconCohorteLogo = new ImageIcon(
+                                    CFrameMain.class
+                                            .getResource("/org/psem2m/isolates/ui/admin/impl/COHORTE logo.png"));
 
-							wSouthPanelLogos.add(wPanelLogoIsandlaTech, BorderLayout.SOUTH);
-						}
-					}
-				}
-			}
+                            // 1268 × 1043 pixels => 327 x 42
+                            wIconCohorteLogo = new ImageIcon(wIconCohorteLogo
+                                    .getImage().getScaledInstance(200, 190,
+                                            Image.SCALE_SMOOTH));
 
-			pack();
-		} catch (final Exception e) {
-			e.printStackTrace();
-		}
-	}
+                            final JLabel wlabelCohorteLogoText = new JLabel();
+                            wlabelCohorteLogoText.setIcon(wIconCohorteLogoText);
 
-	/**
-	 * @param aCUiAdminPanel
-	 * @throws Exception
-	 */
-	void removeUiAdminPanel(final IUiAdminPanel aCUiAdminPanel) {
+                            final JPanel wPanelCohorteLogoText = new JPanel();
+                            wPanelCohorteLogoText
+                                    .setAlignmentX(Component.CENTER_ALIGNMENT);
+                            wPanelCohorteLogoText.add(wlabelCohorteLogoText);
 
-		final String panelName = aCUiAdminPanel.getName();
-		final int wMax = pMainTabbedPane.getTabCount();
-		for (int wI = 0; wI < wMax; wI++) {
-			if (pMainTabbedPane.getTitleAt(wI).equals(panelName)) {
-				pMainTabbedPane.removeTabAt(wI);
-				break;
-			}
-		}
-	}
+                            pPreferencesNorthPanel.add(wPanelCohorteLogoText);
 
-	/**
-	 * @param aIsolateName
-	 */
-	@Override
-	public void setTitle(final String aIsolateName) {
+                            final JLabel wlabelCohorteLogo = new JLabel();
+                            wlabelCohorteLogo.setIcon(wIconCohorteLogo);
 
-		String wId;
-		if (aIsolateName == null || aIsolateName.isEmpty()) {
-			wId = "no id";
-		} else {
-			final int wPos = aIsolateName.lastIndexOf('.');
-			wId = wPos > -1 && wPos + 1 < aIsolateName.length() - 1 ? aIsolateName
-					.substring(wPos + 1) : aIsolateName;
-		}
+                            final JPanel wPanelCohorteLogo = new JPanel();
+                            wPanelCohorteLogo
+                                    .setAlignmentX(Component.CENTER_ALIGNMENT);
+                            wPanelCohorteLogo.add(wlabelCohorteLogo);
 
-		super.setTitle(String.format(FRAME_TITLE_FORMAT, wId));
-	}
+                            pPreferencesNorthPanel.add(wPanelCohorteLogo);
+
+                        }
+                    }
+                    {
+                        final JPanel pPreferencesSouthPanel = new JPanel();
+                        pPreferencesPanel.add(pPreferencesSouthPanel,
+                                BorderLayout.SOUTH);
+                        pPreferencesSouthPanel.setLayout(new BoxLayout(
+                                pPreferencesSouthPanel, BoxLayout.Y_AXIS));
+                        pPreferencesSouthPanel.setBackground(Color.WHITE);
+
+                        {
+                            ImageIcon wIconLig = new ImageIcon(
+                                    CFrameMain.class
+                                            .getResource("/org/psem2m/isolates/ui/admin/impl/LIG_masque.png"));
+
+                            // 688 x 263 => 344 x 131
+                            wIconLig = new ImageIcon(wIconLig.getImage()
+                                    .getScaledInstance(344, 131,
+                                            Image.SCALE_SMOOTH));
+
+                            final ImageIcon wIconErods = new ImageIcon(
+                                    CFrameMain.class
+                                            .getResource("/org/psem2m/isolates/ui/admin/impl/ERODS.png"));
+
+                            ImageIcon wIconIsandla = new ImageIcon(
+                                    CFrameMain.class
+                                            .getResource("/org/psem2m/isolates/ui/admin/impl/isandlaTech logo masque.png"));
+                            // 804 x 119 => 402 x 59
+                            wIconIsandla = new ImageIcon(wIconIsandla
+                                    .getImage().getScaledInstance(402, 59,
+                                            Image.SCALE_SMOOTH));
+
+                            final JPanel wSouthPanelLogos = new JPanel();
+                            pPreferencesSouthPanel.add(wSouthPanelLogos);
+                            wSouthPanelLogos.setLayout(new BorderLayout(0, 0));
+
+                            final JLabel wLabelLogoLig = new JLabel();
+                            wLabelLogoLig.setIcon(wIconLig);
+
+                            final JPanel wPanelLogoLig = new JPanel();
+                            wPanelLogoLig
+                                    .setAlignmentX(Component.CENTER_ALIGNMENT);
+                            wPanelLogoLig.add(wLabelLogoLig);
+
+                            wSouthPanelLogos.add(wPanelLogoLig,
+                                    BorderLayout.NORTH);
+
+                            final JLabel wLabelErodsUrl = new JLabel();
+                            wLabelErodsUrl.setIcon(wIconErods);
+
+                            final JPanel wPanelErodsUrl = new JPanel();
+                            wPanelErodsUrl
+                                    .setAlignmentX(Component.CENTER_ALIGNMENT);
+                            wPanelErodsUrl.add(wLabelErodsUrl);
+
+                            wSouthPanelLogos.add(wPanelErodsUrl,
+                                    BorderLayout.CENTER);
+
+                            final JLabel wLabelLogoIsandlaTech = new JLabel();
+                            wLabelLogoIsandlaTech.setIcon(wIconIsandla);
+
+                            final JPanel wPanelLogoIsandlaTech = new JPanel();
+                            wPanelLogoIsandlaTech
+                                    .setAlignmentX(Component.CENTER_ALIGNMENT);
+                            wPanelLogoIsandlaTech.add(wLabelLogoIsandlaTech);
+
+                            wSouthPanelLogos.add(wPanelLogoIsandlaTech,
+                                    BorderLayout.SOUTH);
+                        }
+                    }
+                }
+            }
+
+            pack();
+        } catch (final Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * @param aCUiAdminPanel
+     * @throws Exception
+     */
+    void removeUiAdminPanel(final IUiAdminPanel aCUiAdminPanel) {
+
+        final String panelName = aCUiAdminPanel.getName();
+        final int wMax = pMainTabbedPane.getTabCount();
+        for (int wI = 0; wI < wMax; wI++) {
+            if (pMainTabbedPane.getTitleAt(wI).equals(panelName)) {
+                pMainTabbedPane.removeTabAt(wI);
+                break;
+            }
+        }
+    }
+
+    /**
+     * @param aIsolateName
+     */
+    @Override
+    public void setTitle(final String aIsolateName) {
+
+        String wId;
+        if (aIsolateName == null || aIsolateName.isEmpty()) {
+            wId = "no id";
+        } else {
+            final int wPos = aIsolateName.lastIndexOf('.');
+            wId = wPos > -1 && wPos + 1 < aIsolateName.length() - 1 ? aIsolateName
+                    .substring(wPos + 1) : aIsolateName;
+        }
+
+        super.setTitle(String.format(FRAME_TITLE_FORMAT, wId));
+    }
 
 }

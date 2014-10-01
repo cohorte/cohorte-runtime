@@ -1,13 +1,19 @@
-/*******************************************************************************
- * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+/**
+ * Copyright 2014 isandlaTech
  *
- * Contributors:
- *    ogattaz  (isandlaTech) - 30 nov. 2011 - initial API and implementation
- *******************************************************************************/
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.psem2m.isolates.ui.admin.panels;
 
 import java.util.ArrayList;
@@ -20,7 +26,7 @@ import javax.swing.table.AbstractTableModel;
 
 /**
  * @author ogattaz
- * 
+ *
  * @param <T>
  */
 class CEntityBean<T> {
@@ -55,16 +61,20 @@ class CEntityBean<T> {
 
 /**
  * @author ogattaz
- * 
+ *
  */
 public abstract class CTableModel<T> extends AbstractTableModel {
 
     private static final long serialVersionUID = -3434843033520198107L;
 
     private final int pColKeyIdx;
+
     private final List<String[]> pList = new ArrayList<String[]>();
+
     private final Map<String, CEntityBean<T>> pMap = new HashMap<String, CEntityBean<T>>();
+
     private final CJPanelTable<T> pPanel;
+
     private final String[] pTitles;
 
     /**
@@ -193,7 +203,7 @@ public abstract class CTableModel<T> extends AbstractTableModel {
     }
 
     /**
-     * 
+     *
      */
     public synchronized void destroy() {
 
@@ -203,7 +213,7 @@ public abstract class CTableModel<T> extends AbstractTableModel {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.swing.table.TableModel#getColumnCount()
      */
     @Override
@@ -214,7 +224,7 @@ public abstract class CTableModel<T> extends AbstractTableModel {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.swing.table.AbstractTableModel#getColumnName(int)
      */
     @Override
@@ -243,7 +253,7 @@ public abstract class CTableModel<T> extends AbstractTableModel {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.swing.table.TableModel#getRowCount()
      */
     @Override
@@ -263,7 +273,7 @@ public abstract class CTableModel<T> extends AbstractTableModel {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.swing.table.TableModel#getValueAt(int, int)
      */
     @Override
@@ -303,7 +313,7 @@ public abstract class CTableModel<T> extends AbstractTableModel {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.swing.table.AbstractTableModel#isCellEditable(int, int)
      */
     @Override
@@ -313,7 +323,7 @@ public abstract class CTableModel<T> extends AbstractTableModel {
     }
 
     /**
-     * 
+     *
      */
     public synchronized void removeAllRows() {
 
@@ -402,7 +412,7 @@ public abstract class CTableModel<T> extends AbstractTableModel {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see javax.swing.table.AbstractTableModel#setValueAt(java.lang.Object,
      * int, int)
      */

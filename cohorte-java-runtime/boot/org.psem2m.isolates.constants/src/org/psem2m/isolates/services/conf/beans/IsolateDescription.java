@@ -1,8 +1,19 @@
 /**
- * File:   IsolateDescription.java
- * Author: Thomas Calmant
- * Date:   2 sept. 2011
+ * Copyright 2014 isandlaTech
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package org.psem2m.isolates.services.conf.beans;
 
 import java.io.Serializable;
@@ -20,7 +31,7 @@ import org.psem2m.isolates.services.conf.IIsolateDescr;
 
 /**
  * Description of an isolate
- * 
+ *
  * @author Thomas Calmant
  */
 public class IsolateDescription implements Serializable {
@@ -68,7 +79,7 @@ public class IsolateDescription implements Serializable {
 
     /**
      * Sets up the description according to the given map
-     * 
+     *
      * @param aDescriptionMap
      *            An isolate description map
      */
@@ -139,7 +150,7 @@ public class IsolateDescription implements Serializable {
 
     /**
      * Sets up the isolate description
-     * 
+     *
      * @param aIsolateId
      */
     public IsolateDescription(final String aIsolateId) {
@@ -149,7 +160,7 @@ public class IsolateDescription implements Serializable {
 
     /**
      * Fills the given collection with the given object, if it is a collection
-     * 
+     *
      * @param aFilledCollection
      *            The collection to fill
      * @param aSourceObject
@@ -185,7 +196,7 @@ public class IsolateDescription implements Serializable {
 
     /**
      * Retrieves the list of bundles described in the isolate configuration
-     * 
+     *
      * @return The isolate bundles
      */
     public Set<BundleDescription> getBundles() {
@@ -195,7 +206,7 @@ public class IsolateDescription implements Serializable {
 
     /**
      * Retrieves the isolate VM class path (Java)
-     * 
+     *
      * @return the isolate class path
      */
     public List<String> getClasspath() {
@@ -205,7 +216,7 @@ public class IsolateDescription implements Serializable {
 
     /**
      * Retrieves the isolate process environment
-     * 
+     *
      * @return the isolate process environment
      */
     public Map<String, String> getEnvironment() {
@@ -215,7 +226,7 @@ public class IsolateDescription implements Serializable {
 
     /**
      * Retrieves the kind of this isolate
-     * 
+     *
      * @return the isolate kind
      */
     public String getKind() {
@@ -233,7 +244,7 @@ public class IsolateDescription implements Serializable {
 
     /**
      * Retrieves the isolate node name
-     * 
+     *
      * @return the node name
      */
     public String getNode() {
@@ -243,7 +254,7 @@ public class IsolateDescription implements Serializable {
 
     /**
      * The path to the OSGi framework JAR file
-     * 
+     *
      * @return the path to the OSGi framework
      */
     public String getOsgiFramework() {
@@ -253,7 +264,7 @@ public class IsolateDescription implements Serializable {
 
     /**
      * The port to access the isolate signal receiver
-     * 
+     *
      * @return the signal receiver port
      */
     public int getPort() {
@@ -263,7 +274,7 @@ public class IsolateDescription implements Serializable {
 
     /**
      * Retrieves the ID of this isolate
-     * 
+     *
      * @return The isolate ID
      */
     public String getUID() {
@@ -273,7 +284,7 @@ public class IsolateDescription implements Serializable {
 
     /**
      * Retrieves the list of VM / interpreter arguments for this isolate
-     * 
+     *
      * @return The list of VM arguments
      */
     public List<String> getVmArgs() {
@@ -283,7 +294,7 @@ public class IsolateDescription implements Serializable {
 
     /**
      * Sets the isolate bundles
-     * 
+     *
      * @param aBundles
      *            the isolate bundles
      */
@@ -323,10 +334,10 @@ public class IsolateDescription implements Serializable {
 
     /**
      * Sets the kind of isolate
-     * 
+     *
      * @param aKind
      *            The kind of the isolate
-     * 
+     *
      * @see IIsolateDescr#getKind()
      */
     public void setKind(final String aKind) {
@@ -350,7 +361,7 @@ public class IsolateDescription implements Serializable {
 
     /**
      * Sets up the isolate node name
-     * 
+     *
      * @param aNode
      *            the node
      */
@@ -379,7 +390,7 @@ public class IsolateDescription implements Serializable {
 
     /**
      * Sets the isolate ID
-     * 
+     *
      * @param aIsolateId
      *            the isolate ID
      */
@@ -390,7 +401,7 @@ public class IsolateDescription implements Serializable {
 
     /**
      * Sets the Java virtual machine arguments
-     * 
+     *
      * @param aVmArgs
      *            the VM arguments
      */
@@ -405,7 +416,7 @@ public class IsolateDescription implements Serializable {
 
     /**
      * Converts this description into its map representation
-     * 
+     *
      * @return The map representation of this object
      */
     public Map<String, Object> toMap() {

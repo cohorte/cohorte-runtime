@@ -1,13 +1,19 @@
-/*******************************************************************************
- * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+/**
+ * Copyright 2014 isandlaTech
  *
- * Contributors:
- *    ogattaz  (isandlaTech) - 18 nov. 2011 - initial API and implementation
- *******************************************************************************/
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.psem2m.isolates.ui.admin.impl;
 
 import javax.swing.Icon;
@@ -22,15 +28,19 @@ import org.psem2m.utilities.IXObjectBase;
 
 /**
  * @author ogattaz
- * 
+ *
  */
 public class CUiAdminPanel extends CXObjectBase implements IUiAdminPanel,
         IUiAdminPanelControler {
 
     private final IUiAdminPanelControler pControler;
+
     private JFrame pFrame;
+
     private final Icon pIcon;
+
     private final String pName;
+
     private JPanel pPanel = null;
 
     private final String pTip;
@@ -51,7 +61,7 @@ public class CUiAdminPanel extends CXObjectBase implements IUiAdminPanel,
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.ui.admin.api.IUiAdminPanel#getConroler()
      */
     @Override
@@ -62,7 +72,7 @@ public class CUiAdminPanel extends CXObjectBase implements IUiAdminPanel,
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.ui.admin.api.IUiAdminPanel#getIcon()
      */
     @Override
@@ -73,7 +83,7 @@ public class CUiAdminPanel extends CXObjectBase implements IUiAdminPanel,
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.ui.admin.api.IUiAdminPanel#getName()
      */
     @Override
@@ -84,7 +94,7 @@ public class CUiAdminPanel extends CXObjectBase implements IUiAdminPanel,
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.ui.admin.api.IUiAdminPanel#getPanel()
      */
     @Override
@@ -95,7 +105,7 @@ public class CUiAdminPanel extends CXObjectBase implements IUiAdminPanel,
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.ui.admin.api.IUiAdminPanel#getTip()
      */
     @Override
@@ -106,7 +116,7 @@ public class CUiAdminPanel extends CXObjectBase implements IUiAdminPanel,
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.ui.admin.api.IUiAdminPanel#hasControler()
      */
     @Override
@@ -117,7 +127,7 @@ public class CUiAdminPanel extends CXObjectBase implements IUiAdminPanel,
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.ui.admin.api.IUiAdminPanel#hasPanel()
      */
     @Override
@@ -128,7 +138,7 @@ public class CUiAdminPanel extends CXObjectBase implements IUiAdminPanel,
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.ui.admin.api.IUiAdminPanel#pack()
      */
     @Override
@@ -148,7 +158,7 @@ public class CUiAdminPanel extends CXObjectBase implements IUiAdminPanel,
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.ui.admin.api.IUiAdminPanelControler#setUiAdminFont
      * (org.psem2m.isolates.ui.admin.api.EUiAdminFont)

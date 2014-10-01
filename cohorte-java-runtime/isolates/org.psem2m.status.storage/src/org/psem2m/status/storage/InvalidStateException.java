@@ -1,13 +1,24 @@
 /**
- * File:   InvalidStateException.java
- * Author: Thomas Calmant
- * Date:   27 août 2012
+ * Copyright 2014 isandlaTech
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package org.psem2m.status.storage;
 
 /**
  * Exception thrown by the StatusStorage when facing an invalid state
- * 
+ *
  * @author Thomas Calmant
  */
 public class InvalidStateException extends Exception {
@@ -23,7 +34,7 @@ public class InvalidStateException extends Exception {
 
     /**
      * Sets up the exception
-     * 
+     *
      * @param aMessage
      *            The exception message
      */
@@ -36,7 +47,7 @@ public class InvalidStateException extends Exception {
 
     /**
      * Sets up the exception
-     * 
+     *
      * @param aMessage
      *            The exception message
      * @param aState
@@ -51,7 +62,7 @@ public class InvalidStateException extends Exception {
 
     /**
      * Sets up the exception, if a state change is forbidden
-     * 
+     *
      * @param aMessage
      *            The exception message
      * @param aPreviousState
@@ -69,7 +80,7 @@ public class InvalidStateException extends Exception {
 
     /**
      * Retrieves the (requested) state that caused the exception
-     * 
+     *
      * @return the state that caused the exception
      */
     public State getCauseState() {
@@ -79,7 +90,7 @@ public class InvalidStateException extends Exception {
 
     /**
      * Retrieves the previous (current) state, if any
-     * 
+     *
      * @return the previous state
      */
     public State getPreviousState() {

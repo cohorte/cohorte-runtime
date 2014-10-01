@@ -1,13 +1,19 @@
-/*******************************************************************************
- * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+/**
+ * Copyright 2014 isandlaTech
  *
- * Contributors:
- *    ogattaz  (isandlaTech) - 18 nov. 2011 - initial API and implementation
- *******************************************************************************/
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.psem2m.isolates.ui.admin.panels;
 
 import java.awt.BorderLayout;
@@ -52,13 +58,14 @@ import org.psem2m.utilities.CXStringUtils;
 
 /**
  * @author ogattaz
- * 
+ *
  */
 public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
     class CEntityBeanComponent extends CEntityBean<Architecture> {
 
         private ComponentInstance pComponentInstance;
+
         private InstanceStateListener pInstanceStateListener;
 
         /**
@@ -95,13 +102,13 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
     /**
      * @author ogattaz
-     * 
+     *
      */
     class CInstanceStateListener implements InstanceStateListener {
 
         /*
          * (non-Javadoc)
-         * 
+         *
          * @see
          * org.apache.felix.ipojo.InstanceStateListener#stateChanged(org.apache
          * .felix.ipojo.ComponentInstance, int)
@@ -111,6 +118,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
                 final int aNewState) {
 
             execute(new Runnable() {
+
                 @Override
                 public void run() {
 
@@ -166,26 +174,26 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
     }
 
     /**
-     * 
+     *
      * By default a left mouse click on a JTable row will select that row, but
      * it’s not the same for the right mouse button. It takes bit more work to
      * get a JTable to select a row based on right mouse clicks. You might be
      * able to do it by subclassing JTable or ListSelectionModel, but there’s an
      * easier way.
-     * 
+     *
      * 1. Use a MouseAdapter to detect right clicks on the JTable.
-     * 
+     *
      * 2. Get the Point (X-Y coordinate) of the click.
-     * 
+     *
      * 3. Find out what row contains that Point
-     * 
+     *
      * 4. Get the ListSelectionModel of the JTable and 5. Tell the
      * ListSelectionModel to select that row. Here’s what it looks like:
-     * 
-     * 
+     *
+     *
      * @see http://www.stupidjavatricks.com/?p=12
      * @author ogattaz
-     * 
+     *
      */
     class CMouseListener extends MouseAdapter {
 
@@ -207,6 +215,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
             final JMenuItem wMenuItem1 = new JMenuItem(wItemLib1);
             wMenuItem1.addActionListener(new ActionListener() {
+
                 @Override
                 public void actionPerformed(final ActionEvent actionEvent) {
 
@@ -224,6 +233,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
             final JMenuItem wMenuItem2 = new JMenuItem(wItemLib2);
             wMenuItem2.addActionListener(new ActionListener() {
+
                 @Override
                 public void actionPerformed(final ActionEvent actionEvent) {
 
@@ -257,7 +267,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
         /*
          * (non-Javadoc)
-         * 
+         *
          * @see
          * java.awt.event.MouseAdapter#mouseClicked(java.awt.event.MouseEvent)
          */
@@ -305,9 +315,9 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
     /**
      * Look at TableSelectionDemo.java from java tutorial to learn how work the
      * JTable selection model
-     * 
+     *
      * @author ogattaz
-     * 
+     *
      */
     class CSelectionListener implements ListSelectionListener {
 
@@ -315,6 +325,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
         public void valueChanged(final ListSelectionEvent aListSelectionEvent) {
 
             execute(new Runnable() {
+
                 @Override
                 public void run() {
 
@@ -359,7 +370,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
     /**
      * @author ogattaz
-     * 
+     *
      */
     class CTableModelComponents extends CTableModel<Architecture> {
 
@@ -398,8 +409,11 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
     }
 
     private final static int COLUMN_IDX_BUNDLE = 3;
+
     private final static int COLUMN_IDX_FACTORY = 1;
+
     private final static int COLUMN_IDX_NAME = 0;
+
     private final static int COLUMN_IDX_STATE = 2;
 
     private final static int COLUMN_KEY_IDX = COLUMN_IDX_NAME;
@@ -430,24 +444,34 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
     }
 
     private final int[] COLUMNS_SIZE = { 150, 150, 20, 5 };
+
     private final String[] COLUMNS_TIPS = { "Name of the component.",
             "Factory of the component.", "component of the component.",
             "Id of the bundle." };
+
     private final String[] COLUMNS_TITLE = { "Component name", "Factory name",
             "State", "Bndl" };
 
     private JPanel pComponentInfoPanel;
+
     private JSplitPane pComponentsSplitPane;
+
     private JTable pComponentsTable;
+
     private JScrollPane pComponentsTablScrollPane;
+
     private JTextArea pComponentTextArea;
+
     private JScrollPane pComponentTextAreaScrollPane;
+
     private CTableModelComponents pCTableModelComponents = null;
+
     private CMouseListener pMouseListener = null;
+
     private CSelectionListener pSelectionListener = null;
 
     /**
-     * 
+     *
      */
     public CJPanelTableComponents() {
 
@@ -468,7 +492,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.ui.admin.panels.CJPanelTable#acceptRow(java.lang.
      * Object, java.lang.String[])
@@ -482,7 +506,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.ui.admin.panels.CJPanelTable#addRow(java.lang.Object)
      */
@@ -500,7 +524,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.ui.admin.panels.CJPanelTable#addRows(T[])
      */
     @Override
@@ -531,7 +555,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.ui.admin.panels.CJPanelTable#buildRowData(java.lang
      * .Object)
@@ -557,7 +581,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.ui.admin.panels.CJPanelTable#buildRowKey(java.lang
      * .Object)
@@ -571,7 +595,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.ui.admin.panels.CJPanelTable#buildTextInfos(java.
      * lang.Object)
@@ -636,7 +660,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.ui.admin.panels.CJPanel#destroy()
      */
     @Override
@@ -741,7 +765,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.ui.admin.panels.CJPanelTable#getTable()
      */
     @Override
@@ -752,7 +776,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.ui.admin.panels.CJPanel#newGUI()
      */
     @Override
@@ -837,7 +861,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.ui.admin.panels.CJPanelTable#removeAllRows()
      */
     @Override
@@ -851,7 +875,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.ui.admin.panels.CJPanelTable#removeRow(java.lang.
      * Object)
@@ -867,7 +891,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.ui.admin.panels.CJPanelTable#setRow(java.lang.Object)
      */
@@ -882,7 +906,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.ui.admin.panels.CJPanelTable#setRows(T[])
      */
     @Override
@@ -896,7 +920,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.ui.admin.panels.CJPanelTable#setTableFont(java.lang
      * .String, int)
@@ -910,7 +934,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.ui.admin.panels.CJPanel#setText(java.lang.String)
      */
@@ -922,7 +946,7 @@ public class CJPanelTableComponents extends CJPanelTable<Architecture> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.ui.admin.panels.CJPanel#setTextFont(java.lang.String,
      * int)

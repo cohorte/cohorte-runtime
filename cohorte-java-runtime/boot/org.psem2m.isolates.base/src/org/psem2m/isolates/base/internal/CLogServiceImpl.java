@@ -1,8 +1,19 @@
 /**
- * File:   CLogServiceImpl.java
- * Author: Thomas Calmant
- * Date:   12 sept. 2011
+ * Copyright 2014 isandlaTech
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package org.psem2m.isolates.base.internal;
 
 import org.osgi.framework.Bundle;
@@ -11,7 +22,7 @@ import org.osgi.service.log.LogService;
 
 /**
  * Implementation of the OSGi log service, based on PSEM2M logging utilities
- * 
+ *
  * @author Thomas Calmant
  */
 public class CLogServiceImpl implements LogService {
@@ -24,7 +35,7 @@ public class CLogServiceImpl implements LogService {
 
     /**
      * Sets up the logger service
-     * 
+     *
      * @param aLogInternal
      *            The underlying logger
      * @param aDefaultBundle
@@ -35,12 +46,15 @@ public class CLogServiceImpl implements LogService {
 
         pLogInternal = aLogInternal;
         pDefaultLogBundle = aDefaultBundle;
-        log(LogService.LOG_INFO,String.format("CLogServiceImpl.<init>: instanciated - SymbolicName=[%s] LogInternal=[%s]",pDefaultLogBundle.getSymbolicName(),pLogInternal));
+        log(LogService.LOG_INFO,
+                String.format(
+                        "CLogServiceImpl.<init>: instanciated - SymbolicName=[%s] LogInternal=[%s]",
+                        pDefaultLogBundle.getSymbolicName(), pLogInternal));
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.osgi.service.log.LogService#log(int, java.lang.String)
      */
     @Override
@@ -52,7 +66,7 @@ public class CLogServiceImpl implements LogService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.osgi.service.log.LogService#log(int, java.lang.String,
      * java.lang.Throwable)
      */
@@ -66,7 +80,7 @@ public class CLogServiceImpl implements LogService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.osgi.service.log.LogService#log(org.osgi.framework.ServiceReference,
      * int, java.lang.String)
@@ -82,7 +96,7 @@ public class CLogServiceImpl implements LogService {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.osgi.service.log.LogService#log(org.osgi.framework.ServiceReference,
      * int, java.lang.String, java.lang.Throwable)

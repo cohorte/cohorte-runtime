@@ -1,13 +1,19 @@
-/*******************************************************************************
- * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+/**
+ * Copyright 2014 isandlaTech
  *
- * Contributors:
- *    ogattaz (isandlaTech) - initial API and implementation
- *******************************************************************************/
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.psem2m.isolates.base.internal;
 
 import java.util.logging.Level;
@@ -37,7 +43,7 @@ public class CIsolateLoggerSvc extends CXObjectBase implements
 
     /**
      * Constructor
-     * 
+     *
      * @param aActivityLoggerBase
      *            Reference to the activator
      */
@@ -49,7 +55,7 @@ public class CIsolateLoggerSvc extends CXObjectBase implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.utilities.IXDescriber#addDescriptionInBuffer(java.lang.Appendable
      * )
@@ -65,7 +71,7 @@ public class CIsolateLoggerSvc extends CXObjectBase implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.utilities.logging.IActivityLoggerBase#getLevel()
      */
     @Override
@@ -76,7 +82,7 @@ public class CIsolateLoggerSvc extends CXObjectBase implements
 
     /**
      * Tests if the reference to activity logger is valid
-     * 
+     *
      * @return True if the reference is valid
      */
     public boolean hasActivityLogger() {
@@ -86,7 +92,7 @@ public class CIsolateLoggerSvc extends CXObjectBase implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.utilities.logging.IActivityLoggerBase#isLogDebugOn()
      */
     @Override
@@ -98,7 +104,7 @@ public class CIsolateLoggerSvc extends CXObjectBase implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.utilities.logging.IActivityLoggerBase#isLoggable(java.util
      * .logging.Level)
@@ -113,7 +119,7 @@ public class CIsolateLoggerSvc extends CXObjectBase implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.utilities.logging.IActivityLoggerBase#isLogInfoOn()
      */
     @Override
@@ -126,7 +132,7 @@ public class CIsolateLoggerSvc extends CXObjectBase implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.utilities.logging.IActivityLoggerBase#isLogSevereOn()
      */
     @Override
@@ -138,7 +144,7 @@ public class CIsolateLoggerSvc extends CXObjectBase implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.utilities.logging.IActivityLoggerBase#isLogWarningOn()
      */
     @Override
@@ -150,7 +156,7 @@ public class CIsolateLoggerSvc extends CXObjectBase implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.utilities.logging.IActivityLoggerBase#log(java.util.logging
      * .Level, java.lang.Object, java.lang.CharSequence, java.lang.Object[])
@@ -166,7 +172,7 @@ public class CIsolateLoggerSvc extends CXObjectBase implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.utilities.logging.IActivityLoggerBase#log(java.util.logging
      * .LogRecord)
@@ -181,7 +187,7 @@ public class CIsolateLoggerSvc extends CXObjectBase implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.utilities.logging.IActivityLoggerBase#logDebug(java.lang.Object
      * , java.lang.CharSequence, java.lang.Object[])
@@ -197,7 +203,7 @@ public class CIsolateLoggerSvc extends CXObjectBase implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.utilities.logging.IActivityLoggerBase#logInfo(java.lang.Object
      * , java.lang.CharSequence, java.lang.Object[])
@@ -213,7 +219,7 @@ public class CIsolateLoggerSvc extends CXObjectBase implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.utilities.logging.IActivityLoggerBase#logSevere(java.lang.
      * Object, java.lang.CharSequence, java.lang.Object[])
@@ -229,7 +235,7 @@ public class CIsolateLoggerSvc extends CXObjectBase implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.utilities.logging.IActivityLoggerBase#logWarn(java.lang.Object
      * , java.lang.CharSequence, java.lang.Object[])
@@ -254,7 +260,7 @@ public class CIsolateLoggerSvc extends CXObjectBase implements
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.utilities.IXDescriber#toDescription()
      */
     @Override

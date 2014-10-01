@@ -1,8 +1,19 @@
 /**
- * File:   Shell.java
- * Author: Thomas Calmant
- * Date:   31 mai 2013
+ * Copyright 2014 isandlaTech
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package org.cohorte.remote.shell;
 
 import java.io.IOException;
@@ -12,7 +23,7 @@ import org.apache.felix.service.command.CommandSession;
 
 /**
  * Client shell thread
- * 
+ *
  * @author Thomas Calmant
  */
 public class ShellClientHandler implements Runnable {
@@ -28,7 +39,7 @@ public class ShellClientHandler implements Runnable {
 
     /**
      * Sets up the client session
-     * 
+     *
      * @param aOwner
      *            The remote shell service that owns this session
      * @param aClient
@@ -63,7 +74,7 @@ public class ShellClientHandler implements Runnable {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Runnable#run()
      */
     @Override
@@ -93,7 +104,7 @@ public class ShellClientHandler implements Runnable {
 
     /**
      * Runs a Gogo shell session
-     * 
+     *
      * @param aSession
      *            A Gogo shell session
      */

@@ -1,8 +1,19 @@
 /**
- * File:   BundleDescription.java
- * Author: "Thomas Calmant"
- * Date:   2 sept. 2011
+ * Copyright 2014 isandlaTech
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package org.psem2m.isolates.services.conf.beans;
 
 import java.io.Serializable;
@@ -15,7 +26,7 @@ import org.psem2m.isolates.services.conf.IBundleDescr;
 
 /**
  * Description of a bundle
- * 
+ *
  * @author Thomas Calmant
  */
 public class BundleDescription implements Serializable {
@@ -48,7 +59,7 @@ public class BundleDescription implements Serializable {
 
     /**
      * Sets up the bean with the given map representation
-     * 
+     *
      * @param aMapRepresentation
      *            A map representation
      */
@@ -96,7 +107,7 @@ public class BundleDescription implements Serializable {
 
     /**
      * Sets up the bundle description
-     * 
+     *
      * @param aSymbolicName
      *            The bundle symbolic name (mandatory)
      */
@@ -107,7 +118,7 @@ public class BundleDescription implements Serializable {
 
     /**
      * Sets up the bundle description
-     * 
+     *
      * @param aSymbolicName
      *            The bundle symbolic name (mandatory)
      * @param aVersion
@@ -128,7 +139,7 @@ public class BundleDescription implements Serializable {
 
     /**
      * Retrieves the path to the bundle
-     * 
+     *
      * @return the path to the bundle
      */
     public String getFile() {
@@ -138,7 +149,7 @@ public class BundleDescription implements Serializable {
 
     /**
      * Returns True if the bundle is optional in the configuration
-     * 
+     *
      * @return True if the bundle is optional
      */
     public boolean getOptional() {
@@ -148,7 +159,7 @@ public class BundleDescription implements Serializable {
 
     /**
      * Retrieves the properties of the bundle
-     * 
+     *
      * @return the properties of the bundle
      */
     public Properties getProperties() {
@@ -158,7 +169,7 @@ public class BundleDescription implements Serializable {
 
     /**
      * Retrieves the bundle symbolic name
-     * 
+     *
      * @return the bundle symbolic name
      */
     public String getSymbolicName() {
@@ -168,7 +179,7 @@ public class BundleDescription implements Serializable {
 
     /**
      * Retrieves the requested bundle version
-     * 
+     *
      * @return the requested bundle version
      */
     public String getVersion() {
@@ -178,7 +189,7 @@ public class BundleDescription implements Serializable {
 
     /**
      * Tests if the bundle has properties
-     * 
+     *
      * @return true if the bundle has a set of properties
      */
     public boolean hasProperties() {
@@ -188,7 +199,7 @@ public class BundleDescription implements Serializable {
 
     /**
      * Sets the bundle file (bean method)
-     * 
+     *
      * @param aFile
      *            Bundle file
      */
@@ -199,7 +210,7 @@ public class BundleDescription implements Serializable {
 
     /**
      * Set the bundle are optional or not (bean method)
-     * 
+     *
      * @param aOptional
      *            True if the bundle is optional
      */
@@ -210,7 +221,7 @@ public class BundleDescription implements Serializable {
 
     /**
      * Set the properties of the bundle
-     * 
+     *
      * @param aProperties
      *            the properties of the bundle
      */
@@ -221,7 +232,7 @@ public class BundleDescription implements Serializable {
 
     /**
      * Sets the bundle symbolic name (bean method)
-     * 
+     *
      * @param aSymbolicName
      *            The bundle symbolic name
      */
@@ -232,7 +243,7 @@ public class BundleDescription implements Serializable {
 
     /**
      * Sets the bundle version (bean method)
-     * 
+     *
      * @param aVersion
      *            the bundle version
      */
@@ -243,7 +254,7 @@ public class BundleDescription implements Serializable {
 
     /**
      * Converts this description into its map representation
-     * 
+     *
      * @return The map representation of this object
      */
     public Map<String, Object> toMap() {

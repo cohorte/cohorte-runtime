@@ -21,8 +21,8 @@ iPOJO-Components: instance { $name="psem2m-status-storage-creator" $co
  ulation { $classname="org.psem2m.status.storage.impl.StatusStorageCre
  ator" interface { $name="org.psem2m.status.storage.IStatusStorageCrea
  tor" }field { $name="pLogger" $type="org.psem2m.isolates.base.IIsolat
- eLoggerSvc" }method { $name="deleteStorage" $arguments="{org.psem2m.s
- tatus.storage.IStatusStorage}" $names="{aStorage}" }method { $name="c
- reateStorage" $return="org.psem2m.status.storage.IStatusStorage" }met
+ eLoggerSvc" }method { $name="createStorage" $return="org.psem2m.statu
+ s.storage.IStatusStorage" }method { $name="deleteStorage" $arguments=
+ "{org.psem2m.status.storage.IStatusStorage}" $names="{aStorage}" }met
  hod { $name="invalidate" }method { $name="validate" }}}
 

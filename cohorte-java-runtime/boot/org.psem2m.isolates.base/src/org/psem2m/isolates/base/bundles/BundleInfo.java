@@ -1,6 +1,19 @@
 /**
- * 
+ * Copyright 2014 isandlaTech
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package org.psem2m.isolates.base.bundles;
 
 import java.io.Serializable;
@@ -9,7 +22,7 @@ import org.osgi.framework.Bundle;
 
 /**
  * Represents a serializable bundle information structure
- * 
+ *
  * @author Thomas Calmant
  */
 public class BundleInfo implements Serializable {
@@ -34,7 +47,7 @@ public class BundleInfo implements Serializable {
 
     /**
      * Sets up a bundle information structure
-     * 
+     *
      * @param aBundle
      *            Bundle to read
      */
@@ -52,7 +65,7 @@ public class BundleInfo implements Serializable {
 
     /**
      * Sets up a bundle information structure
-     * 
+     *
      * @param aId
      *            Bundle's ID
      * @param aName
@@ -76,7 +89,7 @@ public class BundleInfo implements Serializable {
 
     /**
      * Retrieves the bundle's unique ID
-     * 
+     *
      * @return The bundle's UID
      */
     public long getId() {
@@ -86,7 +99,7 @@ public class BundleInfo implements Serializable {
 
     /**
      * Retrieves the bundle's location identifier
-     * 
+     *
      * @return the bundle's location
      */
     public String getLocation() {
@@ -96,7 +109,7 @@ public class BundleInfo implements Serializable {
 
     /**
      * Returns this bundle's current state
-     * 
+     *
      * @return The bundle's state
      */
     public int getState() {
@@ -107,7 +120,7 @@ public class BundleInfo implements Serializable {
     /**
      * Returns the symbolic name of this bundle as specified by its
      * Bundle-SymbolicName manifest header.
-     * 
+     *
      * @return The bundle's symbolic name
      */
     public String getSymbolicName() {
@@ -117,7 +130,7 @@ public class BundleInfo implements Serializable {
 
     /**
      * Returns the bundle's version string representation
-     * 
+     *
      * @return The bundle's version
      */
     public String getVersion() {
@@ -127,7 +140,7 @@ public class BundleInfo implements Serializable {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Object#toString()
      */
     @Override

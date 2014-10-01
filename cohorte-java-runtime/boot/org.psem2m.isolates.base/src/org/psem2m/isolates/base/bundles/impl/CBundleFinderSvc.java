@@ -1,8 +1,19 @@
 /**
- * File:   CBundleFinderSvc.java
- * Author: Thomas Calmant
- * Date:   28 juil. 2011
+ * Copyright 2014 isandlaTech
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package org.psem2m.isolates.base.bundles.impl;
 
 import java.io.File;
@@ -30,7 +41,7 @@ import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 
 /**
  * Implements the bundle finder, using the platform directories service
- * 
+ *
  * @author Thomas Calmant
  */
 public class CBundleFinderSvc implements IBundleFinderSvc {
@@ -48,11 +59,11 @@ public class CBundleFinderSvc implements IBundleFinderSvc {
     private final Map<String, String> pBundlesCache = new HashMap<String, String>();
 
     /** Platform directories service */
-    private IPlatformDirsSvc pPlatformDirsSvc;
+    private final IPlatformDirsSvc pPlatformDirsSvc;
 
     /**
      * Constructor for non-injected usage
-     * 
+     *
      * @param aPlatformDirsSvc
      *            A platform service instance
      */
@@ -78,7 +89,7 @@ public class CBundleFinderSvc implements IBundleFinderSvc {
 
     /**
      * Completes the given list with all files having the extension ".jar"
-     * 
+     *
      * @param aRootDirectory
      *            Root search directory
      */
@@ -112,7 +123,7 @@ public class CBundleFinderSvc implements IBundleFinderSvc {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.base.bundles.IBundleFinderSvc#findBundle(java.lang
      * .String[])
@@ -188,7 +199,7 @@ public class CBundleFinderSvc implements IBundleFinderSvc {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.base.bundles.IBundleFinderSvc#getBootstrap()
      */
     @Override
@@ -206,7 +217,7 @@ public class CBundleFinderSvc implements IBundleFinderSvc {
     /**
      * Retrieves the bundle symbolic name from the manifest of the given file,
      * null if unreadable
-     * 
+     *
      * @param aFileName
      *            A bundle Jar file
      * @return The bundle symbolic name, null if unreadable
@@ -256,7 +267,7 @@ public class CBundleFinderSvc implements IBundleFinderSvc {
 
     /**
      * Parses the Manifest content string
-     * 
+     *
      * @param aManifestContent
      *            THe content of a Manifest.mf file
      * @return The manifest main attributes, null if invalid
@@ -317,7 +328,7 @@ public class CBundleFinderSvc implements IBundleFinderSvc {
 
     /**
      * Reads the bundle symbolic name from the given information file
-     * 
+     *
      * @param aJarFile
      *            Bundle file
      * @param aInfoFile
@@ -377,7 +388,7 @@ public class CBundleFinderSvc implements IBundleFinderSvc {
 
     /**
      * Reads the bundle symbolic name from its JAR file
-     * 
+     *
      * @param aFile
      *            A bundle Jar file path
      * @return The read name, null on error
@@ -450,7 +461,7 @@ public class CBundleFinderSvc implements IBundleFinderSvc {
 
     /**
      * Reads the given input stream and fills the given string builder with it
-     * 
+     *
      * @param aStream
      *            A manifest content input stream
      * @param aBuilder
@@ -489,7 +500,7 @@ public class CBundleFinderSvc implements IBundleFinderSvc {
 
     /**
      * Writes the bundle information file
-     * 
+     *
      * @param aInfoFile
      *            File to write into
      * @param aSymbolicName

@@ -1,8 +1,19 @@
 /**
- * File:   ShellServer.java
- * Author: Thomas Calmant
- * Date:   31 mai 2013
+ * Copyright 2014 isandlaTech
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package org.cohorte.remote.shell;
 
 import java.io.IOException;
@@ -14,7 +25,7 @@ import java.net.SocketTimeoutException;
 
 /**
  * The shell server: accepts clients and starts shell session threads
- * 
+ *
  * @author Thomas Calmant
  */
 public class Server implements Runnable {
@@ -33,7 +44,7 @@ public class Server implements Runnable {
 
     /**
      * Sets up the server members
-     * 
+     *
      * @param aShellService
      *            The parent shell service
      */
@@ -44,7 +55,7 @@ public class Server implements Runnable {
 
     /**
      * Closes the server socket
-     * 
+     *
      * @throws IOException
      *             Error closing the socket
      */
@@ -76,7 +87,7 @@ public class Server implements Runnable {
     /**
      * Returns the address the server socket is bound to (generally "::" or
      * "0.0.0.0"). Returns null if the server is down.
-     * 
+     *
      * @return The server binding address or null.
      */
     public String getAddress() {
@@ -96,7 +107,7 @@ public class Server implements Runnable {
     /**
      * Returns the port the server is listening to. Returns -1 if the server is
      * down.
-     * 
+     *
      * @return The listening port or -1
      */
     public int getPort() {
@@ -110,7 +121,7 @@ public class Server implements Runnable {
 
     /**
      * Open the server, listening the given address and port
-     * 
+     *
      * @param aAddress
      *            A binding address (can be null)
      * @param aPort
@@ -149,7 +160,7 @@ public class Server implements Runnable {
 
     /**
      * The server client acceptance loop
-     * 
+     *
      * @see java.lang.Runnable#run()
      */
     @Override
@@ -194,7 +205,7 @@ public class Server implements Runnable {
 
     /**
      * Sets the socket timeout. Does nothing if the server has not been opened
-     * 
+     *
      * @param aTimeout
      *            The timeout to set
      * @throws SocketException

@@ -1,8 +1,19 @@
 /**
- * File:   BundleRef.java
- * Author: Thomas Calmant
- * Date:   21 juin 2011
+ * Copyright 2014 isandlaTech
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package org.psem2m.isolates.base.bundles;
 
 import java.io.File;
@@ -10,7 +21,7 @@ import java.net.URI;
 
 /**
  * Describes a bundle reference
- * 
+ *
  * @author Thomas Calmant
  */
 public class BundleRef {
@@ -19,14 +30,14 @@ public class BundleRef {
     private File pBundleFile;
 
     /** The bundle name */
-    private String pBundleName;
+    private final String pBundleName;
 
     /** The bundle URI */
-    private URI pBundleUri;
+    private final URI pBundleUri;
 
     /**
      * File constructor
-     * 
+     *
      * @param aBundleName
      *            The bundle name
      * @param aBundleFile
@@ -41,7 +52,7 @@ public class BundleRef {
 
     /**
      * URI Constructor
-     * 
+     *
      * @param aBundleName
      *            The bundle name
      * @param aBundleUri
@@ -55,7 +66,7 @@ public class BundleRef {
 
     /**
      * Retrieves the bundle File (if any)
-     * 
+     *
      * @return The bundle File, or null
      */
     public File getFile() {
@@ -65,7 +76,7 @@ public class BundleRef {
 
     /**
      * Retrieves the bundle name
-     * 
+     *
      * @return The bundle name
      */
     public String getName() {
@@ -75,7 +86,7 @@ public class BundleRef {
 
     /**
      * Retrieves the bundle URI
-     * 
+     *
      * @return The bundle URI
      */
     public URI getUri() {
@@ -85,7 +96,7 @@ public class BundleRef {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Object#toString()
      */
     @Override

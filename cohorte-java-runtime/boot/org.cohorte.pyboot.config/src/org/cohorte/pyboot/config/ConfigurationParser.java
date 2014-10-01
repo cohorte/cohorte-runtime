@@ -1,8 +1,19 @@
 /**
- * File:   ConfigurationParser.java
- * Author: Thomas Calmant
- * Date:   23 janv. 2013
+ * Copyright 2014 isandlaTech
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package org.cohorte.pyboot.config;
 
 import java.util.Collection;
@@ -21,7 +32,7 @@ import org.psem2m.isolates.services.conf.beans.IsolateConf;
 
 /**
  * Calls the bridge core to retrieve configuration and converts it to Java beans
- * 
+ *
  * @author Thomas Calmant
  */
 @Component(name = "cohorte-pyboot-configuration-parser-factory")
@@ -34,7 +45,7 @@ public class ConfigurationParser implements IConfigurationParser {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.services.conf.IConfigurationParser#loadIsolateFile
      * (java.lang.String)
@@ -52,7 +63,7 @@ public class ConfigurationParser implements IConfigurationParser {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.services.conf.IConfigurationParser#loadIsolateMap
      * (java.util.Map)
@@ -110,7 +121,7 @@ public class ConfigurationParser implements IConfigurationParser {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.services.conf.IConfigurationParser#prepareIsolate
      * (java.lang.String, java.lang.String, java.lang.String, java.lang.String,

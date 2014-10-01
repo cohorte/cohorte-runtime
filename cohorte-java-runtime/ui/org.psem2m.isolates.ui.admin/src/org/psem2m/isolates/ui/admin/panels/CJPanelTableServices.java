@@ -1,13 +1,19 @@
-/*******************************************************************************
- * Copyright (c) 2011 www.isandlatech.com (www.isandlatech.com)
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+/**
+ * Copyright 2014 isandlaTech
  *
- * Contributors:
- *    ogattaz  (isandlaTech) - 18 nov. 2011 - initial API and implementation
- *******************************************************************************/
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.psem2m.isolates.ui.admin.panels;
 
 import java.awt.BorderLayout;
@@ -51,20 +57,20 @@ import org.psem2m.utilities.CXStringUtils;
 
 /**
  * @author ogattaz
- * 
+ *
  */
 public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
 
     /**
-     * 
+     *
      * @author ogattaz
-     * 
+     *
      */
     class CCompactionActionListener implements ActionListener {
 
         /*
          * (non-Javadoc)
-         * 
+         *
          * @see
          * java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent
          * )
@@ -97,9 +103,9 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
     }
 
     /**
-     * 
+     *
      * @author ogattaz
-     * 
+     *
      */
     class CFilterActionListener implements ActionListener {
 
@@ -131,26 +137,26 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
     }
 
     /**
-     * 
+     *
      * By default a left mouse click on a JTable row will select that row, but
      * it’s not the same for the right mouse button. It takes bit more work to
      * get a JTable to select a row based on right mouse clicks. You might be
      * able to do it by subclassing JTable or ListSelectionModel, but there’s an
      * easier way.
-     * 
+     *
      * 1. Use a MouseAdapter to detect right clicks on the JTable.
-     * 
+     *
      * 2. Get the Point (X-Y coordinate) of the click.
-     * 
+     *
      * 3. Find out what row contains that Point
-     * 
+     *
      * 4. Get the ListSelectionModel of the JTable and 5. Tell the
      * ListSelectionModel to select that row. Here’s what it looks like:
-     * 
-     * 
+     *
+     *
      * @see http://www.stupidjavatricks.com/?p=12
      * @author ogattaz
-     * 
+     *
      */
     class CMouseListener extends MouseAdapter {
 
@@ -218,7 +224,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
 
         /*
          * (non-Javadoc)
-         * 
+         *
          * @see
          * java.awt.event.MouseAdapter#mouseClicked(java.awt.event.MouseEvent)
          */
@@ -278,9 +284,9 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
     /**
      * Look at TableSelectionDemo.java from java tutorial to learn how work the
      * JTable selection model
-     * 
+     *
      * @author ogattaz
-     * 
+     *
      */
     class CSelectionListener implements ListSelectionListener {
 
@@ -332,7 +338,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
 
     /**
      * @author ogattaz
-     * 
+     *
      */
     class CTableModelServices extends CTableModel<ServiceReference<?>> {
 
@@ -416,7 +422,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
     private JScrollPane pServiceTextAreaScrollPane;
 
     /**
-     * 
+     *
      */
     public CJPanelTableServices() {
 
@@ -437,7 +443,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.ui.admin.panels.CJPanelTable#acceptRow(java.lang.
      * Object, java.lang.String[])
@@ -459,7 +465,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.ui.admin.panels.CJPanelTable#addRow(java.lang.Object)
      */
@@ -473,7 +479,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.ui.admin.panels.CJPanelTable#addRows(T[])
      */
     @Override
@@ -485,7 +491,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.ui.admin.panels.CJPanelTable#buildRowData(java.lang
      * .Object)
@@ -505,7 +511,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.ui.admin.panels.CJPanelTable#buildRowKey(java.lang
      * .Object)
@@ -519,7 +525,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.ui.admin.panels.CJPanelTable#buildTextInfos(java.
      * lang.Object)
@@ -552,7 +558,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.ui.admin.panels.CJPanel#destroy()
      */
     @Override
@@ -593,9 +599,9 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
 
     /**
      * return the "remote" attribute of a service
-     * 
+     *
      * => 'E' if exported , 'I' if exported
-     * 
+     *
      * @param aServiceReference
      * @return a string representing the remote attribute
      */
@@ -632,7 +638,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
 
     /**
      * the values of all the properties of a service
-     * 
+     *
      * @param aServiceReference
      * @return the values separated by a comma in a string
      */
@@ -689,7 +695,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
 
     /**
      * remove the square bracket of the service name
-     * 
+     *
      * @param aServiceReference
      * @return a cleaned service name
      */
@@ -729,8 +735,8 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
     }
 
     /**
-     * 
-     * 
+     *
+     *
      * @param aServiceReference
      * @return the component instance name whithour the first part which is
      *         always the name of the composition
@@ -760,7 +766,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.ui.admin.panels.CJPanelTable#getTable()
      */
     @Override
@@ -771,7 +777,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.ui.admin.panels.CJPanel#newGUI()
      */
     @Override
@@ -890,7 +896,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.ui.admin.panels.CJPanelTable#removeAllRows()
      */
     @Override
@@ -902,7 +908,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.ui.admin.panels.CJPanelTable#removeRow(java.lang.
      * Object)
@@ -926,7 +932,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.isolates.ui.admin.panels.CJPanelTable#setRows(T[])
      */
     @Override
@@ -939,7 +945,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
     /**
      * Sets the flag which control the compaction of the name of the service
      * interface
-     * 
+     *
      * @param aCompaction
      */
     private void setServiceNameCompaction(final boolean aCompaction) {
@@ -949,7 +955,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
 
     /**
      * Sets the filter applied on the row of the services table
-     * 
+     *
      * @param aFilterName
      *            the name of the selected filter
      */
@@ -960,7 +966,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.ui.admin.panels.CJPanelTable#setTableFont(java.lang
      * .String, int)
@@ -974,7 +980,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.ui.admin.panels.CJPanel#setText(java.lang.String)
      */
@@ -986,7 +992,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.isolates.ui.admin.panels.CJPanel#setTextFont(java.lang.String,
      * int)
@@ -1002,7 +1008,7 @@ public class CJPanelTableServices extends CJPanelTable<ServiceReference<?>> {
 
 /**
  * @author ogattaz
- * 
+ *
  */
 enum EFilterKind {
     ALL("all services"), PSEM2M("psem2m services"), REMOTE("remote services");

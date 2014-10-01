@@ -1,15 +1,26 @@
 /**
- * File:   ApplicationDescription.java
- * Author: Thomas Calmant
- * Date:   6 sept. 2011
+ * Copyright 2014 isandlaTech
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package org.psem2m.isolates.services.conf.beans;
 
 import java.io.Serializable;
 
 /**
  * Description of an application
- * 
+ *
  * @author Thomas Calmant
  */
 public class ApplicationDescription implements Serializable {
@@ -36,7 +47,7 @@ public class ApplicationDescription implements Serializable {
 
     /**
      * Configuration constructor
-     * 
+     *
      * @param aApplicationId
      *            The application ID
      */
@@ -47,7 +58,7 @@ public class ApplicationDescription implements Serializable {
 
     /**
      * Retrieves the ID of this described application
-     * 
+     *
      * @return The application ID
      */
     public String getApplicationId() {
@@ -57,7 +68,7 @@ public class ApplicationDescription implements Serializable {
 
     /**
      * Retrieves the application multicast address
-     * 
+     *
      * @return the application multicast address
      */
     public String getMulticastGroup() {
@@ -67,7 +78,7 @@ public class ApplicationDescription implements Serializable {
 
     /**
      * Retrieves the application multicast port
-     * 
+     *
      * @return the application multicast port
      */
     public int getMulticastPort() {
@@ -86,7 +97,7 @@ public class ApplicationDescription implements Serializable {
 
     /**
      * Sets up the application multicast address
-     * 
+     *
      * @param aMulticast
      *            the application multicast address
      */
@@ -97,7 +108,7 @@ public class ApplicationDescription implements Serializable {
 
     /**
      * Sets up the application multicast port
-     * 
+     *
      * @param aMulticastPort
      *            the application multicast port
      */

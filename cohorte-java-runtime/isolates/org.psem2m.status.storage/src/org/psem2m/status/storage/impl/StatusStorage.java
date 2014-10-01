@@ -1,8 +1,19 @@
 /**
- * File:   StatusStorage.java
- * Author: Thomas Calmant
- * Date:   27 août 2012
+ * Copyright 2014 isandlaTech
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package org.psem2m.status.storage.impl;
 
 import java.text.MessageFormat;
@@ -19,7 +30,7 @@ import org.psem2m.status.storage.State;
 
 /**
  * Describes the current status of the monitor
- * 
+ *
  * @author Thomas Calmant
  */
 public class StatusStorage<S extends State, T> implements IStatusStorage<S, T> {
@@ -35,7 +46,7 @@ public class StatusStorage<S extends State, T> implements IStatusStorage<S, T> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.status.storage.IStatusStorage#changeState(java.lang.String,
      * org.psem2m.status.storage.State)
@@ -93,7 +104,7 @@ public class StatusStorage<S extends State, T> implements IStatusStorage<S, T> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.status.storage.IStatusStorage#clear()
      */
     @Override
@@ -106,7 +117,7 @@ public class StatusStorage<S extends State, T> implements IStatusStorage<S, T> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.status.storage.IStatusStorage#contains(java.lang.String)
      */
     @Override
@@ -117,7 +128,7 @@ public class StatusStorage<S extends State, T> implements IStatusStorage<S, T> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.status.storage.IStatusStorage#get(java.lang.String)
      */
     @Override
@@ -133,7 +144,7 @@ public class StatusStorage<S extends State, T> implements IStatusStorage<S, T> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.status.storage.IStatusStorage#getdefault(java.lang.String,
      * java.lang.Object)
@@ -151,7 +162,7 @@ public class StatusStorage<S extends State, T> implements IStatusStorage<S, T> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.status.storage.IStatusStorage#getIdsInStates(org.psem2m.status
      * .storage.State[])
@@ -180,7 +191,7 @@ public class StatusStorage<S extends State, T> implements IStatusStorage<S, T> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.status.storage.IStatusStorage#getState(java.lang.String)
      */
     @Override
@@ -196,7 +207,7 @@ public class StatusStorage<S extends State, T> implements IStatusStorage<S, T> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.status.storage.IStatusStorage#getValues()
      */
     @Override
@@ -207,7 +218,7 @@ public class StatusStorage<S extends State, T> implements IStatusStorage<S, T> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.psem2m.status.storage.IStatusStorage#getValuesInStates(org.psem2m
      * .status.storage.State[])
@@ -240,7 +251,7 @@ public class StatusStorage<S extends State, T> implements IStatusStorage<S, T> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.status.storage.IStatusStorage#remove(java.lang.String)
      */
     @Override
@@ -266,7 +277,7 @@ public class StatusStorage<S extends State, T> implements IStatusStorage<S, T> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.status.storage.IStatusStorage#size()
      */
     @Override
@@ -277,7 +288,7 @@ public class StatusStorage<S extends State, T> implements IStatusStorage<S, T> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.psem2m.status.storage.IStatusStorage#store(java.lang.String,
      * java.lang.Object, org.psem2m.status.storage.State)
      */
@@ -312,7 +323,7 @@ public class StatusStorage<S extends State, T> implements IStatusStorage<S, T> {
 
     /**
      * Stores the given ID in the given state set. Creates the set if needed
-     * 
+     *
      * @param aId
      *            An ID
      * @param aState

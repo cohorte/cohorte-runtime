@@ -1,6 +1,19 @@
 /**
- * 
+ * Copyright 2014 isandlaTech
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package org.psem2m.isolates.base.isolates.boot;
 
 import java.io.Serializable;
@@ -9,14 +22,14 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Bean used for isolate information transmission between the bootstrap and the
  * isolate runner.
- * 
+ *
  * @author Thomas Calmant
  */
 public class IsolateStatus implements Serializable {
 
     /**
      * Next status object Unique ID
-     * 
+     *
      * System.currentTimeMillis() guarantees that we'll have a UID greater than
      * in previous executions.
      */
@@ -81,7 +94,7 @@ public class IsolateStatus implements Serializable {
 
     /**
      * Sets up the bean
-     * 
+     *
      * @param aIsolateId
      *            Source isolate ID
      * @param aState
@@ -101,7 +114,7 @@ public class IsolateStatus implements Serializable {
 
     /**
      * Adds the given name - value couple to the StringBuilder
-     * 
+     *
      * @param aBuilder
      *            A String builder
      * @param aName
@@ -119,7 +132,7 @@ public class IsolateStatus implements Serializable {
 
     /**
      * Retrieves the source isolate ID
-     * 
+     *
      * @return The source isolate ID
      */
     public String getIsolateId() {
@@ -129,7 +142,7 @@ public class IsolateStatus implements Serializable {
 
     /**
      * Retrieves the stored isolate progress level
-     * 
+     *
      * @return The isolate start progress level
      */
     public double getProgress() {
@@ -139,7 +152,7 @@ public class IsolateStatus implements Serializable {
 
     /**
      * Retrieves the stored isolate state
-     * 
+     *
      * @return The isolate state
      */
     public int getState() {
@@ -149,7 +162,7 @@ public class IsolateStatus implements Serializable {
 
     /**
      * Retrieves the status UID
-     * 
+     *
      * @return the status UID
      */
     public long getStatusUID() {
@@ -159,7 +172,7 @@ public class IsolateStatus implements Serializable {
 
     /**
      * Retrieves the status time stamp
-     * 
+     *
      * @return the status time stamp
      */
     public long getTimestamp() {
@@ -214,7 +227,7 @@ public class IsolateStatus implements Serializable {
 
     /**
      * Converts the given object to a JSON value (escapes quotes)
-     * 
+     *
      * @param aValue
      *            An object
      * @return The JSON String corresponding to the value
@@ -234,7 +247,7 @@ public class IsolateStatus implements Serializable {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Object#toString()
      */
     @Override

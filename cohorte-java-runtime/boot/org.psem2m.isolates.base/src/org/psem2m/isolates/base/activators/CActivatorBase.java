@@ -1,3 +1,19 @@
+/**
+ * Copyright 2014 isandlaTech
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.psem2m.isolates.base.activators;
 
 import java.util.logging.Level;
@@ -14,19 +30,17 @@ import org.psem2m.utilities.CXStringUtils;
 
 /**
  * This abstract class is the base of all the PSEM2M bundles activator.
- * 
- * 
+ *
  * @author isandlatech (www.isandlatech.com) - ogattaz
- * 
  */
 public abstract class CActivatorBase extends CXObjectBase implements
         IActivatorBase, BundleActivator {
 
     /**
      * The listener used to wait for the IIsolateLoggerSvc OSGI service.
-     * 
+     *
      * @author isandlatech (www.isandlatech.com) - ogattaz
-     * 
+     *
      */
     private class CIsolateLoggerListener implements ServiceListener {
 
@@ -105,7 +119,7 @@ public abstract class CActivatorBase extends CXObjectBase implements
 
     /**
      * Binds the log service
-     * 
+     *
      * @param aServiceReference
      *            A reference to an isolate logger service
      */
@@ -129,7 +143,7 @@ public abstract class CActivatorBase extends CXObjectBase implements
 
     /**
      * Looks for an {@link IIsolateLoggerSvc} service
-     * 
+     *
      * @return True if a logger has been bound, else false
      */
     private boolean findLoggerSvc() {
@@ -196,7 +210,7 @@ public abstract class CActivatorBase extends CXObjectBase implements
 
     /**
      * Retrieves the currently bound log service (can be null)
-     * 
+     *
      * @return The currently bound log service
      */
     protected IIsolateLoggerSvc getIsolateLoggerSvc() {
@@ -227,7 +241,7 @@ public abstract class CActivatorBase extends CXObjectBase implements
 
     /**
      * Tests if a log service is currently bound
-     * 
+     *
      * @return True if a log service is bound
      */
     protected boolean hasIsolateLoggerSvc() {
@@ -237,7 +251,7 @@ public abstract class CActivatorBase extends CXObjectBase implements
 
     /**
      * Logs the given event, if a logger is bound
-     * 
+     *
      * @param aLevel
      *            Log level
      * @param aWho

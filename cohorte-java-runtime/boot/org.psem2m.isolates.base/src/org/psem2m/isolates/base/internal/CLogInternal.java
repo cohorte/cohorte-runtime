@@ -1,8 +1,19 @@
 /**
- * File:   CLogInternal.java
- * Author: Thomas Calmant
- * Date:   12 sept. 2011
+ * Copyright 2014 isandlaTech
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package org.psem2m.isolates.base.internal;
 
 import java.util.ArrayList;
@@ -20,134 +31,137 @@ import org.psem2m.utilities.logging.IActivityLogger;
 
 /**
  * Internal log handler
- * 
+ *
  * @author Thomas Calmant
  */
 public class CLogInternal {
 
-	/** Maximum stored entries */
-	public static final int MAX_ENTRIES = 100;
+    /** Maximum stored entries */
+    public static final int MAX_ENTRIES = 100;
 
-	/** Log line formatter */
-	private IActivityLogger pActivityLogger;
+    /** Log line formatter */
+    private final IActivityLogger pActivityLogger;
 
-	/** Log entries */
-	private final LinkedList<LogEntry> pLogEntries = new LinkedList<LogEntry>();
+    /** Log entries */
+    private final LinkedList<LogEntry> pLogEntries = new LinkedList<LogEntry>();
 
-	/** Active log readers */
-	private final List<CLogReaderServiceImpl> pLogReaders = new ArrayList<CLogReaderServiceImpl>();
+    /** Active log readers */
+    private final List<CLogReaderServiceImpl> pLogReaders = new ArrayList<CLogReaderServiceImpl>();
 
-	/**
-	 * Prepares the internal log
-	 * 
-	 * @param aLogger
-	 *            The underlying logger
-	 */
-	public CLogInternal(final IActivityLogger aLogger) {
-		pActivityLogger = aLogger;
-	}
+    /**
+     * Prepares the internal log
+     * 
+     * @param aLogger
+     *            The underlying logger
+     */
+    public CLogInternal(final IActivityLogger aLogger) {
 
-	/**
-	 * Adds the given log entry to the log
-	 * 
-	 * @param aEntry
-	 *            A log entry
-	 */
-	public synchronized void addEntry(final LogEntry aEntry) {
+        pActivityLogger = aLogger;
+    }
 
-		// Convert log level
-		final Level logLevel = osgiToJavaLogLevel(aEntry.getLevel());
+    /**
+     * Adds the given log entry to the log
+     * 
+     * @param aEntry
+     *            A log entry
+     */
+    public synchronized void addEntry(final LogEntry aEntry) {
 
-		/*
-		 * Find log caller (0-3: CXJavaCallerContext, 4: CLogInternal, 5:
-		 * CLogServiceImpl, 6: Logger)
-		 */
-		final Class<?> who = CXJavaCallerContext.getCaller(6);
+        // Convert log level
+        final Level logLevel = osgiToJavaLogLevel(aEntry.getLevel());
 
-		// Find what
-		final String what = CXJavaRunContext.getPreCallingMethod();
+        /*
+         * Find log caller (0-3: CXJavaCallerContext, 4: CLogInternal, 5:
+         * CLogServiceImpl, 6: Logger)
+         */
+        final Class<?> who = CXJavaCallerContext.getCaller(6);
 
-		// Log the entry
-		final Throwable throwable = aEntry.getException();
+        // Find what
+        final String what = CXJavaRunContext.getPreCallingMethod();
 
-		if (throwable != null) {
-			// Full log
-			pActivityLogger.log(logLevel, who, what, aEntry.getMessage(),
-					throwable);
+        // Log the entry
+        final Throwable throwable = aEntry.getException();
 
-		} else {
-			// Ignore the throwable if it's null
-			pActivityLogger.log(logLevel, who, what, aEntry.getMessage());
-		}
+        if (throwable != null) {
+            // Full log
+            pActivityLogger.log(logLevel, who, what, aEntry.getMessage(),
+                    throwable);
 
-		// Remove the oldest entry if needed
-		if (pLogEntries.size() == MAX_ENTRIES) {
-			pLogEntries.removeLast();
-		}
+        } else {
+            // Ignore the throwable if it's null
+            pActivityLogger.log(logLevel, who, what, aEntry.getMessage());
+        }
 
-		// Add the entry to the list
-		pLogEntries.addFirst(aEntry);
+        // Remove the oldest entry if needed
+        if (pLogEntries.size() == MAX_ENTRIES) {
+            pLogEntries.removeLast();
+        }
 
-		// Notify readers
-		for (CLogReaderServiceImpl reader : pLogReaders) {
-			reader.notifyListeners(aEntry);
-		}
-	}
+        // Add the entry to the list
+        pLogEntries.addFirst(aEntry);
 
-	/**
-	 * Adds the given log reader to the handler, for log notifications
-	 * 
-	 * @param aReader
-	 *            LogReader to be added
-	 */
-	protected synchronized void addLogReader(final CLogReaderServiceImpl aReader) {
-		pLogReaders.add(aReader);
-	}
+        // Notify readers
+        for (final CLogReaderServiceImpl reader : pLogReaders) {
+            reader.notifyListeners(aEntry);
+        }
+    }
 
-	/**
-	 * Retrieves all stored entries as an enumeration
-	 * 
-	 * @return All stored entries
-	 */
-	public synchronized Enumeration<?> getEntries() {
+    /**
+     * Adds the given log reader to the handler, for log notifications
+     * 
+     * @param aReader
+     *            LogReader to be added
+     */
+    protected synchronized void addLogReader(final CLogReaderServiceImpl aReader) {
 
-		return Collections.enumeration(pLogEntries);
-	}
+        pLogReaders.add(aReader);
+    }
 
-	/**
-	 * Converts OSGi log levels to Java ones. Unknown levels are considered as
-	 * INFO.
-	 * 
-	 * @param aOsgiLevel
-	 *            A OSGi log level (see {@link LogService})
-	 * @return The corresponding Java log level
-	 */
-	protected Level osgiToJavaLogLevel(final int aOsgiLevel) {
+    /**
+     * Retrieves all stored entries as an enumeration
+     * 
+     * @return All stored entries
+     */
+    public synchronized Enumeration<?> getEntries() {
 
-		switch (aOsgiLevel) {
+        return Collections.enumeration(pLogEntries);
+    }
 
-		case LogService.LOG_ERROR:
-			return Level.SEVERE;
+    /**
+     * Converts OSGi log levels to Java ones. Unknown levels are considered as
+     * INFO.
+     * 
+     * @param aOsgiLevel
+     *            A OSGi log level (see {@link LogService})
+     * @return The corresponding Java log level
+     */
+    protected Level osgiToJavaLogLevel(final int aOsgiLevel) {
 
-		case LogService.LOG_WARNING:
-			return Level.WARNING;
+        switch (aOsgiLevel) {
 
-		case LogService.LOG_DEBUG:
-			return Level.FINEST;
+        case LogService.LOG_ERROR:
+            return Level.SEVERE;
 
-		case LogService.LOG_INFO:
-		default:
-			return Level.INFO;
-		}
-	}
+        case LogService.LOG_WARNING:
+            return Level.WARNING;
 
-	/**
-	 * Removes the given log reader from the internal log handler
-	 * 
-	 * @param aReader
-	 *            Log reader to remove
-	 */
-	public synchronized void removeLogReader(final CLogReaderServiceImpl aReader) {
-		pLogReaders.remove(aReader);
-	}
+        case LogService.LOG_DEBUG:
+            return Level.FINEST;
+
+        case LogService.LOG_INFO:
+        default:
+            return Level.INFO;
+        }
+    }
+
+    /**
+     * Removes the given log reader from the internal log handler
+     * 
+     * @param aReader
+     *            Log reader to remove
+     */
+    public synchronized void removeLogReader(final CLogReaderServiceImpl aReader) {
+
+        pLogReaders.remove(aReader);
+    }
 }
