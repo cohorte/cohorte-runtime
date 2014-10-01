@@ -13,6 +13,13 @@
 	<version>3.0.0-SNAPSHOT</version>
 	<packaging>eclipse-plugin</packaging>
 
+	<dependencies>
+		<dependency>
+			<groupId>org.cohorte</groupId>
+			<artifactId>org.cohorte.remote.api</artifactId>
+		</dependency>
+	</dependencies>
+
 	<build>
 		<plugins>
 			<plugin>
