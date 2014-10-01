@@ -7,7 +7,7 @@ Provides the bundles to load a Python isolate, using built-in constants, a
 configuration broker...
 
 :author: Thomas Calmant
-:license: GPLv3
+:license: Apache Software License 2.0
 """
 from pelix.ipopo.constants import use_ipopo
 

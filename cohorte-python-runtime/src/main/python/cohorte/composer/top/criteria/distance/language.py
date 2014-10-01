@@ -7,8 +7,7 @@ Clusters the components of a composition into groups according to several
 criteria.
 
 :author: Thomas Calmant
-:copyright: Copyright 2013, isandlaTech
-:license: GPLv3
+:license: Apache Software License 2.0
 :version: 3.0.0
 
 ..

@@ -3,14 +3,24 @@
 """
 COHORTE Python bootstrap
 
-**WARNING:**
-This module uses the ``argparse`` module if it executed directly to read its
-arguments. Argparse is part of the Python standard library since 2.7 and 3.2,
-but can be installed manually for previous versions, using
-``easy_install -U argparse``.
-
 :author: Thomas Calmant
-:license: GPLv3
+:license: Apache Software License 2.0
+
+..
+
+    Copyright 2014 isandlaTech
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
 """
 
 # Documentation strings format
@@ -31,6 +41,7 @@ import pelix.framework
 
 # Python standard library
 from pprint import pformat
+import argparse
 import logging
 import os
 import sys
@@ -456,8 +467,6 @@ def main(args=None):
     :param args: An optional list of arguments (used instead of sys.argv)
     :return: An integer error code, 0 for success (see load_isolate())
     """
-    # The argparse module must be loaded as late as possible
-    import argparse
     parser = argparse.ArgumentParser(description="Cohorte Python bootstrap")
 
     # Isolate boot parameters

@@ -1,18 +1,27 @@
 #!/usr/bin/env python
 # -- Content-Encoding: UTF-8 --
 """
-COHORTE Python bootstrap
-
-**WARNING:**
-This module uses the ``argparse`` module if it executed directly to read its
-arguments. Argparse is part of the Python standard library since 2.7 and 3.2,
-but can be installed manually for previous versions, using
-``easy_install -U argparse``.
+COHORTE debug servlet, to visualize the state of the framework in a browser
 
 :author: Thomas Calmant
-:license: GPLv3
+:license: Apache Software License 2.0
+
+..
+
+    Copyright 2014 isandlaTech
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
 """
-import cohorte
 
 # Documentation strings format
 __docformat__ = "restructuredtext en"
@@ -22,9 +31,13 @@ __version__ = "1.0.0"
 
 # ------------------------------------------------------------------------------
 
+# Cohorte
+import cohorte
+
 # Pelix framework
 from pelix.ipopo.decorators import ComponentFactory, Provides, \
     Validate, Invalidate, Property
+import pelix.constants
 import pelix.framework
 import pelix.http
 
@@ -203,9 +216,9 @@ class DebugServlet(object):
             lines.append('<tr>')
 
             # Important properties
-            for name in (pelix.framework.SERVICE_ID,
-                         pelix.framework.SERVICE_RANKING,
-                         pelix.framework.OBJECTCLASS):
+            for name in (pelix.constants.SERVICE_ID,
+                         pelix.constants.SERVICE_RANKING,
+                         pelix.constants.OBJECTCLASS):
                 lines.append('<td>{0}</td>'.format(svc_ref.get_property(name)))
 
             # Bundle

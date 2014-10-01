@@ -2,10 +2,8 @@
 # -- Content-Encoding: UTF-8 --
 """
 :author: Thomas Calmant
-:copyright: Copyright 2014, isandlaTech
 :license: Apache License 2.0
 :version: 0.0.1
-:status: Alpha
 
 ..
 

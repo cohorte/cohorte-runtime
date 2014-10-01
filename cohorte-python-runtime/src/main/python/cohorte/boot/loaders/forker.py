@@ -1,15 +1,26 @@
 #!/usr/bin/env python
 # -- Content-Encoding: UTF-8 --
 """
-COHORTE forker loader
-
-**TODO:**
-* Read a *forker.js* file ?
-
-  * Update framework properties accordingly
+COHORTE forker/monitor loader
 
 :author: Thomas Calmant
-:license: GPLv3
+:license: Apache Software License 2.0
+
+..
+
+    Copyright 2014 isandlaTech
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
 """
 
 # Documentation strings format
@@ -232,11 +243,6 @@ class ForkerLoader(object):
         self._framework.add_property(herald.FWPROP_PEER_GROUPS,
                                      ('all', 'forkers', 'monitors',
                                       node_uid, node_name))
-
-        # TODO: Load forker.js configuration file
-        # All forkers have the same default ID (discrimination by UID), but the
-        # configuration file can indicate a special one
-        # ...
 
         # Load the boot components
         boot_config = self._config.load_boot(LOADER_KIND)

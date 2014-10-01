@@ -4,7 +4,7 @@
 Cohorte Composer factories distance criteria components
 
 :author: Thomas Calmant
-:license: GPLv3
+:license: Apache Software License 2.0
 """
 
 # Documentation strings format
