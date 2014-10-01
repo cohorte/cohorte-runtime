@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: PSEM2M :: UI :: Swing Import
-Bundle-SymbolicName: org.psem2m.isolates.base.ui
+Bundle-Name: PSEM2M :: UI :: Dummy Swing Packages Export
+Bundle-SymbolicName: dummy.packages.ui
 Bundle-Version: 1.0.0.qualifier
 Bundle-Vendor: isandlaTech.com
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
