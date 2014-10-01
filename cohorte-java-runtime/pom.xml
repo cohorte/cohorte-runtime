@@ -38,7 +38,6 @@
 		<module>isolates/org.psem2m.isolates.slave.agent</module>
 		<module>isolates/org.psem2m.status.storage</module>
 
-		<module>ui/org.psem2m.isolates.base.ui</module>
 		<module>ui/org.psem2m.isolates.ui</module>
 		<module>ui/org.psem2m.isolates.ui.admin</module>
 	</modules>
