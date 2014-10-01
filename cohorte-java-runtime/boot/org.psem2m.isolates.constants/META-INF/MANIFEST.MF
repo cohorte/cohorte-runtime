@@ -8,7 +8,6 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Import-Package: org.osgi.framework;version="1.5.0"
 Export-Package: org.cohorte.shell;version="1.0.0",
  org.psem2m.isolates.constants;version="1.0.1",
- org.psem2m.isolates.constants.boot;version="1.0.0",
  org.psem2m.isolates.services.conf;version="1.0.1";uses:="org.psem2m.isolates.services.conf.beans",
  org.psem2m.isolates.services.conf.beans;version="1.0.0",
  org.psem2m.isolates.services.dirs;version="1.0.1";uses:="org.psem2m.isolates.constants",
