@@ -262,8 +262,6 @@ class ForkerBasic(object):
         Kills the process with the given isolate ID. Does nothing the if the
         isolate ID is unknown.
 
-        Implementation of ``org.psem2m.isolates.services.forker.IForker``
-
         :param uid: The UID of the isolate to stop
         :param timeout: Maximum time to wait before killing the isolate process
                         (in seconds)

@@ -10,10 +10,10 @@ of the loader.
 
 All loopers must provide the following methods:
 
-* setup(argv=None): Sets up the handler
-* loop(): The blocking event queue loop
-* stop(): Exits the loop
-* run(method, *args, **kwargs): Runs the given method on the main thread
+* ``setup(argv=None)``: Sets up the handler
+* ``loop()``: The blocking event queue loop
+* ``stop()``: Exits the loop
+* ``run(method, *args, **kwargs)``: Runs the given method on the main thread
   and returns its result.
 
 The handler will be registered as a service in the Pelix framework.

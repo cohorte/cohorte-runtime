@@ -248,6 +248,7 @@ class MatchVote(object):
         # Candidate −> Votes
         candidates = tuple(_Vote(candidate)
                            for candidate in initial_candidates)
+        elected = None
         try:
             for _ in range(max_turns):
                 try:

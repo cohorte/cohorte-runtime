@@ -366,7 +366,7 @@ class PythonModuleRepository(object):
 
         :param name: The module name (mutually exclusive with filename)
         :param version: The module version (None or '0.0.0' for any), ignored
-        if filename is used
+                        if filename is used
         :param filename: The module file name (mutually exclusive with name)
         :param registry: Registry where to look for the module
         :return: The first matching module
@@ -424,7 +424,7 @@ class PythonModuleRepository(object):
         given modules resolved.
 
         :param artifacts: A list of bundles to be modules
-        :param system_modules: Modules considered as available
+        :param system_artifacts: Modules considered as available
         :return: A tuple: (modules, dependencies, missing artifacts, [])
         """
         # Name -> Module for this resolution

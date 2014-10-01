@@ -5,6 +5,7 @@ Defines the main thread handler for Cocoa applications
 
 :author: Thomas Calmant
 :license: Apache Software License 2.0
+
 ..
 
     Copyright 2014 isandlaTech

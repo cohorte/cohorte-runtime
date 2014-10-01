@@ -106,10 +106,7 @@ class BrokerClientLoader(object):
         Retrieves the isolate configuration from the configuration broker, if
         any
 
-        :param access: A (host, port, path) tuple
-        :param host: The broker HTTP server host address
-        :param host: The broker HTTP server port
-        :param path: The request URI
+        :param access: A (host, HTTP port, servlet path) tuple
         :return: The raw content returned by the broker
         :raise ValueError: Invalid server address or path
         """

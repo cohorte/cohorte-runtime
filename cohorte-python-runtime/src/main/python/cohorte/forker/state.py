@@ -91,7 +91,7 @@ class IsolateStateDirectory(object):
         """
         Tests if the given UID is in the directory
 
-        :param UID: An isolate UID
+        :param uid: An isolate UID
         :return: True if the isolate is known
         """
         with self._directory_lock:

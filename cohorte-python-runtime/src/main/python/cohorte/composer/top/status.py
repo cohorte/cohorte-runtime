@@ -118,7 +118,7 @@ class TopStatusStorage(object):
         :param uid: A forced UID (for reloaded compositions)
         :return: The UID associated to this distribution
         :raise KeyError: UID already taken
-        :raise: ValueError: The composition name is already known
+        :raise ValueError: The composition name is already known
         """
         # Check if the composition name has already been taken
         if name in self._names:

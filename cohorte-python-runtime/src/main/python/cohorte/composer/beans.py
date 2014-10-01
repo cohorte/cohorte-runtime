@@ -44,7 +44,7 @@ class RawComposition(object):
 
         :param name: Name of the composition
         :param filename: Name of the composition root file
-        (to be shown in logs)
+                         (to be shown in logs)
         :raise ValueError: Invalid parameters
         """
         if not name:

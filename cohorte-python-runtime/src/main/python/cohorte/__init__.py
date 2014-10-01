@@ -74,7 +74,7 @@ PROP_CONFIG_BROKER = 'cohorte.configuration.broker.url'
 """ URL to the configuration broker """
 
 PROP_UID = 'cohorte.isolate.uid'
-""" Unique IDentifier of the isolate """
+""" Unique identifier of the isolate """
 
 PROP_NAME = 'cohorte.isolate.name'
 """ Isolate name (can appear multiple time in an application) """
@@ -138,8 +138,8 @@ SERVICE_FILE_READER = 'cohorte.file.reader'
 Specification provided by a file reader, which parses a configuration file,
 resolves its imports, but doesn't extract information from it
 
-* load_boot(kind): Loads the boot configuration for the given isolate kind
-* load_boot_dict(configuration): Parses the boot-like part of the given
+* ``load_boot(kind)``: Loads the boot configuration for the given isolate kind
+* ``load_boot_dict(configuration)``: Parses the boot-like part of the given
   configuration dictionary
 """
 
@@ -157,8 +157,8 @@ SERVICE_LOOPER = 'cohorte.boot.looper'
 """
 Specification of a main thread loop handler.
 
-* stop(): Exits the main thread loop
-* run(method, *args, **kwargs): Runs the given method on the main thread
+* ``stop()``: Exits the main thread loop
+* ``run(method, *args, **kwargs)``: Runs the given method on the main thread
   and returns its result.
 """
 
@@ -166,10 +166,10 @@ SERVICE_ISOLATE_LOADER = 'cohorte.boot.loader'
 """
 Specification provided by an isolate Loader.
 
-* load(configuration): Loads the isolate according to the given
+* ``load(configuration)``: Loads the isolate according to the given
   configuration dictionary (optional), to framework properties and to process
   environment variables.
-* wait(): Blocks until the isolate has stopped
+* ``wait()``: Blocks until the isolate has stopped
 """
 
 SVCPROP_ISOLATE_LOADER_KIND = 'loader.kind'

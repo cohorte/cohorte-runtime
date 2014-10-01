@@ -3,7 +3,7 @@
 """
 COHORTE Java isolate loader, based on jPype
 
-**TODO:*
+**TODO:**
 * Review constants names & values
 
 :author: Thomas Calmant
@@ -445,7 +445,7 @@ class JavaOsgiLoader(object):
         Called back by the Python-Java bridge
 
         :param success: If True, all components have been started, else an
-        error occurred
+                        error occurred
         :param message: A call back message
         """
         if success:

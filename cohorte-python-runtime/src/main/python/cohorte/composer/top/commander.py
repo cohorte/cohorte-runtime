@@ -224,7 +224,7 @@ class TopCommander(object):
         Updates the distribution of the given components
 
         :param new: A Node -> RawComponent[] dictionary, the distribution of
-        the additional components
+                    the additional components
         :param moved: A RawComponent -> (OldNode, NewNode) dictionary
         :param stopped: A Node -> RawComponent[] dictionary
         """

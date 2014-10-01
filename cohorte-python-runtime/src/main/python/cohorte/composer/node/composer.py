@@ -154,7 +154,7 @@ class NodeComposer(object):
         Starts the redistribution timer
 
         :param delay: Delay until the next call for redistribution
-        (default: 10)
+                      (default: 10)
         """
         if self._timer is not None:
             self._timer.cancel()

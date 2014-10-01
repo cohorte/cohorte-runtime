@@ -78,7 +78,7 @@ class FileFinder(object):
         Non-None result indicates that the given path is a root sub-path.
 
         :param path: Path to be transformed
-        :retun: The root-path if any, else None
+        :return: The root-path if any, else None
         """
         if not path:
             return None

@@ -120,7 +120,7 @@ def load_isolate(pelix_properties, state_updater_url=None,
     :param state_updater_url: URL to access the isolate state updater
     :param looper_name: Name of the main thread loop handler
     :param fail_on_pdb: If true, ``pdb.post_mortem()`` is called if an
-    exception occurs starting the framework
+                        exception occurs starting the framework
     :raise Exception: All exceptions are propagated
     """
     # Give some information
@@ -178,7 +178,7 @@ def _safe_run_framework(framework, looper, state_updater_url, fail_on_pdb):
     :param looper: The main thread handler
     :param state_updater_url: URL to access the isolate state updater
     :param fail_on_pdb: If true, ``pdb.post_mortem()`` is called if an
-    exception occurs starting the framework
+                        exception occurs starting the framework
     """
     try:
         # Run the framework
@@ -202,7 +202,7 @@ def _run_framework(framework, state_updater_url, fail_on_pdb):
     :param framework: An instance of framework
     :param state_updater_url: URL to access the isolate state updater
     :param fail_on_pdb: If true, ``pdb.post_mortem()`` is called if an
-    exception occurs starting the framework
+                        exception occurs starting the framework
     :raise Exception: All exceptions are propagated
     """
     try:

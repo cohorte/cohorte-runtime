@@ -5,6 +5,7 @@ Node Composer factories distance criteria components
 
 :author: Thomas Calmant
 :license: Apache Software License 2.0
+
 ..
 
     Copyright 2014 isandlaTech

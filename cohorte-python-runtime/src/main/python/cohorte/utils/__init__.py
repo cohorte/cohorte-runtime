@@ -5,11 +5,8 @@ COHORTE Utility package
 
 Provides utility modules
 
-**TODO:**
-* Avoid COHORTE specific stuff here
-
-  * Move recursive file search in COHORTE directory into the FileFinder service
-  * ...
+**TODO:** Avoid COHORTE specific stuff here -> move recursive file search
+COHORTE directory into the FileFinder service
 
 :author: Thomas Calmant
 :license: Apache Software License 2.0
@@ -171,13 +168,13 @@ class BaseOSUtils(object):
         """
         Constructor
         """
-        # Get PSEM2M home and base
+        # Get Cohorte home and base
         self.home = os.getenv(cohorte.ENV_HOME, os.getcwd())
         self.base = os.getenv(cohorte.ENV_BASE, self.home)
 
     def find_bundle_file(self, bundle_name):
         """
-        Search for the given file in PSEM2M local repositories
+        Search for the given file in Cohorte local repositories
 
         :param bundle_name: A bundle file name
         :return: The first found file in a repo directory
@@ -186,7 +183,7 @@ class BaseOSUtils(object):
 
     def find_conf_file(self, file_name):
         """
-        Search for the given file in PSEM2M configuration directories
+        Search for the given file in Cohorte configuration directories
 
         :param file_name: A file name
         :return: The first found file in a conf directory
@@ -195,7 +192,7 @@ class BaseOSUtils(object):
 
     def find_file(self, file_name, *sub_dirs):
         """
-        Finds the given file name in the given PSEM2M sub-directory
+        Finds the given file name in the given Cohorte sub-directory
 
         :param file_name: A file name
         :param sub_dirs: Possible sub-directories (variable arguments)

@@ -115,7 +115,7 @@ class State(object):
         """
         Calls the callback method, if any
 
-        :raise: Any exception thrown by the method.
+        :raise Exception: Any exception thrown by the method.
         """
         if self.__callback is not None:
             self.__callback(self)
@@ -170,7 +170,7 @@ class Transition(object):
         """
         Calls the callback method, if any
 
-        :raise: Any exception thrown by the method.
+        :raise Exception: Any exception thrown by the method.
         """
         if self.__callback is not None:
             self.__callback(self.__state, self.__event, self.__next)

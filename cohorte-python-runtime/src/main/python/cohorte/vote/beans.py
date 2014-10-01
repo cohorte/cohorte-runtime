@@ -168,7 +168,7 @@ class SecretBallot(Ballot):
         Sets up members
 
         :param elector: Unused optional parameter, to support Ballot
-        constructor signature
+                        constructor signature
         """
         super(SecretBallot, self).__init__(None)
 

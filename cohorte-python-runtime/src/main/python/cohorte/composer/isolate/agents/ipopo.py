@@ -148,7 +148,7 @@ class IPopoAgent(object):
         :param component: A component bean
         :return: True if the component has been validated, False if its factory
                  is missing
-        :raise: Error instantiating the component
+        :raise Exception: Error instantiating the component
         """
         try:
             # Prepare properties (filters...)

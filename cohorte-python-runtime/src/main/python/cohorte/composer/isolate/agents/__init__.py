@@ -5,6 +5,7 @@ Cohorte Isolate Composer agents
 
 :author: Thomas Calmant
 :license: Apache Software License 2.0
+
 ..
 
     Copyright 2014 isandlaTech

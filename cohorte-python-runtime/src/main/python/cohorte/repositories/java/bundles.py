@@ -346,9 +346,9 @@ class OSGiBundleRepository(object):
         Retrieves a bundle from the repository
 
         :param name: The bundle symbolic name (mutually exclusive with
-        filename)
+                     filename)
         :param version: The bundle version (None or '0.0.0' for any), ignored
-        if filename is used
+                        if filename is used
         :param filename: The bundle file name (mutually exclusive with name)
         :param registry: Registry where to look for the bundle
         :return: The first matching bundle
