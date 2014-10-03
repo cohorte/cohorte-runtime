@@ -40,6 +40,9 @@ small-install.zip
 *.pyc
 *.pyo
 __pycache__/
+build/
+dist/
+*.egg-info/
 
 # Coverage (Python)
 .coverage
