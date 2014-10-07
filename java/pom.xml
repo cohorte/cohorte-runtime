@@ -47,6 +47,8 @@
 
 		<module>ui/org.psem2m.isolates.ui</module>
 		<module>ui/org.psem2m.isolates.ui.admin</module>
+
+		<module>cohorte-runtime-package</module>
 	</modules>
 
 	<dependencies>
