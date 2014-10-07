@@ -27,7 +27,7 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.cohorte</groupId>
+			<groupId>org.cohorte.remote</groupId>
 			<artifactId>org.cohorte.remote.api</artifactId>
 		</dependency>
 	</dependencies>

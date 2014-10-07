@@ -28,7 +28,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>org.cohorte.herald</groupId>
-			<artifactId>org.cohorte.herald.api</artifactId>
+			<artifactId>org.cohorte.herald.api</artifactId>			
 		</dependency>
 	</dependencies>
 
