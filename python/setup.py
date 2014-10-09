@@ -100,7 +100,7 @@ setup(
     ],
     install_requires=[
         'iPOPO >= 0.5.7',
-        'Cohorte-Herald >= 0.0.2'
+        'Cohorte-Herald >= 0.0.2.dev'
     ],
     extras_require={
         'java': ['JPype1-py3']
