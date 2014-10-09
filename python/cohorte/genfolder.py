@@ -91,7 +91,7 @@ class CohorteMaker(object):
             for key in ('home', 'base'):
                 self._index[key] = \
                     index['snapshots']['cohorte-minimal-{0}-distribution'
-                                       .format(key)]
+                                       .format(key)]['url']
 
     def load_template(self, name, force=False):
         """
