@@ -178,8 +178,7 @@ def main(args=None):
                         help="Directory where to store the Cohorte Base"
                              "folder")
     parser.add_argument("--url", dest="index_url", metavar="URL",
-                        default="http://repo.isandlatech.com/"
-                                "last_snapshots.json",
+                        default="http://repo.isandlatech.com/last.json",
                         help="Index JSON file")
     options = parser.parse_args(args)
     if not any((options.home_dir, options.base_dirs)):
