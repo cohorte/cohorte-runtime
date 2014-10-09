@@ -53,7 +53,7 @@ def read(fname):
         return fd.read()
 
 setup(
-    name='Cohorte',
+    name='Cohorte-Python',
     version=__version__,
     license='Apache License 2.0',
     description='A service-oriented component model framework',
