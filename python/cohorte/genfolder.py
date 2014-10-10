@@ -37,6 +37,7 @@ __docformat__ = "restructuredtext en"
 import argparse
 import json
 import os
+import shutil
 import sys
 import tempfile
 import zipfile
@@ -119,9 +120,42 @@ class CohorteMaker(object):
         :raise KeyError: Unknown template
         :raise IOError: Error extracting template
         """
-        tpl_zip = zipfile.ZipFile(self._templates[name])
-        tpl_zip.extractall(directory)
-        tpl_zip.close()
+        with zipfile.ZipFile(self._templates[name]) as tpl_zip:
+            # Get the list of files
+            infos = tpl_zip.infolist()
+
+            # Find the template content level
+            content_folder = os.path.commonprefix(
+                [info.filename for info in infos if info.filename[-1] != '/'])
+            content_folder_len = len(content_folder)
+
+            # Extract files, replacing the top level by the target directory
+            for info in infos:
+                # Remove the common prefix
+                output_name = info.filename[content_folder_len:]
+
+                # Extract is inspired from Python's zipfile._extract_member
+                # Convert path to system format
+                output_name.replace('/', os.path.sep)
+
+                # Forge the target path
+                target_path = os.path.join(directory, output_name)
+                target_path = os.path.normpath(target_path)
+
+                # Create all upper directories if necessary.
+                upperdirs = os.path.dirname(target_path)
+                if upperdirs and not os.path.exists(upperdirs):
+                    os.makedirs(upperdirs)
+
+                if info.filename[-1] == '/':
+                    # Create the directory if the current ZipInfo is one
+                    if not os.path.isdir(target_path):
+                        os.mkdir(target_path)
+                else:
+                    # Extract the file
+                    with tpl_zip.open(info) as source, \
+                            open(target_path, "wb") as target:
+                        shutil.copyfileobj(source, target)
 
     def make_home_directory(self, home_dir):
         """
