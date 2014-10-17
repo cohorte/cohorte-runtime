@@ -61,10 +61,13 @@ _SUBJECT_MATCH_ALL = "{0}/*".format(_SUBJECT_PREFIX)
 """ Filter to match agent signals """
 
 SUBJECT_GET_SHELLS = "{0}/get_shells".format(_SUBJECT_PREFIX)
-""" Signal to request the ports to access remote shellS """
+""" Signal to request the ports to access remote shells """
 
 SUBJECT_GET_PID = "{0}/get_pid".format(_SUBJECT_PREFIX)
 """ Signal to request the isolate PID """
+
+SUBJECT_GET_HTTP = "{0}/get_http".format(_SUBJECT_PREFIX)
+""" Signal to request the ports to access HTTP services """
 
 
 _logger = logging.getLogger(__name__)
@@ -108,7 +111,8 @@ class ShellAgentCommands(object):
         Retrieves the list of tuples (command, method) for this command handler
         """
         return [("pids", self.pids),
-                ("shells", self.shells)]
+                ("shells", self.shells),
+                ("http", self.http)]
 
     def get_methods_names(self):
         """
@@ -131,6 +135,15 @@ class ShellAgentCommands(object):
         elif subject == SUBJECT_GET_PID:
             # Get the isolate PID
             reply = {"pid": os.getpid()}
+        elif subject == SUBJECT_GET_HTTP:
+            # Get the isolate HTTP port
+            try:
+                access = self._directory.get_local_peer().get_access("http")
+                port = access.port
+            except KeyError:
+                port = -1
+
+            reply = {"http.port": port}
 
         if reply is not None:
             herald_svc.reply(message, reply)
@@ -416,3 +429,94 @@ class ShellAgentCommands(object):
                 io_handler.write_line("{0} - {1}",
                                       self._directory.get_isolate_name(uid),
                                       uid)
+
+    def http(self, io_handler, isolate=None):
+        """
+        Prints the port(s) to access the isolates HTTP service
+        """
+        try:
+            # Prepare the targets
+            group, peers = self.__compute_targets(isolate)
+        except KeyError as ex:
+            io_handler.write_line("{0}", ex)
+            return
+
+        # Prepare a count down event
+        if group is not None:
+            nb_peers = len(self._directory.get_peers_for_group(group))
+            if nb_peers == 0:
+                io_handler.write_line("No peer found in group '{0}'", group)
+                return
+            event = CountdownEvent(nb_peers)
+        else:
+            event = CountdownEvent(len(peers))
+
+        # Prepare callback and errback
+        succeeded = {}
+        failed = set()
+
+        def on_error(herald_svc, exception):
+            """
+            Failed to send a message
+            """
+            self.__on_error(herald_svc, exception, failed, event)
+
+        def on_success(herald_svc, reply):
+            """
+            Got a reply for a message
+            """
+            # Reply content is a dictionary, extract PID
+            step_up = reply.sender not in succeeded
+            succeeded[reply.sender] = reply.content['http.port']
+            if step_up:
+                event.step()
+
+        # Send the message
+        message = beans.Message(SUBJECT_GET_HTTP)
+        if group is not None:
+            self._herald.post_group(group, message, on_success, on_error)
+        else:
+            for uid in peers:
+                self._herald.post(uid, message, on_success, on_error)
+
+        # Wait for results (5 seconds max)
+        event.wait(5)
+
+        # Forget about the message
+        self._herald.forget(message.uid)
+
+        # Setup the headers
+        headers = ('Name', 'UID', 'Node Name', 'Node UID', 'HTTP')
+
+        # Compute the table content
+        table = []
+        for uid, http_port in succeeded.items():
+            # Add the line to the table
+            try:
+                peer = self._directory.get_peer(uid)
+            except KeyError:
+                # Unknown peer
+                line = ("<unknown>", uid, "<unknown>", "<unknown>", http_port)
+            else:
+                # Print known information
+                line = (peer.name, uid, peer.node_name, peer.node_uid,
+                        http_port)
+
+            table.append(line)
+
+        if table:
+            # Sort values
+            table.sort()
+
+            # Print the table
+            io_handler.write_line(self._utils.make_table(headers, table))
+
+        if failed:
+            io_handler.write_line("These isolates didn't respond:")
+            for uid in failed:
+                try:
+                    name = self._directory.get_peer(uid).name
+                except KeyError:
+                    name = "<unknown>"
+
+                io_handler.write_line("{0} - {1}", name, uid)

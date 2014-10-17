@@ -24,8 +24,10 @@ import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.ServiceProperty;
+import org.cohorte.herald.Access;
 import org.cohorte.herald.HeraldException;
 import org.cohorte.herald.IConstants;
+import org.cohorte.herald.IDirectory;
 import org.cohorte.herald.IHerald;
 import org.cohorte.herald.IMessageListener;
 import org.cohorte.herald.MessageReceived;
@@ -46,6 +48,10 @@ public class ShellAgent implements IMessageListener {
     /** Common prefix to agent messages */
     private static final String MESSAGES_PREFIX = "cohorte/shell/agent";
 
+    /** Signal to request HTTP ports */
+    private static final String MSG_GET_HTTP = ShellAgent.MESSAGES_PREFIX
+            + "/get_http";
+
     /** Signal to request the isolate PID */
     private static final String MSG_GET_PID = ShellAgent.MESSAGES_PREFIX
             + "/get_pid";
@@ -62,6 +68,10 @@ public class ShellAgent implements IMessageListener {
     @Requires
     private IPyBridge pBridge;
 
+    /** The Herald directory */
+    @Requires(optional = true, nullable = true)
+    private IDirectory pDirectory;
+
     /** The logger */
     @Requires(optional = true)
     private LogService pLogger;
@@ -73,6 +83,25 @@ public class ShellAgent implements IMessageListener {
     /** The remote shell */
     @Requires(optional = true, nullable = true)
     private IRemoteShell pRemoteShell;
+
+    /**
+     * Returns the port used by the HTTP server, or -1
+     *
+     * @return the HTTP port of this peer or -1
+     */
+    private int getHttpPort() {
+
+        if (pDirectory != null) {
+            // Get the HTTP access
+            final Access access = pDirectory.getLocalPeer().getAccess("http");
+            if (access != null) {
+                final Object[] dump = (Object[]) access.dump();
+                return (Integer) dump[1];
+            }
+        }
+
+        return -1;
+    }
 
     /**
      * Returns the port used by the OSGi remote shell, or -1
@@ -103,16 +132,15 @@ public class ShellAgent implements IMessageListener {
             switch (aMessage.getSubject()) {
             case MSG_GET_PID: {
                 // Isolate Process ID
-                final Map<String, Integer> result = new HashMap<String, Integer>();
+                final Map<String, Integer> result = new HashMap<>();
                 result.put("pid", pBridge.getPid());
-
                 aHerald.reply(aMessage, result);
                 break;
             }
 
             case MSG_GET_SHELLS: {
                 // Remote shells ports
-                final Map<String, Integer> result = new HashMap<String, Integer>();
+                final Map<String, Integer> result = new HashMap<>();
 
                 // Get the Pelix shell port
                 final int pelixPort = pBridge.getRemoteShellPort();
@@ -126,6 +154,14 @@ public class ShellAgent implements IMessageListener {
                     result.put("osgi", osgiPort);
                 }
 
+                aHerald.reply(aMessage, result);
+                break;
+            }
+
+            case MSG_GET_HTTP: {
+                // Make the result map
+                final Map<String, Integer> result = new HashMap<>();
+                result.put("http.port", getHttpPort());
                 aHerald.reply(aMessage, result);
                 break;
             }
