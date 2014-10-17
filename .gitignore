@@ -8,21 +8,26 @@
 ehthumbs.db
 Thumbs.db
 
-# Java generated classes  #
+# Java generated classes 
 *.class
 
-# IntelliJ IDEA files #
+# IntelliJ IDEA files
 .idea
 *.iml
 out 
 
-# Felix #
+# Felix
 felix-cache/
 
 # Eclipse 
 .metadata
 RemoteSystemsTempFiles/
+.project
+.classpath
+.settings
 
+# Eclipse iPOJO Nature
+META-INF/
 
 # Binaries
 *.tar.gz
@@ -64,3 +69,4 @@ pom.xml.releaseBackup
 pom.xml.versionsBackup
 pom.xml.next
 release.properties
+
