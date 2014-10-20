@@ -1,0 +1,47 @@
+Manifest-Version: 1.0
+Bundle-Activator: org.psem2m.isolates.ui.CIsolatesUiActivator
+Bundle-ManifestVersion: 2
+Bundle-Name: PSEM2M :: UI :: Commons
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-SymbolicName: org.psem2m.isolates.ui
+Bundle-Vendor: isandlaTech.com
+Bundle-Version: 1.0.0.qualifier
+Created-By: iPOJO  1.8.0
+Import-Package: javax.swing, javax.swing.event, javax.swing.tree, org.
+ apache.felix.ipojo;version=1.8.0, org.apache.felix.ipojo.architecture
+ ;version=1.8.0, org.cohorte.herald;version=0.0.1, org.osgi.framework;
+ version=1.3.0, org.osgi.service.cm;version=1.2, org.osgi.service.log;
+ version=1.3, org.psem2m.isolates.base;version=1.0.0, org.psem2m.isola
+ tes.base.activators;version=1.0.0, org.psem2m.isolates.services.monit
+ oring;version=1.0.1, org.psem2m.isolates.ui.admin.api, org.psem2m.uti
+ lities, org.psem2m.utilities.logging
+iPOJO-Components: instance { $name="psem2m-isolates-ui-admin" $compone
+ nt="psem2m-isolates-ui-admin-factory" }component { $name="psem2m-isol
+ ates-ui-admin-factory" $public="false" $classname="org.psem2m.isolate
+ s.ui.CUiAdminPanelIsolates" provides { $specifications="{org.cohorte.
+ herald.IDirectoryListener}" }requires { $field="pDirectory" }requires
+  { $field="pLogger" }requires { $field="pUiAdminSvc" }callback { $tra
+ nsition="invalidate" $method="invalidatePojo" }callback { $transition
+ ="validate" $method="validatePojo" }manipulation { $classname="org.ps
+ em2m.isolates.ui.CUiAdminPanelIsolates" $super="org.psem2m.isolates.b
+ ase.activators.CPojoBase" interface { $name="org.psem2m.isolates.ui.a
+ dmin.api.IUiAdminPanelControler" }interface { $name="org.cohorte.hera
+ ld.IDirectoryListener" }field { $name="pDirectory" $type="org.cohorte
+ .herald.IDirectory" }field { $name="pIsolatesTreeModel" $type="org.ps
+ em2m.isolates.ui.CIsolatesTreeModel" }field { $name="pLogger" $type="
+ org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pPanelIso
+ lates" $type="org.psem2m.isolates.ui.CJPanelIsolates" }field { $name=
+ "pUiAdminPanel" $type="org.psem2m.isolates.ui.admin.api.IUiAdminPanel
+ " }field { $name="pUiAdminSvc" $type="org.psem2m.isolates.ui.admin.ap
+ i.IUiAdminSvc" }method { $name="destroyContent" }method { $name="init
+ Content" }method { $name="invalidatePojo" }method { $name="peerRegist
+ ered" $arguments="{org.cohorte.herald.Peer}" $names="{aPeer}" }method
+  { $name="peerUnregistered" $arguments="{org.cohorte.herald.Peer}" $n
+ ames="{aPeer}" }method { $name="peerUpdated" $arguments="{org.cohorte
+ .herald.Peer,java.lang.String,org.cohorte.herald.Access,org.cohorte.h
+ erald.Access}" $names="{aPeer,aAccessId,aData,aPrevious}" }method { $
+ name="setUiAdminFont" $arguments="{org.psem2m.isolates.ui.admin.api.E
+ UiAdminFont}" $names="{aUiAdminFont}" }method { $name="validatePojo" 
+ }inner { $name="1" method { $name="run" }}inner { $name="2" method { 
+ $name="run" }}inner { $name="3" method { $name="run" }}}}
+

@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: PSEM2M Libs - Javatuples
+Bundle-SymbolicName: org.psem2m.org.javatuples
+Bundle-Version: 1.2.0.qualifier
+Bundle-Activator: org.psem2m.org.javatuples.Activator
+Import-Package: org.osgi.framework;version="1.3.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-Vendor: org.javatuples
+Bundle-ClassPath: lib/javatuples-1.2.jar,
+ .
+Export-Package: org.javatuples,
+ org.javatuples.valueintf,
+ org.psem2m.org.javatuples
