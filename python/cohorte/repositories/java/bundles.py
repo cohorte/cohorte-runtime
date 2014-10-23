@@ -49,6 +49,7 @@ import contextlib
 import logging
 import operator
 import os
+import threading
 import zipfile
 
 # ------------------------------------------------------------------------------
@@ -193,7 +194,8 @@ class Bundle(Artifact):
 
 
 @ComponentFactory("cohorte-repository-artifacts-java-factory")
-@Provides(cohorte.repositories.SERVICE_REPOSITORY_ARTIFACTS)
+@Provides(cohorte.repositories.SERVICE_REPOSITORY_ARTIFACTS,
+          controller="_controller")
 @Property('_language', cohorte.repositories.PROP_REPOSITORY_LANGUAGE, "java")
 class OSGiBundleRepository(object):
     """
@@ -205,6 +207,9 @@ class OSGiBundleRepository(object):
         """
         # Language (property)
         self._language = None
+
+        # Service controller
+        self._controller = False
 
         # Name -> [Bundle]
         self._bundles = {}
@@ -578,15 +583,29 @@ class OSGiBundleRepository(object):
             for bundle in bundles:
                 yield bundle
 
-    @Validate
-    def validate(self, context):
+    def __initial_loading(self, context):
         """
-        Component validated
+        Initial repository loading
         """
         # Home/Base repository
         for key in (cohorte.PROP_BASE, cohorte.PROP_HOME):
             repository = os.path.join(context.get_property(key), "repo")
             self.add_directory(repository)
+
+        # Provide the service
+        self._controller = True
+
+    @Validate
+    def validate(self, context):
+        """
+        Component validated
+        """
+        self._controller = False
+
+        # Load repositories in another thread
+        threading.Thread(target=self.__initial_loading,
+                         args=(context,),
+                         name="Java-repository-loader").start()
 
     @Invalidate
     def invalidate(self, context):

@@ -159,7 +159,8 @@ def _extract_module_factories(filename):
 
 
 @ComponentFactory("cohorte-repository-factories-ipopo-factory")
-@Provides(cohorte.repositories.SERVICE_REPOSITORY_FACTORIES)
+@Provides(cohorte.repositories.SERVICE_REPOSITORY_FACTORIES,
+          controller="_controller")
 @Requires('_repositories', cohorte.repositories.SERVICE_REPOSITORY_ARTIFACTS,
           True, False,
           "({0}=python)".format(cohorte.repositories.PROP_REPOSITORY_LANGUAGE))
@@ -176,6 +177,9 @@ class IPopoRepository(object):
         # Properties
         self._model = 'ipopo'
         self._language = 'python'
+
+        # Service controller
+        self._controller = False
 
         # Injected service
         self._repositories = []
@@ -341,13 +345,22 @@ class IPopoRepository(object):
                 for artifact in repository.walk():
                     self.add_artifact(artifact)
 
+    def __initial_loading(self):
+        """
+        Initial repository loading
+        """
+        self.load_repositories()
+        self._controller = True
+
     @Validate
     def validate(self, context):
         """
         Component validated
         """
+        self._controller = False
+
         # Load repositories in another thread
-        threading.Thread(target=self.load_repositories,
+        threading.Thread(target=self.__initial_loading,
                          name="iPOPO-repository-loader").start()
 
     @Invalidate

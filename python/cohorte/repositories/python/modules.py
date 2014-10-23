@@ -45,6 +45,7 @@ import ast
 import imp
 import logging
 import os
+import threading
 
 # ------------------------------------------------------------------------------
 
@@ -168,7 +169,8 @@ def _extract_module_info(filename):
 
 
 @ComponentFactory("cohorte-repository-artifacts-python-factory")
-@Provides(cohorte.repositories.SERVICE_REPOSITORY_ARTIFACTS)
+@Provides(cohorte.repositories.SERVICE_REPOSITORY_ARTIFACTS,
+          controller="_controller")
 @Property('_language', cohorte.repositories.PROP_REPOSITORY_LANGUAGE, "python")
 class PythonModuleRepository(object):
     """
@@ -179,6 +181,9 @@ class PythonModuleRepository(object):
         Sets up the repository
         """
         self._language = "python"
+
+        # Service controller
+        self._controller = False
 
         # Name -> [Modules]
         self._modules = {}
@@ -509,10 +514,9 @@ class PythonModuleRepository(object):
             for module in modules:
                 yield module
 
-    @Validate
-    def validate(self, context):
+    def __initial_loading(self, context):
         """
-        Component validated
+        Initial repository loading
         """
         # Home/Base repository
         for key in (cohorte.PROP_BASE, cohorte.PROP_HOME):
@@ -524,6 +528,21 @@ class PythonModuleRepository(object):
         if python_path:
             for path in python_path.split(os.pathsep):
                 self.add_directory(path)
+
+        # Provide the service
+        self._controller = True
+
+    @Validate
+    def validate(self, context):
+        """
+        Component validated
+        """
+        self._controller = False
+
+        # Load repositories in another thread
+        threading.Thread(target=self.__initial_loading,
+                         args=(context,),
+                         name="Python-repository-loader").start()
 
     @Invalidate
     def invalidate(self, context):
