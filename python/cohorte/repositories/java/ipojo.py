@@ -163,7 +163,7 @@ class Attribute(object):
         Sets up the attribute
         """
         self.name = name.lower()
-        self.value = value.lower()
+        self.value = value
 
         if namespace:
             namespace = namespace.lower()
