@@ -40,10 +40,17 @@ import cohorte.repositories
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
-    Instantiate, BindField, Invalidate
+    Instantiate, BindField, UnbindField
 
 # Standard library
-import threading
+import logging
+
+# ------------------------------------------------------------------------------
+
+REQUIRED_REPOSITORIES = frozenset(('ipopo', 'ipojo'))
+""" Kind of repositories required before providing the service """
+
+_logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
@@ -64,20 +71,11 @@ class ComponentFinder(object):
         # Injected repositories
         self._repositories = []
 
+        # Kinds of injected repositories
+        self.__kinds = set()
+
         # Service controller
         self._controller = False
-
-        # Binding timer
-        self._timer = None
-
-        # Let 1 second before considering all repositories are available
-        self.__pause_time = 1
-
-    def __provide(self):
-        """
-        Sets the service controller to True
-        """
-        self._controller = True
 
     @BindField('_repositories')
     def _bind_repository(self, field, svc, svc_ref):
@@ -85,22 +83,27 @@ class ComponentFinder(object):
         A repository has been bound. Starts the timer to provide the service
         when most of repositories have been bound.
         """
-        if self._timer is not None:
-            self._timer.cancel()
+        kind = svc_ref.get_property(cohorte.repositories.PROP_FACTORY_MODEL)
+        self.__kinds.add(kind)
 
-        # Set a new timer
-        self._timer = threading.Timer(self.__pause_time, self.__provide)
-        self._timer.start()
+        # Check if we can provide the service,
+        # i.e. if all repositories have been loaded
+        self._controller = REQUIRED_REPOSITORIES.issubset(self.__kinds)
 
-    @Invalidate
-    def _invalidate(self, context):
+    @UnbindField
+    def _unbind_repository(self, _, svc, svc_ref):
         """
-        Component invalidated
+        A repository has been unbound
         """
-        # Kill the timer
-        if self._timer is not None:
-            self._timer.cancel()
-            self._timer = None
+        kind = svc_ref.get_property(cohorte.repositories.PROP_FACTORY_MODEL)
+        try:
+            self.__kinds.remove(kind)
+        except KeyError:
+            # Unknown kind
+            pass
+        else:
+            # Check if we need to stop providing the service
+            self._controller = REQUIRED_REPOSITORIES.issubset(self.__kinds)
 
     def normalize(self, component):
         """
@@ -122,13 +125,15 @@ class ComponentFinder(object):
         for repository in repositories:
             try:
                 # Get the first found bundle
-                bundle = repository.find_factory(component.factory,
-                                                 component.bundle_name,
-                                                 component.bundle_version)[0]
-                break
+                bundle = repository.find_factory(
+                    component.factory, component.bundle_name,
+                    component.bundle_version)[0]
             except KeyError:
                 # Not in this repository
                 pass
+            else:
+                # Found
+                break
         else:
             # Factory not found
             raise ValueError("Component factory not found: {0}"
