@@ -522,7 +522,14 @@ class JavaOsgiLoader(object):
 
         # Patch for Mac OS X:
         # GUI library must be loaded early in the main thread
-        self._java.load_class("java.awt.Color")
+        try:
+            import Cocoa
+        except ImportError:
+            # Not a Cocoa-friendly installation
+            pass
+        else:
+            # We need this dark magic stuff for dummy OSes
+            self._java.load_class("java.awt.Color")
 
         # Load the FrameworkFactory implementation
         factory_class = self._java.load_class(factory_name)
