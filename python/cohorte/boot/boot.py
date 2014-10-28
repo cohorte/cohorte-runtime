@@ -530,6 +530,9 @@ def main(args=None):
     # Set up the logger
     configure_logger(args.logfile, args.debug, args.verbose, args.color)
 
+    # Log isolate arguments
+    _logger.debug("Isolate boot arguments:\n - %s", '\n - '.join(sys.argv))
+
     # Find HOME and BASE
     home, base = find_cohorte_directories()
 
