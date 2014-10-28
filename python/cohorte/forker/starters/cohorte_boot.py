@@ -171,7 +171,8 @@ class CohorteBoot(common.CommonStarter):
 
         # FIXME: make that prettier
         # Compute the looper, if needed
-        if sys.platform == "darwin" and configuration['kind'] == 'java':
+        if sys.platform == "darwin"\
+                and configuration['kind'] in ('java', 'osgi'):
             looper = 'cocoa'
         else:
             looper = None
@@ -184,9 +185,9 @@ class CohorteBoot(common.CommonStarter):
 
         try:
             # Start the boot script
-            process = self._run_boot_script(working_dir, configuration,
-                                            config_url, state_updater_url,
-                                            looper)
+            process = self._run_boot_script(
+                working_dir, configuration, config_url, state_updater_url,
+                looper)
         except:
             # Delete the configuration in case of error
             self._broker.delete_configuration(uid)
