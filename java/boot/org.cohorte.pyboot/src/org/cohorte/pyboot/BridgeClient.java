@@ -28,6 +28,7 @@ import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Invalidate;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.Validate;
+import org.apache.felix.ipojo.architecture.PropertyDescription;
 import org.cohorte.pyboot.api.ComponentBean;
 import org.cohorte.pyboot.api.IPyBridge;
 import org.osgi.framework.BundleContext;
@@ -71,6 +72,40 @@ public class BridgeClient implements ServiceListener {
     }
 
     /**
+     * Returns the value of a property, found in the framework properties,
+     * system properties or environment variable. Returns null if no value has
+     * been found.
+     *
+     * @param aName
+     *            Property name
+     * @return The value of the property, or null
+     */
+    private String getGlobalProperty(final String aName) {
+
+        // Framework property
+        String value = pContext.getProperty(aName);
+        if (value != null) {
+            // Found it
+            return value;
+        }
+
+        // System property (necessary for Equinox)
+        value = System.getProperty(aName);
+        if (value != null) {
+            return value;
+        }
+
+        // Environment variable
+        value = System.getenv(aName);
+        if (value != null) {
+            return value;
+        }
+
+        // No value found
+        return null;
+    }
+
+    /**
      * Instantiate all components that can be handled by the given factory
      *
      * @param aFactoryRef
@@ -101,7 +136,8 @@ public class BridgeClient implements ServiceListener {
                         pBridge.debug("Instantiating {0}", component.toString());
 
                         // Instantiate the component
-                        factory.createComponentInstance(prepareInstanceProperties(component));
+                        factory.createComponentInstance(prepareInstanceProperties(
+                                factory, component));
 
                     } catch (final Exception ex) {
                         pBridge.error("Error creating component {0}: {1}",
@@ -152,12 +188,32 @@ public class BridgeClient implements ServiceListener {
     }
 
     /**
+     * Prepares the properties of an iPOJO component instance
+     *
+     * @param aFactory
+     *            The iPOJO component factory
      * @param aComponent
-     * @return
+     *            The Cohorte Composer bean
+     * @return The properties of the iPOJO component instance
      */
-    private Properties prepareInstanceProperties(final ComponentBean aComponent) {
+    private Properties prepareInstanceProperties(final Factory aFactory,
+            final ComponentBean aComponent) {
 
         final Properties result = new Properties();
+
+        // Override default component properties with the Framework,
+        // System or environment values
+        for (final PropertyDescription property : aFactory
+                .getComponentDescription().getProperties()) {
+            // Get the name of the property
+            final String name = property.getName();
+
+            // Get the property value from outside
+            final String value = getGlobalProperty(name);
+            if (value != null) {
+                result.put(name, value);
+            }
+        }
 
         // Configured properties
         for (final Entry<String, Object> entry : aComponent.getProperties()
@@ -177,7 +233,7 @@ public class BridgeClient implements ServiceListener {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see
      * org.osgi.framework.ServiceListener#serviceChanged(org.osgi.framework.
      * ServiceEvent)
