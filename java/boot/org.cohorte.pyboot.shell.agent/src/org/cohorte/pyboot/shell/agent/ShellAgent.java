@@ -19,20 +19,21 @@ package org.cohorte.pyboot.shell.agent;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.felix.ipojo.annotations.Bind;
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.ServiceProperty;
-import org.cohorte.herald.Access;
+import org.apache.felix.ipojo.annotations.Unbind;
 import org.cohorte.herald.HeraldException;
 import org.cohorte.herald.IConstants;
-import org.cohorte.herald.IDirectory;
 import org.cohorte.herald.IHerald;
 import org.cohorte.herald.IMessageListener;
 import org.cohorte.herald.MessageReceived;
 import org.cohorte.pyboot.api.IPyBridge;
 import org.cohorte.shell.IRemoteShell;
+import org.osgi.service.http.HttpService;
 import org.osgi.service.log.LogService;
 
 /**
@@ -44,6 +45,12 @@ import org.osgi.service.log.LogService;
 @Provides(specifications = IMessageListener.class)
 @Instantiate(name = "cohorte-shell-agent")
 public class ShellAgent implements IMessageListener {
+
+    /** HTTP service port property */
+    private static final String HTTP_SERVICE_PORT = "org.osgi.service.http.port";
+
+    /** HTTPService dependency ID */
+    private static final String IPOJO_ID_HTTP = "http.service";
 
     /** Common prefix to agent messages */
     private static final String MESSAGES_PREFIX = "cohorte/shell/agent";
@@ -68,9 +75,8 @@ public class ShellAgent implements IMessageListener {
     @Requires
     private IPyBridge pBridge;
 
-    /** The Herald directory */
-    @Requires(optional = true, nullable = true)
-    private IDirectory pDirectory;
+    /** HTTP service port */
+    private int pHttpPort;
 
     /** The logger */
     @Requires(optional = true)
@@ -85,22 +91,36 @@ public class ShellAgent implements IMessageListener {
     private IRemoteShell pRemoteShell;
 
     /**
-     * Returns the port used by the HTTP server, or -1
+     * HTTP service ready
      *
-     * @return the HTTP port of this peer or -1
+     * @param aHttpService
+     *            The bound service
+     * @param aServiceProperties
+     *            The HTTP service properties
      */
-    private int getHttpPort() {
+    @Bind(id = IPOJO_ID_HTTP, optional = true)
+    private void bindHttpService(final HttpService aHttpService,
+            final Map<?, ?> aServiceProperties) {
 
-        if (pDirectory != null) {
-            // Get the HTTP access
-            final Access access = pDirectory.getLocalPeer().getAccess("http");
-            if (access != null) {
-                final Object[] dump = (Object[]) access.dump();
-                return (Integer) dump[1];
-            }
+        final Object rawPort = aServiceProperties.get(HTTP_SERVICE_PORT);
+
+        if (rawPort instanceof Number) {
+            // Get the integer
+            pHttpPort = ((Number) rawPort).intValue();
+
+        } else if (rawPort instanceof CharSequence) {
+            // Parse the string
+            pHttpPort = Integer.parseInt(rawPort.toString());
+
+        } else {
+            // Unknown port type
+            pLogger.log(LogService.LOG_WARNING, "Couldn't read access port="
+                    + rawPort);
+            pHttpPort = -1;
         }
 
-        return -1;
+        pLogger.log(LogService.LOG_INFO, "HTTP Receiver bound to port="
+                + pHttpPort);
     }
 
     /**
@@ -161,7 +181,7 @@ public class ShellAgent implements IMessageListener {
             case MSG_GET_HTTP: {
                 // Make the result map
                 final Map<String, Integer> result = new HashMap<>();
-                result.put("http.port", getHttpPort());
+                result.put("http.port", pHttpPort);
                 aHerald.reply(aMessage, result);
                 break;
             }
@@ -177,5 +197,15 @@ public class ShellAgent implements IMessageListener {
             pLogger.log(LogService.LOG_ERROR,
                     "Error replying to a shell message: " + ex, ex);
         }
+    }
+
+    /**
+     * HTTP service gone
+     */
+    @Unbind(id = IPOJO_ID_HTTP)
+    private void unbindHttpService() {
+
+        // Forget the port
+        pHttpPort = -1;
     }
 }

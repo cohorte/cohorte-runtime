@@ -45,8 +45,11 @@ from pelix.shell import SHELL_COMMAND_SPEC, SHELL_UTILS_SERVICE_SPEC, \
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
-    Instantiate, Property
-from pelix.utilities import CountdownEvent
+    Instantiate, Property, Validate, Invalidate
+
+# Pelix
+from pelix.utilities import CountdownEvent, use_service
+import pelix.http
 
 # Standard library
 import logging
@@ -97,8 +100,25 @@ class ShellAgentCommands(object):
         self._remote_shell = None
         self._utils = None
 
+        # Bundle context
+        self._context = None
+
         # Herald filter property
         self._filters = None
+
+    @Validate
+    def _validate(self, context):
+        """
+        Component validated
+        """
+        self._context = context
+
+    @Invalidate
+    def _invalidate(self, context):
+        """
+        Component invalidated
+        """
+        self._context = None
 
     def get_namespace(self):
         """
@@ -137,10 +157,11 @@ class ShellAgentCommands(object):
             reply = {"pid": os.getpid()}
         elif subject == SUBJECT_GET_HTTP:
             # Get the isolate HTTP port
-            try:
-                access = self._directory.get_local_peer().get_access("http")
-                port = access.port
-            except KeyError:
+            svc_ref = self._context.get_service_reference(
+                pelix.http.HTTP_SERVICE)
+            if svc_ref is not None:
+                port = svc_ref.get_property(pelix.http.HTTP_SERVICE_PORT)
+            else:
                 port = -1
 
             reply = {"http.port": port}
