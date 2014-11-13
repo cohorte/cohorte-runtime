@@ -33,25 +33,40 @@ __docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 
+# ######### added by: Bassem D.
+# Standard Library
+import logging
+# #########
+
 # Composer
 import cohorte.composer
 import cohorte.monitor
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
-    Instantiate, Validate, Invalidate
+    Instantiate, Validate, Invalidate, Property
+
+# ######### added by: Bassem D.
+_logger = logging.getLogger(__name__)
+# #########
 
 # ------------------------------------------------------------------------------
 
 
-@ComponentFactory()
+@ComponentFactory("cohorte-composer-top-factory")
 @Provides(cohorte.composer.SERVICE_COMPOSER_TOP)
 @Requires('_distributor', cohorte.composer.SERVICE_DISTRIBUTOR_NODE)
 @Requires('_status', cohorte.composer.SERVICE_STATUS_TOP)
 @Requires('_commander', cohorte.composer.SERVICE_COMMANDER_TOP)
 @Requires('_monitor', cohorte.monitor.SERVICE_MONITOR)
 @Requires('_node_starter', cohorte.SERVICE_NODE_STARTER)
-@Instantiate('cohorte-composer-top')
+# ######### added by: Bassem D.
+@Requires('_parser', cohorte.composer.SERVICE_PARSER,
+          optional=True)
+@Property('_autostart', 'autostart', "True")
+@Property('composition_filename', 'composition.filename', "composition.js")
+# #########
+#@Instantiate('cohorte-composer-top')
 class TopComposer(object):
     """
     The Top Composer entry point
@@ -65,6 +80,11 @@ class TopComposer(object):
         self._commander = None
         self._context = None
         self._node_starter = None
+        # ######### added by: Bassem D.
+        self._parser = None
+        self._autostart = None
+        self.composition_filename = None
+        # #########
 
     def _set_default_node(self, distribution):
         """
@@ -95,6 +115,24 @@ class TopComposer(object):
         Component validated
         """
         self._context = context
+        # ######### added by: Bassem D.
+        _logger.info("Auto-start composition " + str(self._autostart))
+        if str(self._autostart).lower() in ("true"):
+            _logger.info("starting composition ...")
+            
+            # Load the composition
+            try:
+                composition = self._parser.load(self.composition_filename, "conf")
+
+                uid = self.start(composition)
+                _logger.info("Started composition: %s -> %s",
+                                      composition.name, uid)
+            except OSError as e:
+                _logger.error("Error reading the composition file %", self.composition_filename)
+
+        else:
+            _logger.info("composition should be started manually!")
+        # #########
 
     @Invalidate
     def invalidate(self, context):
