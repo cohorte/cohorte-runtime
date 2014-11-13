@@ -96,10 +96,17 @@ class TopComposerCommands(object):
                 ('dump', self.dump_status),
                 ('stop', self.stop_composition), ]
 
-    def read_file(self, io_handler, filename="autorun_conf.js", base="conf"):
+    def read_file(self, io_handler, filename=None, base="conf"):
         """
         Reads a file
         """
+        # get default filename
+        if not filename:
+            if self._composer:
+                filename = self._composer.composition_filename
+            else:
+                filename = "composition.js"
+
         # Read the file content (dictionary)
         data = self._reader.load_file(filename, base)
 
@@ -109,10 +116,17 @@ class TopComposerCommands(object):
                                                 separators=(',', ': ')))
 
     def distribute_composition(self, io_handler,
-                               filename="autorun_conf.js", base="conf"):
+                               filename=None, base="conf"):
         """
         Parses a composition and computes its node distribution
         """
+        # get default filename
+        if not filename:
+            if self._composer:
+                filename = self._composer.composition_filename
+            else:
+                filename = "composition.js"
+
         if self._parser is None:
             io_handler.write_line("No parser found.")
             return
@@ -132,10 +146,17 @@ class TopComposerCommands(object):
         io_handler.write_line('{0}', pformat(distribution, indent=2))
 
     def instantiate_composition(self, io_handler,
-                                filename="autorun_conf.js", base="conf"):
+                                filename=None, base="conf"):
         """
         Instantiates the given composition
         """
+        # get default filename
+        if not filename:
+            if self._composer:
+                filename = self._composer.composition_filename
+            else:
+                filename = "composition.js"
+
         if self._parser is None:
             io_handler.write_line("No parser found.")
             return
