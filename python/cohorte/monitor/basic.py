@@ -38,6 +38,9 @@ import cohorte.monitor
 import cohorte.monitor.fsm as fsm
 import cohorte.repositories
 import cohorte.repositories.beans as beans
+# ######### added by: Bassem D. (issue #6)
+import cohorte.boot.loaders.utils as utils
+# #########
 
 # Herald
 import herald
@@ -73,6 +76,9 @@ _logger = logging.getLogger(__name__)
 @Property('_filters', herald.PROP_FILTERS,
           (cohorte.monitor.SIGNALS_ISOLATE_PATTERN,
            cohorte.monitor.SIGNALS_PLATFORM_PATTERN))
+# ######### added by: Bassem D.
+@Requires('_config_reader', cohorte.SERVICE_CONFIGURATION_READER)
+# #########
 class MonitorBasic(object):
     """
     Monitor core component: interface to the forker
@@ -104,6 +110,11 @@ class MonitorBasic(object):
 
         # Auto-run isolates
         self._auto_isolates = {}
+
+        # ######### added by: Bassem D.   
+        # configuration reader
+        self._config_reader = None
+        # #########
 
     def handle_received_signal(self, name, data):
         """
@@ -408,13 +419,20 @@ class MonitorBasic(object):
         # Read the top composer configuration file
         top_config = self._config.read("composer/python-top.js")
 
+        # ######### added by: Bassem D. (issue #6)
         # Extract bundle names
-        bundles = [bundle['name'] for bundle in top_config['bundles']]
+        # bundles = [bundle['name'] for bundle in top_config['bundles']]
 
         # Start new bundles
-        for name in bundles:
-            if name not in installed:
-                self._context.install_bundle(name).start()
+        # for name in bundles:
+        #    if name not in installed:
+        #        self._context.install_bundle(name).start()
+
+        
+        # instantiates manually components declared on configuration files   
+        utils.boot_load(self._context, self._config_reader.load_boot_dict(top_config))        
+        # ######### 
+
 
     @Validate
     def validate(self, context):
