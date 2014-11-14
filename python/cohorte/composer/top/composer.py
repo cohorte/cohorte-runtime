@@ -116,19 +116,23 @@ class TopComposer(object):
         """
         self._context = context
         # ######### added by: Bassem D.
-        _logger.info("Auto-start composition " + str(self._autostart))
-        if str(self._autostart).lower() in ("true"):
-            _logger.info("starting composition ...")
-            
+        _logger.info("Auto-start composition: %s", self._autostart)
+        if str(self._autostart).lower() in ("true", "yes"):
             # Load the composition
             try:
-                composition = self._parser.load(self.composition_filename, "conf")
-
-                uid = self.start(composition)
-                _logger.info("Started composition: %s -> %s",
-                                      composition.name, uid)
-            except OSError as e:
-                _logger.error("Error reading the composition file %", self.composition_filename)
+                composition = self._parser.load(
+                    self.composition_filename, "conf")
+                if composition:
+                    _logger.info("Loading composition...")
+                    uid = self.start(composition)
+                    _logger.info("Started composition: %s -> %s",
+                                 composition.name, uid)
+                else:
+                    _logger.warning("No composition found in %s",
+                                    self.composition_filename)
+            except OSError:
+                _logger.error("Error reading the composition file %s",
+                              self.composition_filename)
 
         else:
             _logger.info("composition should be started manually!")
