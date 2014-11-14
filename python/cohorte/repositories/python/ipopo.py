@@ -97,15 +97,14 @@ class ComponentFactoryVisitor(ast.NodeVisitor):
                         try:
                             name = self.values[argument.id]
                         except KeyError:
-                            _logger.warning(
-                                "Factory name '%s' is unknown (%s)",
-                                argument.id, node.name)
+                            _logger.debug("Factory name '%s' is unknown (%s)",
+                                          argument.id, node.name)
                     else:
                         # Literal
                         try:
                             name = ast.literal_eval(argument)
                         except (ValueError, SyntaxError) as ex:
-                            _logger.warning(
+                            _logger.debug(
                                 "Invalid factory name for class %s: %s",
                                 node.name, ex)
 
