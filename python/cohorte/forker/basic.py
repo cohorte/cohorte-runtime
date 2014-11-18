@@ -315,7 +315,7 @@ class ForkerBasic(object):
             # Already stopped
             return
 
-        _logger.critical("Lost isolate %s", uid)
+        _logger.warning("Lost isolate %s", uid)
 
         # FIXME: handle loss of predefined isolates
 

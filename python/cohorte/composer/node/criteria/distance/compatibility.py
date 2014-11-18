@@ -127,7 +127,7 @@ class CompatibilityCriterion(object):
 
         if new_rating < 5:
             # Lower threshold reached: components are incompatible
-            _logger.critical("Pair %s is now incompatible", pair)
+            _logger.debug("Pair %s is now incompatible", pair)
             self._incompatible.add(pair)
 
     def handle_event(self, event):

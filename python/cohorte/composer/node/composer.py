@@ -322,7 +322,7 @@ class NodeComposer(object):
         Redistributes the components of this node
         """
         with self._lock:
-            _logger.warning("!! Node Composer starts redistribution !!!")
+            _logger.debug("!! Node Composer starts redistribution !!!")
 
             # Get components
             components = self._status.get_components()

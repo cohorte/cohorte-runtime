@@ -191,11 +191,6 @@ class MatchVote(object):
 
         # Sort by number of votes
         results = sorted(votes, reverse=True)
-
-        _logger.critical("-- Results:")
-        for result in results:
-            _logger.warning(".... %s", result)
-
         if results[0].votes >= majority:
             # Elected by majority
             return results[0].candidate

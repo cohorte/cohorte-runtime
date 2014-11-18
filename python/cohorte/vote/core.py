@@ -66,7 +66,7 @@ class VoteCore(object):
         Sets up members
         """
         # Vote engines
-        self._engines = None
+        self._engines = []
 
         # Vote results storage
         self._store = None
@@ -132,6 +132,7 @@ class VoteCore(object):
 
         # Vote until we have a result
         vote_round = 1
+        result = None
         while True:
             try:
                 # 3. Vote
@@ -152,26 +153,24 @@ class VoteCore(object):
                 result = engine.analyze(vote_round, ballots, tuple(candidates),
                                         parameters, vote_bean)
                 break
-
             except beans.CoupdEtat as ex:
                 # Coup d'État !
-                _logger.warning("Coup d'état by %s", ex.claimant)
+                _logger.debug("Coup d'état by %s", ex.claimant)
                 vote_bean.coup_d_etat = True
                 result = ex.claimant
                 break
-
             except beans.NextRound as ex:
                 # Another round is necessary
                 candidates = ex.candidates
                 vote_round += 1
                 vote_bean.next_round(candidates)
 
-                _logger.warning("New round required with: %s", candidates)
-
                 if len(candidates) == 1:
                     # Tricky engine...
                     result = candidates[0]
                     break
+                else:
+                    _logger.debug("New round required with: %s", candidates)
 
         # Store the vote results
         vote_bean.set_vote_results(result)
