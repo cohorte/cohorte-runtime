@@ -148,8 +148,9 @@ class IsolateDistributor(object):
                                                             all_candidates)
 
             # Sort candidates by name
-            matching_isolates = sorted(matching_isolates,
-                                       key=operator.attrgetter('name'))
+            matching_isolates = sorted(
+                matching_isolates,
+                key=lambda iso: iso.name if iso.name is not None else "")
 
             # Add an empty isolate in the candidates
             neutral = beans.EligibleIsolate()
