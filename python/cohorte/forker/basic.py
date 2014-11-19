@@ -338,7 +338,7 @@ class ForkerBasic(object):
             # Do not send this signal twice
             return
 
-        _logger.warning("Sending 'forker stopping' signal.")
+        _logger.info("Sending 'forker stopping' signal.")
         content = {'uid': self._context.get_property(cohorte.PROP_UID),
                    'node': self._context.get_property(cohorte.PROP_NODE_UID),
                    'isolates': list(self._isolates.keys())}
