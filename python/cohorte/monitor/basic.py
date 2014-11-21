@@ -111,7 +111,7 @@ class MonitorBasic(object):
         # Auto-run isolates
         self._auto_isolates = {}
 
-        # ######### added by: Bassem D.   
+        # ######### added by: Bassem D.
         # configuration reader
         self._config_reader = None
         # #########
@@ -179,9 +179,10 @@ class MonitorBasic(object):
         :return: True if all isolates have beean started correctly
         """
         try:
-            isolates = self._config.read('autorun_isolates.js', True)
-        except (IOError, ValueError):
-            # Error already logged by the file reader
+            isolates = self._config.read('autorun_isolates.js', False)
+        except (IOError, ValueError) as ex:
+            # Log the error in debug mode only
+            _logger.debug("Error reading 'autorun_isolates.js': %s", ex)
             return
 
         if not isolates:
@@ -428,10 +429,10 @@ class MonitorBasic(object):
         #    if name not in installed:
         #        self._context.install_bundle(name).start()
 
-        
-        # instantiates manually components declared on configuration files   
-        utils.boot_load(self._context, self._config_reader.load_boot_dict(top_config))        
-        # ######### 
+
+        # instantiates manually components declared on configuration files
+        utils.boot_load(self._context, self._config_reader.load_boot_dict(top_config))
+        # #########
 
 
     @Validate
