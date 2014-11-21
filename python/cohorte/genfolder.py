@@ -27,6 +27,9 @@ isandlaTech servers
     limitations under the License.
 """
 
+# Print compatibility
+from __future__ import print_function
+
 # Module version
 __version_info__ = (0, 0, 1)
 __version__ = ".".join(str(x) for x in __version_info__)
@@ -44,10 +47,11 @@ import zipfile
 
 from pelix.utilities import to_str
 
-
 try:
+    # pylint: disable=F0401
     import urllib2
 except ImportError:
+    # pylint: disable=F0401,E0611
     import urllib.request as urllib2
 
 
@@ -205,12 +209,12 @@ def main(args=None):
     """
     parser = argparse.ArgumentParser("Cohorte Quick start")
     parser.add_argument("--home", dest="home_dir", metavar="HOME_DIR",
-                        help="Directory where to store the Cohorte Home"
-                             "folder")
+                        help="Directory where to store the Cohorte Home "
+                        "folder")
     parser.add_argument("-b", "--base", dest="base_dirs", nargs="*",
                         metavar="BASE_DIR",
-                        help="Directory where to store the Cohorte Base"
-                             "folder")
+                        help="Directory where to store the Cohorte Base "
+                        "folder")
     parser.add_argument("--url", dest="index_url", metavar="URL",
                         default="http://repo.isandlatech.com/last.json",
                         help="Index JSON file")
