@@ -43,6 +43,7 @@ _logger = logging.getLogger(__name__)
 # ------------------------------------------------------------------------------
 # Windows specific modules
 
+# pylint: disable=F0401
 import pywintypes
 import win32api
 import win32event
@@ -51,7 +52,6 @@ import win32process
 try:
     # Python 3
     import winreg
-
 except ImportError:
     # Python 2
     import _winreg as winreg

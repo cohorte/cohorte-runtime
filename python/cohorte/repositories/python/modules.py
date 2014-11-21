@@ -45,7 +45,6 @@ import ast
 import imp
 import logging
 import os
-import threading
 
 # ------------------------------------------------------------------------------
 

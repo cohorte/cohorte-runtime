@@ -49,7 +49,6 @@ import contextlib
 import logging
 import operator
 import os
-import threading
 import zipfile
 
 # ------------------------------------------------------------------------------

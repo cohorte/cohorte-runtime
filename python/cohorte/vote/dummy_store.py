@@ -35,9 +35,7 @@ __docformat__ = "restructuredtext en"
 import cohorte.vote
 
 # iPOPO Decorators
-from pelix.ipopo.decorators import ComponentFactory, Provides, Requires, \
-    Instantiate, Property, Invalidate
-import pelix.http
+from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate
 
 # Standard library
 import logging

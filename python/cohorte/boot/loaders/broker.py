@@ -50,10 +50,12 @@ import logging
 
 try:
     # Python 3
+    # pylint: disable=F0401,E0611
     import http.client as httplib
     import urllib.parse as urlparse
 except ImportError:
     # Python 2
+    # pylint: disable=F0401
     import httplib
     import urlparse
 

@@ -261,7 +261,6 @@ class MonitorBasic(object):
         for repository in self._repositories:
             if repository.get_language() == level:
                 break
-
         else:
             _logger.error("No repository found for language: %s", level)
             return False
@@ -406,8 +405,8 @@ class MonitorBasic(object):
         Installs and starts the top composer bundles
         """
         # Get installed bundles
-        installed = set(bundle.get_symbolic_name()
-                        for bundle in self._context.get_bundles())
+        # installed = set(bundle.get_symbolic_name()
+        #                 for bundle in self._context.get_bundles())
 
         # Read the top composer configuration file
         top_config = self._config.read("composer/python-top.js")

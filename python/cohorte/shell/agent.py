@@ -48,7 +48,7 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
     Instantiate, Property, Validate, Invalidate
 
 # Pelix
-from pelix.utilities import CountdownEvent, use_service
+from pelix.utilities import CountdownEvent
 import pelix.http
 
 # Standard library
