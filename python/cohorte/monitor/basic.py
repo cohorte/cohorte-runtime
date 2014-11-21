@@ -76,9 +76,6 @@ _logger = logging.getLogger(__name__)
 @Property('_filters', herald.PROP_FILTERS,
           (cohorte.monitor.SIGNALS_ISOLATE_PATTERN,
            cohorte.monitor.SIGNALS_PLATFORM_PATTERN))
-# ######### added by: Bassem D.
-@Requires('_config_reader', cohorte.SERVICE_CONFIGURATION_READER)
-# #########
 class MonitorBasic(object):
     """
     Monitor core component: interface to the forker
@@ -110,11 +107,6 @@ class MonitorBasic(object):
 
         # Auto-run isolates
         self._auto_isolates = {}
-
-        # ######### added by: Bassem D.
-        # configuration reader
-        self._config_reader = None
-        # #########
 
     def handle_received_signal(self, name, data):
         """
@@ -431,7 +423,7 @@ class MonitorBasic(object):
 
 
         # instantiates manually components declared on configuration files
-        utils.boot_load(self._context, self._config_reader.load_boot_dict(top_config))
+        utils.boot_load(self._context, self._config.load_boot_dict(top_config))
         # #########
 
 
