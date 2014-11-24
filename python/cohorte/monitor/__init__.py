@@ -52,6 +52,11 @@ SIGNALS_PLATFORM_PATTERN = "{0}/*".format(__SIGNALS_PLATFORM_PREFIX)
 SIGNAL_STOP_PLATFORM = "{0}/stop".format(__SIGNALS_PLATFORM_PREFIX)
 """ Signals requesting the platform to completely stop """
 
+# ######### added by: Bassem D.
+SIGNAL_STOP_NODE = "{0}/stopnode".format(__SIGNALS_PLATFORM_PREFIX)
+""" Requests the node to stop """
+# #########
+
 SIGNAL_PLATFORM_STOPPING = "{0}/platform-stop"\
     .format(__SIGNALS_PLATFORM_PREFIX)
 """

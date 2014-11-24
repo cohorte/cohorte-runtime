@@ -56,7 +56,7 @@ _logger = logging.getLogger(__name__)
 @ComponentFactory("cohorte-isolate-agent-factory")
 @Requires('_sender', herald.SERVICE_HERALD)
 @Provides((herald.SERVICE_LISTENER, herald.SERVICE_DIRECTORY_GROUP_LISTENER))
-@Property('_filters', herald.PROP_FILTERS, cohorte.monitor.SIGNAL_STOP_ISOLATE)
+@Property('_filters', herald.PROP_FILTERS, [cohorte.monitor.SIGNAL_STOP_ISOLATE])
 class IsolateAgent(object):
     """
     Isolate agent component
@@ -78,7 +78,7 @@ class IsolateAgent(object):
         :param herald_svc: The Herald service
         :param message: The received message bean
         """
-        if message.subject == cohorte.monitor.SIGNAL_STOP_ISOLATE:
+        if message.subject == cohorte.monitor.SIGNAL_STOP_ISOLATE:            
             # Isolate must stop
             # Let the method return first,
             # in order to return to the caller immediately

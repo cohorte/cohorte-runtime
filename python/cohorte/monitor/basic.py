@@ -77,6 +77,7 @@ _logger = logging.getLogger(__name__)
 @Property('_filters', herald.PROP_FILTERS,
           (cohorte.monitor.SIGNALS_ISOLATE_PATTERN,
            cohorte.monitor.SIGNALS_PLATFORM_PATTERN))
+
 class MonitorBasic(object):
     """
     Monitor core component: interface to the forker
@@ -123,10 +124,16 @@ class MonitorBasic(object):
         if name == cohorte.monitor.SIGNAL_PLATFORM_STOPPING:
             # Platform goes into stopping mode (let the sender do the job)
             self._platform_stopping.set()
-        elif name == cohorte.monitor.SIGNAL_STOP_PLATFORM:
+        elif name == cohorte.monitor.SIGNAL_STOP_PLATFORM:            
             # Platform must stop (new thread)
             threading.Thread(name="platform-stop",
                              target=self._stop_platform).start()
+        # ######### added by: Bassem D.
+        elif name == cohorte.monitor.SIGNAL_STOP_NODE:            
+            # Node must stop (new thread)
+            threading.Thread(name="node-stop",
+                             target=self._stop_node).start()
+        # #########    
         else:
             # Isolate signals
             try:
@@ -399,8 +406,11 @@ class MonitorBasic(object):
         self._forker.set_platform_stopping()
 
         # Send the platform stopping signal to other monitors
-        self._herald.fire_group(
-            'monitors', Message(cohorte.monitor.SIGNAL_PLATFORM_STOPPING))
+        try:
+            self._herald.fire_group(
+                'monitors', Message(cohorte.monitor.SIGNAL_PLATFORM_STOPPING))
+        except:
+            pass
 
         # Tell the forker to stop the running isolates
         for uid in self._status.get_running():
@@ -408,6 +418,31 @@ class MonitorBasic(object):
 
         # Stop this isolate
         self._context.get_bundle(0).stop()
+
+    # ######### added by: Bassem D.
+    def _stop_node(self):
+        """
+        Stops the actual node
+        """
+        if self._platform_stopping.is_set():
+            # Already stopping
+            return
+
+        _logger.critical(">>> NODE STOPPING <<<")
+
+        # Set this monitor in stopping state
+        self._platform_stopping.set()   
+        
+        # Set the forker in stopping state
+        self._forker.set_platform_stopping()
+
+        # Tell the forker to stop the running isolates
+        for uid in self._status.get_running():
+            self._forker.stop_isolate(uid)
+
+        # to stop the node, we can only stop its monitor instance (stop pelix)
+        self._context.get_bundle(0).stop()
+    # ######### 
 
     def _load_top_composer(self):
         """
