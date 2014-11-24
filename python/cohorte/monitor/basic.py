@@ -70,6 +70,7 @@ _logger = logging.getLogger(__name__)
 @Requires('_finder', cohorte.SERVICE_FILE_FINDER)
 @Requires('_forker', cohorte.SERVICE_FORKER)
 @Requires('_herald', herald.SERVICE_HERALD)
+@Requires('_directory', herald.SERVICE_DIRECTORY)
 @Requires('_repositories', cohorte.repositories.SERVICE_REPOSITORY_ARTIFACTS,
           aggregate=True)
 @Requires('_status', cohorte.monitor.SERVICE_STATUS)
@@ -89,6 +90,7 @@ class MonitorBasic(object):
         self._finder = None
         self._forker = None
         self._herald = None
+        self._directory = None
         self._repositories = []
         self._status = None
 
@@ -108,37 +110,44 @@ class MonitorBasic(object):
         # Auto-run isolates
         self._auto_isolates = {}
 
-    def handle_received_signal(self, name, data):
+    def herald_message(self, _, message):
         """
         Handles a signal
 
-        :param name: Signal name
-        :param data: Signal data dictionary
+        :param _: The Herald service
+        :param message: The received message bean
         """
+        name = message.subject
+
         # Platform signals
         if name == cohorte.monitor.SIGNAL_PLATFORM_STOPPING:
             # Platform goes into stopping mode (let the sender do the job)
             self._platform_stopping.set()
-
         elif name == cohorte.monitor.SIGNAL_STOP_PLATFORM:
             # Platform must stop (new thread)
             threading.Thread(name="platform-stop",
                              target=self._stop_platform).start()
+        else:
+            # Isolate signals
+            try:
+                sender = self._directory.get_peer(message.sender)
+            except KeyError:
+                # Unknown sender
+                pass
+            else:
+                if self._node_uid == sender.node_uid:
+                    # Ignore signals from other nodes
+                    if name == cohorte.monitor.SIGNAL_ISOLATE_READY:
+                        # Isolate ready
+                        self._status.isolate_ready(message.sender)
 
-        # Isolate signals
-        elif self._node_uid == data['senderNodeUID']:
-            # Ignore signals from other nodes
-            if name == cohorte.monitor.SIGNAL_ISOLATE_READY:
-                # Isolate ready
-                self._status.isolate_ready(data['senderUID'])
+                    elif name == cohorte.monitor.SIGNAL_ISOLATE_STOPPING:
+                        # Isolate stopping
+                        self._status.isolate_stopping(message.sender)
 
-            elif name == cohorte.monitor.SIGNAL_ISOLATE_STOPPING:
-                # Isolate stopping
-                self._status.isolate_stopping(data['senderUID'])
-
-            elif name == cohorte.monitor.SIGNAL_ISOLATE_LOST:
-                # Isolate signaled as lost
-                self._handle_lost(data['signalContent'])
+                    elif name == cohorte.monitor.SIGNAL_ISOLATE_LOST:
+                        # Isolate signaled as lost
+                        self._handle_lost(message.content)
 
     def ping(self, uid):
         """
@@ -424,7 +433,6 @@ class MonitorBasic(object):
         # instantiates manually components declared on configuration files
         utils.boot_load(self._context, self._config.load_boot_dict(top_config))
         # #########
-
 
     @Validate
     def validate(self, context):
