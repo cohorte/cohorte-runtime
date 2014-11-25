@@ -213,28 +213,38 @@ class CohorteBoot(common.CommonStarter):
         # Keep the reference to the process (just in case)
         process = self._isolates[uid]
 
-        # Send the stop signal, with a 10s time out
-        try:
-            self._sender.send(
-                uid, beans.Message(cohorte.monitor.SIGNAL_STOP_ISOLATE), 10)
-        except HeraldException:
-            # Signal not handled
-            _logger.warn("Isolate %s (PID: %d) didn't received the 'stop' "
-                         "signal: Kill it!", uid, process.pid)
-            process.kill()
-        else:
-            # Signal handled
+        if process.poll() is None:
+            # Send the stop signal, with a 10s time out
             try:
-                # Wait a little
-                _logger.info("Waiting for isolate %s (PID: %d) to stop...",
-                             uid, process.pid)
-                self._utils.wait_pid(process.pid, self._timeout)
-                _logger.info("Isolate stopped: %s (%d)", uid, process.pid)
-            except cohorte.utils.TimeoutExpired:
-                # The isolate didn't stop -> kill the process
-                _logger.warn("Isolate timed out: %s (%d). Trying to kill it",
-                             uid, process.pid)
-                process.kill()
+                self._sender.send(
+                    uid, beans.Message(cohorte.monitor.SIGNAL_STOP_ISOLATE),
+                    10)
+            except HeraldException:
+                # Signal not handled
+                _logger.warn("Isolate %s (PID: %d) didn't received the 'stop' "
+                             "signal: Kill it!", uid, process.pid)
+                try:
+                    process.kill()
+                except OSError as ex:
+                    # Error stopping the process
+                    _logger.warning("Can't kill the process: %s", ex)
+            else:
+                # Signal handled
+                try:
+                    # Wait a little
+                    _logger.info("Waiting for isolate %s (PID: %d) to stop...",
+                                 uid, process.pid)
+                    self._utils.wait_pid(process.pid, self._timeout)
+                    _logger.info("Isolate stopped: %s (%d)", uid, process.pid)
+                except cohorte.utils.TimeoutExpired:
+                    # The isolate didn't stop -> kill the process
+                    _logger.warn("Isolate timed out: %s (%d). "
+                                 "Trying to kill it", uid, process.pid)
+                    try:
+                        process.kill()
+                    except OSError as ex:
+                        # Error stopping the process
+                        _logger.warning("Can't kill the process: %s", ex)
 
         # Process stopped/killed without error
         try:
