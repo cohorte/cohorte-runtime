@@ -124,36 +124,37 @@ class MonitorBasic(object):
         if name == cohorte.monitor.SIGNAL_PLATFORM_STOPPING:
             # Platform goes into stopping mode (let the sender do the job)
             self._platform_stopping.set()
-        elif name == cohorte.monitor.SIGNAL_STOP_PLATFORM:            
+        elif name == cohorte.monitor.SIGNAL_STOP_PLATFORM:
             # Platform must stop (new thread)
             threading.Thread(name="platform-stop",
                              target=self._stop_platform).start()
-        # ######### added by: Bassem D.
-        elif name == cohorte.monitor.SIGNAL_STOP_NODE:            
+        elif name == cohorte.monitor.SIGNAL_STOP_NODE:
             # Node must stop (new thread)
             threading.Thread(name="node-stop",
                              target=self._stop_node).start()
-        # #########    
         else:
             # Isolate signals
             try:
-                sender = self._directory.get_peer(message.sender)
+                if name == cohorte.monitor.SIGNAL_ISOLATE_READY:
+                    # Isolate ready
+                    self._status.isolate_ready(message.sender)
+                elif name == cohorte.monitor.SIGNAL_ISOLATE_STOPPING:
+                    # Isolate stopping
+                    self._status.isolate_stopping(message.sender)
             except KeyError:
-                # Unknown sender
+                # Unknown isolate (ignore it)
                 pass
-            else:
-                if self._node_uid == sender.node_uid:
-                    # Ignore signals from other nodes
-                    if name == cohorte.monitor.SIGNAL_ISOLATE_READY:
-                        # Isolate ready
-                        self._status.isolate_ready(message.sender)
 
-                    elif name == cohorte.monitor.SIGNAL_ISOLATE_STOPPING:
-                        # Isolate stopping
-                        self._status.isolate_stopping(message.sender)
-
-                    elif name == cohorte.monitor.SIGNAL_ISOLATE_LOST:
-                        # Isolate signaled as lost
+            if name == cohorte.monitor.SIGNAL_ISOLATE_LOST:
+                try:
+                    # Get information about the sender
+                    sender = self._directory.get_peer(message.sender)
+                except KeyError:
+                    # Unknown sender
+                    pass
+                else:
+                    if self._node_uid == sender.node_uid:
+                        # Isolate from this node signaled as lost
                         self._handle_lost(message.content)
 
     def ping(self, uid):
@@ -431,8 +432,8 @@ class MonitorBasic(object):
         _logger.critical(">>> NODE STOPPING <<<")
 
         # Set this monitor in stopping state
-        self._platform_stopping.set()   
-        
+        self._platform_stopping.set()
+
         # Set the forker in stopping state
         self._forker.set_platform_stopping()
 
@@ -442,7 +443,7 @@ class MonitorBasic(object):
 
         # to stop the node, we can only stop its monitor instance (stop pelix)
         self._context.get_bundle(0).stop()
-    # ######### 
+    # #########
 
     def _load_top_composer(self):
         """
