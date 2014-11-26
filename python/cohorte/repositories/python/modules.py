@@ -34,6 +34,9 @@ __version__ = "1.0.0"
 # Repository beans
 import cohorte.repositories
 from cohorte.repositories.beans import Artifact
+# ######### added by: Bassem D.
+from cohorte.repositories.beans import Version
+# #########
 
 # Pelix
 from pelix.ipopo.decorators import ComponentFactory, Provides, Property, \
@@ -45,6 +48,10 @@ import ast
 import imp
 import logging
 import os
+
+# ######### added by: Bassem D.
+import json
+# ######### 
 
 # ------------------------------------------------------------------------------
 
@@ -341,7 +348,7 @@ class PythonModuleRepository(object):
         repository
 
         :param dirname: A path to a directory
-        """
+        """        
         for root, _, filenames in os.walk(dirname, followlinks=True):
             for filename in filenames:
                 if os.path.splitext(filename)[1] == '.py':
@@ -509,22 +516,100 @@ class PythonModuleRepository(object):
             for module in modules:
                 yield module
 
+    # ######### added by: Bassem D.
+    def load_cache(self):
+        """
+        Loads the cache from system file to memory
+        """
+        use_cache = os.environ.get('COHORTE_USE_CACHE')
+        if use_cache:
+            if use_cache.lower() == "true":
+                if os.path.isfile('cache.js'):
+                    with open('cache.js') as input_file:
+                        cache = json.load(input_file)
+                        if cache:
+                            _logger.critical("loading repository from cache...")
+                            # load modules
+                            for module in cache["modules"]:
+
+                                language = module["language"]
+                                name = module["name"]
+                                version = Version(module["version"])
+                                filename = module["filename"]                        
+                                
+                                m = Module(name, version, [], filename)
+                                self.__add_module(m, self._modules)
+                                #self._modules[name].append(m)
+
+                            for directory in cache["directories"]:
+                                self._directory_package[directory["dir_name"]] = directory["pkg_name"]
+                            return 0
+        return 1
+
+    def save_cache(self):
+        """
+        Saves the cache from memory to system file 
+        """
+        use_cache = os.environ.get('COHORTE_USE_CACHE')
+        if use_cache:
+            if use_cache.lower() == "true":
+                # Name -> [Modules]
+                #self._modules = {}
+                # dump modules
+                cache = {"modules": [], "directories": []}
+                _logger.critical("dumping cache info...")
+                for name, modules in self._modules.items():
+                    for module in modules:
+                        m = {"name": module.name,
+                             "version": str(module.version),
+                             "language": module.language,
+                             "filename": module.file}
+                        cache["modules"].append(m)
+
+                # Directory name -> Package name
+                #self._directory_package = {}
+                for key1 in self._directory_package:
+                    d = {"dir_name": key1, "pkg_name": self._directory_package[key1]}
+                    cache["directories"].append(d)
+
+                # File -> Module
+                #self._files = {}
+
+                with open('cache.js', 'w') as outfile:
+                    json.dump(cache, outfile, indent=4)        
+
+    # ######### 
+
     @Validate
     def validate(self, context):
         """
         Component validated
         """
+        # ######### added by: Bassem D.
+        # check if there is a cache file, load it if so
+        # visit repo files and check if the modification date is changed
+        # if so, load the file and update the cached entry
+        # if there were no cache file, we create it at the end of the parsing
+        status = self.load_cache()
+        if status == 1:
+            _logger.critical("loading repository from file system...")
+        # ######### 
+
         # Load repositories in another thread
         # Home/Base repository
-        for key in (cohorte.PROP_BASE, cohorte.PROP_HOME):
-            repository = os.path.join(context.get_property(key), "repo")
-            self.add_directory(repository)
+            for key in (cohorte.PROP_BASE, cohorte.PROP_HOME):
+                repository = os.path.join(context.get_property(key), "repo")
+                self.add_directory(repository)
 
-        # Python path directories
-        python_path = os.getenv("PYTHONPATH", None)
-        if python_path:
-            for path in python_path.split(os.pathsep):
-                self.add_directory(path)
+            # Python path directories
+            python_path = os.getenv("PYTHONPATH", None)
+            if python_path:
+                for path in python_path.split(os.pathsep):
+                    self.add_directory(path)
+
+        # ######### added by: Bassem D.
+            self.save_cache()        
+        # ######### 
 
     @Invalidate
     def invalidate(self, context):
