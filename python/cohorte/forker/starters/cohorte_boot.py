@@ -83,8 +83,8 @@ class CohorteBoot(common.CommonStarter):
         # Signal sender
         self._sender = None
 
-        # Stop timeout (3 seconds)
-        self._timeout = 3.
+        # Clean stop timeout (5 seconds)
+        self._timeout = 5.
 
     def _run_boot_script(self, working_directory, configuration,
                          config_broker_url, state_updater_url,
@@ -214,13 +214,12 @@ class CohorteBoot(common.CommonStarter):
         process = self._isolates[uid]
 
         if process.poll() is None:
-            # Send the stop signal, with a 10s time out
+            # Fire the stop message
             try:
-                self._sender.send(
-                    uid, beans.Message(cohorte.monitor.SIGNAL_STOP_ISOLATE),
-                    10)
+                self._sender.fire(
+                    uid, beans.Message(cohorte.monitor.SIGNAL_STOP_ISOLATE))
             except HeraldException:
-                # Signal not handled
+                # Error sending message
                 _logger.warn("Isolate %s (PID: %d) didn't received the 'stop' "
                              "signal: Kill it!", uid, process.pid)
                 try:
@@ -229,7 +228,7 @@ class CohorteBoot(common.CommonStarter):
                     # Error stopping the process
                     _logger.warning("Can't kill the process: %s", ex)
             else:
-                # Signal handled
+                # Message sent
                 try:
                     # Wait a little
                     _logger.info("Waiting for isolate %s (PID: %d) to stop...",
