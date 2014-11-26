@@ -24,7 +24,7 @@ public interface IPlatformProperties {
 
     /**
      * The debug port used by the forker
-     * 
+     *
      * If present, the platform is ran in debug mode and the isolates must be
      * started in remote debug mode, connecting to localhost:debug_port+n, with
      * n > 0.
@@ -38,7 +38,7 @@ public interface IPlatformProperties {
 
     /**
      * contains the name of the current isolates.
-     * 
+     *
      * <pre>
      * -Dcohorte.isolate.name=development
      * </pre>
@@ -47,7 +47,7 @@ public interface IPlatformProperties {
 
     /**
      * contains the uuid of the current isolates.
-     * 
+     *
      * <pre>
      * -Dcohorte.isolate.uid=POSD-UEZS-NBG9-JA72
      * </pre>
@@ -56,7 +56,7 @@ public interface IPlatformProperties {
 
     /**
      * contains the node name of the current isolates.
-     * 
+     *
      * <pre>
      * -Dcohorte.node.uid=GFRY-HYRZ-LOIS-85HY
      * </pre>
@@ -65,7 +65,7 @@ public interface IPlatformProperties {
 
     /**
      * contains the node uuid of the current isolates.
-     * 
+     *
      * <pre>
      * -Dcohorte.node.uid=GFRY-HYRZ-LOIS-85HY
      * </pre>
@@ -90,29 +90,12 @@ public interface IPlatformProperties {
     /**
      * if "true", allows the redirection of the output of the OSGi log service
      * in the logger of the current isolate.
-     * 
+     *
      * <pre>
      * -Dorg.psem2m.platform.isolate.redirect.logservice=true
      * </pre>
      */
     String PROP_PLATFORM_REDIRECT_LOGSVC = "org.psem2m.platform.isolate.redirect.logservice";
-
-    /**
-     * Special isolates ID prefix
-     */
-    String SPECIAL_INTERNAL_ISOLATES_PREFIX = "org.psem2m.internals.isolates.";
-
-    /**
-     * Forkers isolate ID prefix
-     */
-    String SPECIAL_ISOLATE_ID_FORKER = SPECIAL_INTERNAL_ISOLATES_PREFIX
-            + "forker";
-
-    /**
-     * Monitors isolate ID prefix
-     */
-    String SPECIAL_ISOLATE_ID_MONITOR = SPECIAL_INTERNAL_ISOLATES_PREFIX
-            + "monitor";
 
     /**
      * Special isolate name: forker
