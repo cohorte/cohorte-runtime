@@ -55,7 +55,8 @@ _logger = logging.getLogger(__name__)
 
 @ComponentFactory("cohorte-isolate-agent-factory")
 @Requires('_sender', herald.SERVICE_HERALD)
-@Provides((herald.SERVICE_LISTENER, herald.SERVICE_DIRECTORY_GROUP_LISTENER))
+@Requires('_directory', herald.SERVICE_DIRECTORY)
+@Provides((herald.SERVICE_LISTENER, herald.SERVICE_DIRECTORY_LISTENER))
 @Property('_filters', herald.PROP_FILTERS, [cohorte.monitor.SIGNAL_STOP_ISOLATE])
 class IsolateAgent(object):
     """
@@ -67,6 +68,10 @@ class IsolateAgent(object):
         """
         # Injected services
         self._sender = None
+        self._directory = None
+
+        # Node UID
+        self.__node_uid = None
 
         # Bundle context
         self._context = None
@@ -78,7 +83,7 @@ class IsolateAgent(object):
         :param herald_svc: The Herald service
         :param message: The received message bean
         """
-        if message.subject == cohorte.monitor.SIGNAL_STOP_ISOLATE:            
+        if message.subject == cohorte.monitor.SIGNAL_STOP_ISOLATE:
             # Isolate must stop
             # Let the method return first,
             # in order to return to the caller immediately
@@ -98,30 +103,35 @@ class IsolateAgent(object):
         _logger.warning(">>> STOPPING isolate <<<")
         self._context.get_bundle(0).stop()
 
-    def group_set(self, group):
+    def peer_registered(self, peer):
         """
         A new Herald directory group has been set.
 
         Sends the "Ready" message to monitors, as soon as one of their peers
         has been detected
         """
-        if group == 'monitors':
+        if peer.node_uid == self.__node_uid \
+                and peer.name == cohorte.FORKER_NAME:
             # Send the "ready" signal
             try:
-                self._sender.fire_group(
-                    'monitors',
-                    beans.Message(cohorte.monitor.SIGNAL_ISOLATE_READY))
+                self._sender.fire(
+                    peer, beans.Message(cohorte.monitor.SIGNAL_ISOLATE_READY))
             except herald.exceptions.NoTransport as ex:
                 _logger.error("No transport to notify monitors: %s", ex)
             else:
                 _logger.info("Monitors notified of isolate readiness")
 
-    def group_unset(self, group):
+    def peer_updated(self, peer, access_id, data, previous):
         """
-        An Herald directory group has been deleted
+        A peer has been updated: nothing to do
         """
-        if group == 'monitors':
-            _logger.warning("Group '%s' has disappeared...", group)
+        pass
+
+    def peer_unregistered(self, peer):
+        """
+        A peer has been unregistered: nothing to do
+        """
+        pass
 
     @Validate
     def validate(self, context):
@@ -130,6 +140,9 @@ class IsolateAgent(object):
         """
         # Store the context
         self._context = context
+
+        # Store local node UID
+        self.__node_uid = self._directory.get_local_peer().node_uid
         _logger.info("Isolate agent validated")
 
     @Invalidate
@@ -143,4 +156,5 @@ class IsolateAgent(object):
 
         # Clear the context
         self._context = None
+        self.__node_uid = None
         _logger.info("Isolate agent invalidated")

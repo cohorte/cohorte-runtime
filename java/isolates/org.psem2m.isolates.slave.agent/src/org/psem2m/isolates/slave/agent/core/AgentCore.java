@@ -32,13 +32,16 @@ import org.apache.felix.ipojo.annotations.Provides;
 import org.apache.felix.ipojo.annotations.Requires;
 import org.apache.felix.ipojo.annotations.ServiceProperty;
 import org.apache.felix.ipojo.annotations.Validate;
+import org.cohorte.herald.Access;
 import org.cohorte.herald.IConstants;
-import org.cohorte.herald.IDirectoryGroupListener;
+import org.cohorte.herald.IDirectory;
+import org.cohorte.herald.IDirectoryListener;
 import org.cohorte.herald.IHerald;
 import org.cohorte.herald.IMessageListener;
 import org.cohorte.herald.Message;
 import org.cohorte.herald.MessageReceived;
 import org.cohorte.herald.NoTransport;
+import org.cohorte.herald.Peer;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
@@ -49,6 +52,7 @@ import org.osgi.framework.FrameworkListener;
 import org.osgi.framework.wiring.FrameworkWiring;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.bundles.BundleInfo;
+import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.constants.ISignalsConstants;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.isolates.slave.agent.ISvcAgent;
@@ -60,20 +64,19 @@ import org.psem2m.isolates.slave.agent.ISvcAgent;
  */
 @Component(name = "psem2m-slave-agent-core-factory")
 @Provides(specifications = { ISvcAgent.class, IMessageListener.class,
-        IDirectoryGroupListener.class })
+        IDirectoryListener.class })
 public class AgentCore implements ISvcAgent, IMessageListener,
-        IDirectoryGroupListener, BundleListener {
-
-    // TODO: inject the Python StateUpdater service
-
-    /** Name of the Herald group for monitors */
-    private static final String GROUP_MONITORS = "monitors";
+        IDirectoryListener, BundleListener {
 
     /** Agent bundle context */
     private final BundleContext pContext;
 
     /** The agent core critical section flag */
     private final AtomicBoolean pCriticalSection = new AtomicBoolean(false);
+
+    /** Herald core directory */
+    @Requires
+    private IDirectory pDirectory;
 
     /** Herald core service */
     @Requires
@@ -87,6 +90,9 @@ public class AgentCore implements ISvcAgent, IMessageListener,
     @ServiceProperty(name = IConstants.PROP_FILTERS,
             value = ISignalsConstants.ISOLATE_STOP_SIGNAL)
     private String pMessageFilter;
+
+    /** Local node UID */
+    private String pNodeUid;
 
     /** Platform directories service, injected by iPOJO */
     @Requires
@@ -260,46 +266,6 @@ public class AgentCore implements ISvcAgent, IMessageListener,
      * (non-Javadoc)
      * 
      * @see
-     * org.cohorte.herald.IDirectoryGroupListener#groupSet(java.lang.String)
-     */
-    @Override
-    public void groupSet(final String aGroup) {
-
-        if (GROUP_MONITORS.equals(aGroup)) {
-            try {
-                // Send the stopping signal
-                pHerald.fireGroup(GROUP_MONITORS, new Message(
-                        ISignalsConstants.ISOLATE_READY_SIGNAL));
-
-                pLogger.logInfo(this, "groupSet",
-                        "Monitors notified of isolate readiness");
-
-            } catch (final NoTransport ex) {
-                pLogger.logWarn(this, "groupSet",
-                        "Error sending the 'ready' message to monitors: ", ex);
-            }
-        }
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.cohorte.herald.IDirectoryGroupListener#groupUnset(java.lang.String)
-     */
-    @Override
-    public void groupUnset(final String aGroup) {
-
-        if (GROUP_MONITORS.equals(aGroup)) {
-            pLogger.logWarn(this, "groupUnset", "Group", GROUP_MONITORS,
-                    "has disappeared");
-        }
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
      * org.cohorte.herald.IMessageListener#heraldMessage(org.cohorte.herald.
      * IHerald, org.cohorte.herald.MessageReceived)
      */
@@ -365,6 +331,9 @@ public class AgentCore implements ISvcAgent, IMessageListener,
         pContext.removeBundleListener(this);
         pUpdateTimeouts.clear();
 
+        // Clean up
+        pNodeUid = null;
+
         // log the invalidation
         pLogger.logInfo(this, "invalidate", "Isolate agent gone");
     }
@@ -426,6 +395,63 @@ public class AgentCore implements ISvcAgent, IMessageListener,
                 }
             }
         }, "monitor-agent-stop").start();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * org.cohorte.herald.IDirectoryListener#peerRegistered(org.cohorte.herald
+     * .Peer)
+     */
+    @Override
+    public void peerRegistered(final Peer aPeer) {
+
+        if (pNodeUid.equals(aPeer.getNodeUid())
+                && aPeer.getName().equals(
+                        IPlatformProperties.SPECIAL_NAME_FORKER)) {
+            try {
+                // Send the stopping signal
+                pHerald.fire(aPeer, new Message(
+                        ISignalsConstants.ISOLATE_READY_SIGNAL));
+
+                pLogger.logInfo(this, "peerRegistered",
+                        "Monitor notified of isolate readiness");
+
+            } catch (final NoTransport ex) {
+                pLogger.logWarn(this, "peerRegistered",
+                        "Error sending the 'ready' message to the monitor: ",
+                        ex);
+            }
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * org.cohorte.herald.IDirectoryListener#peerUnregistered(org.cohorte.herald
+     * .Peer)
+     */
+    @Override
+    public void peerUnregistered(final Peer aPeer) {
+
+        // Nothing to do
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * org.cohorte.herald.IDirectoryListener#peerUpdated(org.cohorte.herald.
+     * Peer, java.lang.String, org.cohorte.herald.Access,
+     * org.cohorte.herald.Access)
+     */
+    @Override
+    public void peerUpdated(final Peer aPeer, final String aAccessId,
+            final Access aData, final Access aPrevious) {
+
+        // Nothing to do
     }
 
     /**
@@ -565,6 +591,9 @@ public class AgentCore implements ISvcAgent, IMessageListener,
 
         // Set up the scheduler, before the call to addBundleListener.
         pScheduler = Executors.newScheduledThreadPool(1);
+
+        // Store the local node UID
+        pNodeUid = pDirectory.getLocalPeer().getNodeUid();
 
         // Register to bundle events : replaces the guardian thread.
         pContext.addBundleListener(this);
