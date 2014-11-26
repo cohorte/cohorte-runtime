@@ -350,13 +350,11 @@ class MonitorBasic(object):
         try:
             # Find the matching configuration
             isolate = self._auto_isolates.pop(uid)
-
         except KeyError:
             # Not an auto-run isolate: ignore it (let the composer handle it)
-            _logger.error("Unknown isolate: %s", uid)
             return
 
-        _logger.warning("Auto-run isolate lost: %s (%s)",
+        _logger.warning("Auto-run isolate lost: %s (%s). Restarting it.",
                         isolate.get('name'), uid)
 
         # Change internal state
