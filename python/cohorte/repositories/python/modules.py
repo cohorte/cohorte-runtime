@@ -528,7 +528,7 @@ class PythonModuleRepository(object):
                     with open('cache.js') as input_file:
                         cache = json.load(input_file)
                         if cache:
-                            _logger.critical("loading repository from cache...")
+                            _logger.info("loading repository from cache...")
                             # load modules
                             for module in cache["modules"]:
 
@@ -557,7 +557,7 @@ class PythonModuleRepository(object):
                 #self._modules = {}
                 # dump modules
                 cache = {"modules": [], "directories": []}
-                _logger.critical("dumping cache info...")
+                _logger.info("dumping cache info...")
                 for name, modules in self._modules.items():
                     for module in modules:
                         m = {"name": module.name,
@@ -592,7 +592,7 @@ class PythonModuleRepository(object):
         # if there were no cache file, we create it at the end of the parsing
         status = self.load_cache()
         if status == 1:
-            _logger.critical("loading repository from file system...")
+            _logger.info("loading repository from file system...")
         # ######### 
 
         # Load repositories in another thread
