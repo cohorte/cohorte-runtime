@@ -74,6 +74,7 @@ _logger = logging.getLogger(__name__)
 @Requires('_repositories', cohorte.repositories.SERVICE_REPOSITORY_ARTIFACTS,
           aggregate=True)
 @Requires('_status', cohorte.monitor.SERVICE_STATUS)
+@Requires('_composer', cohorte.composer.SERVICE_COMPOSER_NODE, optional=True)
 @Property('_filters', herald.PROP_FILTERS,
           (cohorte.monitor.SIGNALS_ISOLATE_PATTERN,
            cohorte.monitor.SIGNALS_PLATFORM_PATTERN))
@@ -110,6 +111,9 @@ class MonitorBasic(object):
 
         # Auto-run isolates
         self._auto_isolates = {}
+
+        # Node Composer
+        self._composer = None
 
     def herald_message(self, _, message):
         """
@@ -434,6 +438,8 @@ class MonitorBasic(object):
 
         # Set the forker in stopping state
         self._forker.set_platform_stopping()
+
+        self._composer.set_platform_stopping()
 
         # Tell the forker to stop the running isolates
         for uid in self._status.get_running():

@@ -85,7 +85,7 @@ class FactoriesMissing(Exception):
 
 
 @ComponentFactory()
-@Provides(cohorte.composer.SERVICE_COMPOSER_NODE)
+@Provides(cohorte.composer.SERVICE_COMPOSER_NODE, "_controller")
 @Provides(herald.SERVICE_DIRECTORY_LISTENER)
 @Property('_node_uid', cohorte.composer.PROP_NODE_UID)
 @Property('_node_name', cohorte.composer.PROP_NODE_NAME)
@@ -130,6 +130,8 @@ class NodeComposer(object):
         self._timer = None
         self._lock = threading.Lock()
 
+        self._controller = True
+
     @Invalidate
     def invalidate(self, context):
         """
@@ -148,6 +150,11 @@ class NodeComposer(object):
         self._node_name = context.get_property(cohorte.PROP_NODE_NAME)
         self._node_uid = context.get_property(cohorte.PROP_NODE_UID)
         self._pool.start()
+        self._controller = True
+
+    def set_platform_stopping(self):
+        self._controller = False
+        #self.invalidate(None)
 
     def __start_timer(self, delay=10):
         """
