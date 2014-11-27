@@ -203,11 +203,13 @@ class ConfigBroker(object):
             # Store the configuration as a JSON string
             self._configurations[uid] = json.dumps(dict_config)
 
-        # Special IPv6 format
+        # Send a "localhost" address to avoid an "address not available" error
+        # under Windows
         if ':' in self._host:
-            host = '[{0}]'.format(self._host)
+            # IPv6 host
+            host = '[::1]'
         else:
-            host = self._host
+            host = '127.0.0.1'
 
         return 'http://{host}:{port}{path}/{uid}'\
             .format(uid=uid, host=host, port=self._port,

@@ -162,11 +162,13 @@ class StateUpdater(object):
             # Invalid URL
             return None
 
-        # Special IPv6 format
+        # Send a "localhost" address to avoid an "address not available" error
+        # under Windows
         if ':' in self._host:
-            host = '[{0}]'.format(self._host)
+            # IPv6 host
+            host = '[::1]'
         else:
-            host = self._host
+            host = '127.0.0.1'
 
         return 'http://{host}:{port}{path}'.format(host=host, port=self._port,
                                                    path=self._servlet_path)
