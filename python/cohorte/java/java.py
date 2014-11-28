@@ -198,6 +198,7 @@ class JavaVM(object):
 
         # Load the JVM
         jpype.startJVM(vm_library, *args)
+        _logger.info("JVM started: %s", vm_library)
 
         # Update the presence flag
         self._context.get_bundle(0).add_property(PROP_JVM_LOADED, True)
