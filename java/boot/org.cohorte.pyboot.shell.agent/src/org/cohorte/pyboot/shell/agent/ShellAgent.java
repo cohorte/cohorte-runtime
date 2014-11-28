@@ -76,7 +76,12 @@ public class ShellAgent implements IMessageListener {
     private IPyBridge pBridge;
 
     /** HTTP service port */
-    private int pHttpPort;
+    private int pHttpPort = -1;
+
+    /** HTTP service, injected by iPOJO */
+    @Requires(id = IPOJO_ID_HTTP, filter = "(" + HTTP_SERVICE_PORT + "=*)",
+            optional = true)
+    private HttpService pHttpService;
 
     /** The logger */
     @Requires(optional = true)
@@ -98,7 +103,7 @@ public class ShellAgent implements IMessageListener {
      * @param aServiceProperties
      *            The HTTP service properties
      */
-    @Bind(id = IPOJO_ID_HTTP, optional = true)
+    @Bind(id = IPOJO_ID_HTTP)
     private void bindHttpService(final HttpService aHttpService,
             final Map<?, ?> aServiceProperties) {
 
