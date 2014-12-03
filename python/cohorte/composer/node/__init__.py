@@ -11,3 +11,8 @@ Cohorte Node Composer components
 __docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
+
+PROP_RECOMPOSITION_DELAY = "cohorte.recomposition.delay"
+"""
+Delay to wait before running the next re-distribution in the Node Composer
+"""

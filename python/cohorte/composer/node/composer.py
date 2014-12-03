@@ -127,6 +127,7 @@ class NodeComposer(object):
             1, logname="NodeComposer-Starter")
 
         # Redistribution timer
+        self._delay = 120
         self._timer = None
         self._lock = threading.Lock()
 
@@ -149,6 +150,9 @@ class NodeComposer(object):
         """
         self._node_name = context.get_property(cohorte.PROP_NODE_NAME)
         self._node_uid = context.get_property(cohorte.PROP_NODE_UID)
+        self._delay = context.get_property(
+            cohorte.composer.node.PROP_RECOMPOSITION_DELAY) or self._delay
+
         self._pool.start()
         self._controller = True
 
@@ -156,15 +160,18 @@ class NodeComposer(object):
         self._controller = False
         #self.invalidate(None)
 
-    def __start_timer(self, delay=10):
+    def __start_timer(self, delay=None):
         """
         Starts the redistribution timer
 
         :param delay: Delay until the next call for redistribution
-                      (default: 10)
+                      (default: 120)
         """
         if self._timer is not None:
             self._timer.cancel()
+
+        if delay is None:
+            delay = self._delay
 
         self._timer = threading.Timer(delay, self._redistribute)
         self._timer.start()
