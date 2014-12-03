@@ -37,6 +37,17 @@ from pelix.utilities import is_string
 # Standard library
 import os
 
+try:
+    # Python 3
+    # pylint: disable=F0401,E0611
+    import urllib.request as urllib
+    import urllib.parse as urlparse
+except ImportError:
+    # Python 2
+    # pylint: disable=F0401
+    import urlparse
+    import urllib
+
 # ------------------------------------------------------------------------------
 
 
@@ -214,9 +225,7 @@ class Artifact(object):
         The URL to the bundle file, if known
         """
         if self.__file:
-            return "file://{0}".format(self.__file.replace(' ', '%20'))
-
-        return None
+            return urlparse.urljoin('file:', urllib.pathname2url(self.__file))
 
 # ------------------------------------------------------------------------------
 

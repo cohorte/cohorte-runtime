@@ -532,6 +532,7 @@ class JavaOsgiLoader(object):
             self._java.load_class("java.awt.Color")
 
         # Load the FrameworkFactory implementation
+        _logger.debug("Loading OSGi FrameworkFactory: %s", factory_name)
         factory_class = self._java.load_class(factory_name)
         factory = factory_class()
 
@@ -552,13 +553,13 @@ class JavaOsgiLoader(object):
         if not bundle:
             _logger.warning("No Python bridge bundle found")
         else:
+            _logger.debug("Installing PyBridge bundle: %s", bundle.url)
             java_bundles.append(context.installBundle(bundle.url))
 
         # Install the configured bundles
         for bundle_conf in java_config.bundles:
-            bundle = self._repository.get_artifact(bundle_conf.name,
-                                                   bundle_conf.version,
-                                                   bundle_conf.filename)
+            bundle = self._repository.get_artifact(
+                bundle_conf.name, bundle_conf.version, bundle_conf.filename)
             if bundle:
                 _logger.debug("Installing Java bundle %s...", bundle.name)
                 java_bundles.append(context.installBundle(bundle.url))
