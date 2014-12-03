@@ -97,6 +97,8 @@ def make_isolate_fsm(uid):
                        ISOLATE_STATE_READY)
     fsm.add_transition(ISOLATE_STATE_READY, ISOLATE_EVENT_STARTING,
                        ISOLATE_STATE_READY)
+    fsm.add_transition(ISOLATE_STATE_READY, ISOLATE_EVENT_READY,
+                       ISOLATE_STATE_READY)
 
     fsm.add_transition(ISOLATE_STATE_STOPPING, ISOLATE_EVENT_STOPPING,
                        ISOLATE_STATE_STOPPING)
