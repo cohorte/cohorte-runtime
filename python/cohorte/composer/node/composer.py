@@ -150,8 +150,12 @@ class NodeComposer(object):
         """
         self._node_name = context.get_property(cohorte.PROP_NODE_NAME)
         self._node_uid = context.get_property(cohorte.PROP_NODE_UID)
-        self._delay = context.get_property(
-            cohorte.composer.node.PROP_RECOMPOSITION_DELAY) or self._delay
+        try:
+            self._delay = int(context.get_property(
+                cohorte.composer.node.PROP_RECOMPOSITION_DELAY))
+        except (ValueError, TypeError):
+            # Keep default value if given one is unreadable
+            self._delay = 120
 
         self._pool.start()
         self._controller = True
