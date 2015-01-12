@@ -52,6 +52,7 @@ import jpype
 # Python standard library
 import logging
 import os
+import sys
 
 # ------------------------------------------------------------------------------
 
@@ -522,12 +523,7 @@ class JavaOsgiLoader(object):
 
         # Patch for Mac OS X:
         # GUI library must be loaded early in the main thread
-        try:
-            import Cocoa
-        except ImportError:
-            # Not a Cocoa-friendly installation
-            pass
-        else:
+        if sys.platform == 'darwin':
             # We need this dark magic stuff for dummy OSes
             self._java.load_class("java.awt.Color")
 
