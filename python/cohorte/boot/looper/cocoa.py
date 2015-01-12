@@ -44,22 +44,19 @@ _logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------
 
+# Cocoa
+import cohorte.boot.looper.AppHelper as AppHelper
+from cocoapy import ObjCClass
+NSApplication = ObjCClass('NSApplication')
 
-try:
-    # Cocoa
-    import Cocoa
-    from PyObjCTools import AppHelper
-except ImportError:
-    _logger.warning("PyObjCTools is not installed on this system. "
-                    "GUI applications will likely freeze. (You've been warned)")
+# ------------------------------------------------------------------------------
 
-    from cohorte.boot.looper.default import get_looper
-else:
-    def get_looper(*args, **kwargs):
-        """
-        Constructs the CocoaLoader
-        """
-        return CocoaLoader()
+
+def get_looper(*args, **kwargs):
+    """
+    Constructs the CocoaLoader
+    """
+    return CocoaLoader()
 
 
 class CocoaLoader(object):
@@ -114,7 +111,7 @@ class CocoaLoader(object):
         Sets up the Cocoa loop
         """
         # Create the application
-        self._app = Cocoa.NSApplication.sharedApplication()
+        self._app = NSApplication.sharedApplication()
         self._argv = argv
 
     def loop(self):
@@ -122,7 +119,8 @@ class CocoaLoader(object):
         Event loop
         """
         # Bring app to top
-        Cocoa.NSApp.activateIgnoringOtherApps_(True)
+        self._app.finishLaunching()
+        self._app.activateIgnoringOtherApps_(True)
 
         # Main loop
         AppHelper.runEventLoop(self._argv)
