@@ -1,3 +1,9 @@
+#!/usr/bin/python
+# -- Content-Encoding: UTF-8 --
+"""
+:author: Phillip Nguyen
+:license: BSD 3-Clause License
+
 # objective-ctypes
 #
 # Copyright (c) 2011, Phillip Nguyen
@@ -28,6 +34,7 @@
 # LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
+"""
 
 from .runtime import objc, send_message, send_super
 from .runtime import get_selector
