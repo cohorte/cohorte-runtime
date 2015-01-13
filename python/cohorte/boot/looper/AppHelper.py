@@ -13,12 +13,12 @@ Exported functions:
 __all__ = ('runEventLoop', 'stopEventLoop', 'callAfter')
 
 # Use cocoa-python instead of PyObjC
-from cocoapy import ObjCClass, ObjCSubclass, ObjCInstance, send_super, \
-    PyObjectEncoding
-
 import logging
 import sys
 import traceback
+
+from cohorte.cocoapy import ObjCClass, ObjCSubclass, ObjCInstance, \
+    send_super, PyObjectEncoding
 
 # ------------------------------------------------------------------------------
 

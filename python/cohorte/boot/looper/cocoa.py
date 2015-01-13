@@ -46,7 +46,7 @@ _logger = logging.getLogger(__name__)
 
 # Cocoa
 import cohorte.boot.looper.AppHelper as AppHelper
-from cocoapy import ObjCClass
+from cohorte.cocoapy import ObjCClass
 NSApplication = ObjCClass('NSApplication')
 
 # ------------------------------------------------------------------------------
