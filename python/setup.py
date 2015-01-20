@@ -64,7 +64,7 @@ setup(
         'cohorte.boot',
         'cohorte.boot.loaders',
         'cohorte.boot.looper',
-        'cohorte.cocoapy'
+        'cohorte.cocoapy',
         'cohorte.composer',
         'cohorte.composer.isolate',
         'cohorte.composer.isolate.agents',
