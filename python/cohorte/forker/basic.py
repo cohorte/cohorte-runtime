@@ -349,7 +349,7 @@ class ForkerBasic(object):
         # Flag up
         self._sent_stopping = True
 
-    def _kill_isolates(self, max_threads=5, stop_timeout=5,
+    def _stop_isolates(self, max_threads=5, stop_timeout=5,
                        total_timeout=None):
         """
         Stops/kills all isolates started by this forker.
@@ -367,7 +367,7 @@ class ForkerBasic(object):
             pool = pelix.threadpool.ThreadPool(nb_threads,
                                                logname="forker-core-killer")
             for uid, starter in self._isolates.items():
-                pool.enqueue(starter.terminate, uid)
+                pool.enqueue(starter.stop, uid)
 
             # Run the pool
             pool.start()
@@ -404,8 +404,8 @@ class ForkerBasic(object):
         # Send the "forker stopping" signal
         self._send_stopping()
 
-        # Stop the isolates
-        self._kill_isolates()
+        # Try to (nicely stop isolates)
+        self._stop_isolates()
 
         # Unregister from the framework
         # (if we weren't stopped by the framework)
