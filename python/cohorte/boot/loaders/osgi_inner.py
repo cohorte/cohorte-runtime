@@ -556,13 +556,17 @@ class JavaOsgiLoader(object):
         for bundle_conf in java_config.bundles:
             bundle = self._repository.get_artifact(
                 bundle_conf.name, bundle_conf.version, bundle_conf.filename)
-            if bundle:
+            if not bundle:
+                if not bundle_conf.optional:
+                    raise ValueError("Bundle not found: {0}"
+                                     .format(bundle_conf))
+                else:
+                    _logger.warning("Bundle not found: %s", bundle_conf)
+            elif bundle.file == osgi_jar_file:
+                _logger.debug("OSGi framework is already installed.")
+            else:
                 _logger.debug("Installing Java bundle %s...", bundle.name)
                 java_bundles.append(context.installBundle(bundle.url))
-            elif not bundle_conf.optional:
-                raise ValueError("Bundle not found: {0}".format(bundle_conf))
-            else:
-                _logger.warning("Bundle not found: %s", bundle_conf)
 
         try:
             # Start the bundles
