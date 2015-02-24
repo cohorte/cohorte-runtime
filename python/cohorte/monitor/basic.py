@@ -492,7 +492,9 @@ class MonitorBasic(object):
 
         # Start the Top Composer
         if context.get_property(cohorte.PROP_RUN_TOP_COMPOSER):
-            self._load_top_composer()
+            # avoid deadlock when starting cohorte (cohorte-issue-#)
+            threading.Thread(target=self._load_top_composer,name="Top-Composer-Loader").start()
+            #self._load_top_composer()
 
     @Invalidate
     def invalidate(self, context):
