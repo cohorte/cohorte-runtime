@@ -75,6 +75,9 @@ class IsolateWatcher(object):
         # Isolate UID -> Process
         self._isolates = {}
 
+        # Isolate UID -> Name
+        self._names = {}
+
         # Loop control
         self._stop_event = threading.Event()
 
@@ -132,21 +135,24 @@ class IsolateWatcher(object):
         self._pool.stop()
 
         # Clean up
+        self._names.clear()
         self._isolates.clear()
         self._wait_thread = None
         self._io_threads.clear()
 
-    def _notify_listeners(self, listeners, uid):
+    def _notify_listeners(self, listeners, uid, name):
         """
         Notifies listeners of the loss of an isolate
 
         :param listeners: Listeners to notify
         :param uid: UID of the lost isolate
+        :param name: Name of the lost isolate
         """
-        _logger.debug("Notifying listeners...")
         for listener in listeners:
-            _logger.debug('... notifying %s', listener)
-            listener.handle_lost_isolate(uid)
+            try:
+                listener.handle_lost_isolate(uid, name)
+            except Exception as ex:
+                _logger.exception("Error notifying listener: %s", ex)
 
     def __wait_thread(self):
         """
@@ -162,20 +168,21 @@ class IsolateWatcher(object):
                 try:
                     # Check PID presence
                     self._utils.wait_pid(process.pid, .1)
-
+                except cohorte.utils.TimeoutExpired:
+                    # Time out expired : process is still there,
+                    # continue the loop
+                    pass
+                else:
                     # Being here means that the process ended,
                     # ... clean up
                     self.unwatch(uid)
+                    name = self._names.pop(uid)
 
                     # ... notify listeners
                     if self._listeners:
                         listeners = self._listeners[:]
                         self._pool.enqueue(self._notify_listeners,
-                                           listeners, uid)
-                except cohorte.utils.TimeoutExpired:
-                    # Time out expired : process is still there,
-                    # continue the loop
-                    pass
+                                           listeners, uid, name)
 
     def __io_thread(self, uid, process, event):
         """
@@ -196,14 +203,14 @@ class IsolateWatcher(object):
             try:
                 # Try to decode the line
                 line = line.decode('UTF-8').rstrip()
-            except:
+            except AttributeError:
                 # Not a string line
                 pass
 
             # In debug mode, print the raw output
             logger.debug(line)
 
-    def watch(self, uid, process, watch_io=True):
+    def watch(self, uid, name, process, watch_io=True):
         """
         Watch for the given isolate
 
@@ -218,6 +225,7 @@ class IsolateWatcher(object):
 
             # Store the process
             self._isolates[uid] = process
+            self._names[uid] = name
 
             if watch_io:
                 # Start the I/O thread
@@ -240,7 +248,7 @@ class IsolateWatcher(object):
         """
         with self.__lock:
             # Remove from waited isolates
-            self._isolates.pop(uid)
+            del self._isolates[uid]
 
             # Remove from the list of I/O threads
             try:

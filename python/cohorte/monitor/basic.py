@@ -347,7 +347,7 @@ class MonitorBasic(object):
         except KeyError:
             return False
 
-    def handle_lost_isolate(self, uid):
+    def handle_lost_isolate(self, uid, name):
         """
         A local isolate has been lost
         """
@@ -359,7 +359,7 @@ class MonitorBasic(object):
             return
 
         _logger.warning("Auto-run isolate lost: %s (%s). Restarting it.",
-                        isolate.get('name'), uid)
+                        name, uid)
 
         # Change internal state
         self._status.isolate_gone(uid)

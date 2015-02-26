@@ -36,6 +36,7 @@ __docformat__ = "restructuredtext en"
 # Composer
 import cohorte.composer
 import cohorte.composer.node.beans as beans
+import cohorte.forker
 import cohorte.monitor
 
 # Herald
@@ -86,7 +87,7 @@ class FactoriesMissing(Exception):
 
 @ComponentFactory()
 @Provides(cohorte.composer.SERVICE_COMPOSER_NODE, "_controller")
-@Provides(herald.SERVICE_DIRECTORY_LISTENER)
+@Provides(cohorte.forker.SERVICE_WATCHER_LISTENER)
 @Property('_node_uid', cohorte.composer.PROP_NODE_UID)
 @Property('_node_name', cohorte.composer.PROP_NODE_NAME)
 @Property('_export', pelix.remote.PROP_EXPORTED_INTERFACES,
@@ -446,18 +447,14 @@ class NodeComposer(object):
             # Clear status
             self._status.clear()
 
-    def handle_isolate_lost(self, name, node):
+    def handle_lost_isolate(self, uid, name):
         """
         Called by the forker when an isolate has been lost
 
+        :param uid: Isolate UID
         :param name: Isolate name
-        :param node: Isolate node UID
         """
-        # Check if this is our node
-        if node != self._node_uid:
-            return
-
-        _logger.debug("Node composer lost an isolate: %s", name)
+        _logger.debug("Node composer lost an isolate: %s (%s)", name, uid)
 
         # Notify the commander
         self._commander.isolate_lost(name)
@@ -482,21 +479,3 @@ class NodeComposer(object):
 
         # Recompute the clustering of the original components
         self.instantiate(lost)
-
-    def peer_registered(self, peer):
-        """
-        A peer has been registered (ignored)
-        """
-        pass
-
-    def peer_updated(self, peer, access_id, data, previous):
-        """
-        A peer has been updated (ignored)
-        """
-        pass
-
-    def peer_unregistered(self, peer):
-        """
-        A peer has been unregistered
-        """
-        self.handle_isolate_lost(peer.name, peer.node_uid)

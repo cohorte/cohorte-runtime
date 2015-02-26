@@ -298,13 +298,14 @@ class ForkerBasic(object):
             and not self._sent_stopping \
             and not self._platform_stopping
 
-    def handle_lost_isolate(self, uid):
+    def handle_lost_isolate(self, uid, name):
         """
         Handles the loss of an isolate.
         If the isolate is a monitor, it must be restarted immediately.
         If not, a lost isolate signal is sent to monitors.
 
-        :param uid: The ID of the lost isolate
+        :param uid: The UID of the lost isolate
+        :param name: Name of the lost isolate
         """
         # Locally unregister the isolate
         self._directory.unregister(uid)

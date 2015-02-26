@@ -53,7 +53,7 @@ SERVICE_WATCHER = 'cohorte.forker.watcher'
 """ Specification of an isolate watcher service """
 
 SERVICE_WATCHER_LISTENER = 'cohorte.forker.watcher.listener'
-""" Specification of an isolate that listens to a watcher service """
+""" Specification of a watcher service listener """
 
 # ------------------------------------------------------------------------------
 
