@@ -62,7 +62,7 @@ _logger = logging.getLogger(__name__)
 @Requires('_node_starter', cohorte.SERVICE_NODE_STARTER)
 # ######### added by: Bassem D.
 @Requires('_parser', cohorte.composer.SERVICE_PARSER,
-          optional=True)
+          optional=False)
 @Property('_autostart', 'autostart', "True")
 @Property('composition_filename', 'composition.filename', "composition.js")
 # #########
