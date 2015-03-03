@@ -168,6 +168,7 @@ class CohorteBoot(common.CommonStarter):
         :raise OSError: Error starting the isolate
         """
         uid = configuration['uid']
+        name = configuration.get('name', '<no-name>')
 
         # FIXME: make that prettier
         # Compute the looper, if needed
@@ -197,7 +198,7 @@ class CohorteBoot(common.CommonStarter):
         self._isolates[uid] = process
 
         # Start watching after the isolate
-        self._watcher.watch(uid, process)
+        self._watcher.watch(uid, name, process)
 
         # Success, and uses the state updater
         return True
