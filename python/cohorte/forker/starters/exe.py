@@ -99,6 +99,7 @@ class ExeStarter(common.CommonStarter):
         :raise OSError: Error starting the isolate
         """
         uid = configuration['uid']
+        name = configuration.get('name', '<no-name>')
 
         # Prepare environment variables
         environment = self.setup_environment(configuration)
@@ -124,7 +125,7 @@ class ExeStarter(common.CommonStarter):
         self._isolates[uid] = process
 
         # Start watching after the isolate
-        self._watcher.watch(uid, process, io_watch)
+        self._watcher.watch(uid, name, process, io_watch)
 
         # Don't wait for the state to be updated
         return False
