@@ -18,11 +18,11 @@
 	<parent>
 		<groupId>org.cohorte.runtime</groupId>
 		<artifactId>cohorte-java</artifactId>
-		<version>1.0.0-SNAPSHOT</version>
+		<version>1.0.0</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
 	<artifactId>org.cohorte.composer.isolate</artifactId>
-	<version>3.0.0-SNAPSHOT</version>
+	<version>3.0.0</version>
 	<packaging>eclipse-plugin</packaging>
 
 	<dependencies>

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: PSEM2M Libs - Apache.org Xerces
 Bundle-SymbolicName: org.psem2m.libs.xerces
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.0.0
 Bundle-ClassPath: lib/xercesImpl.jar,
  lib/xml-apis.jar
 Bundle-Vendor: isandlaTech.com
