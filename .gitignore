@@ -71,3 +71,4 @@ pom.xml.next
 release.properties
 
 build.sh
+venv

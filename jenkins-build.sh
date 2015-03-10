@@ -1,10 +1,10 @@
 #!/bin/bash
 
-$DEVPI_URL=$1
-$devpi_index=$2
-$devpi_user=$3
-$devpi_password=$4
-$devpi_formats=$5
+DEVPI_URL=$1
+devpi_index=$2
+devpi_user=$3
+devpi_password=$4
+devpi_formats=$5
 
 # Move to the Python sources
 cd python
