@@ -39,6 +39,8 @@ __docformat__ = "restructuredtext en"
 import cohorte
 import herald
 
+import herald.beans as beans
+
 # Shell constants
 from pelix.shell import SHELL_COMMAND_SPEC
 
@@ -46,12 +48,15 @@ from pelix.shell import SHELL_COMMAND_SPEC
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
     Instantiate
 
+import threading 
+
 # ------------------------------------------------------------------------------
 
 
 @ComponentFactory("cohorte-forker-shell-commands-factory")
 @Requires("_directory", herald.SERVICE_DIRECTORY)
 @Requires("_forker", cohorte.SERVICE_FORKER)
+@Requires('_herald', herald.SERVICE_HERALD)
 @Provides(SHELL_COMMAND_SPEC)
 @Instantiate("cohorte-forker-shell-commands")
 class ForkerCommands(object):
@@ -65,6 +70,7 @@ class ForkerCommands(object):
         # Injected services
         self._directory = None
         self._forker = None
+        self._herald = None
 
     def get_namespace(self):
         """
@@ -77,7 +83,8 @@ class ForkerCommands(object):
         Retrieves the list of tuples (command, method) for this command handler
         """
         return [("stop", self.stop_isolate),
-                ("ping", self.ping)]
+                ("ping", self.ping),
+                ("shutdown", self.shutdown)]
 
     def get_methods_names(self):
         """
@@ -127,3 +134,21 @@ class ForkerCommands(object):
                 self._forker.stop_isolate(uid)
         except KeyError as ex:
             io_handler.write_line("Error: {0}", ex)
+
+    def shutdown(self, io_handler):
+        """
+        Shutdown all the platform (all the nodes)
+        """
+        msg = beans.Message(cohorte.monitor.SIGNAL_STOP_PLATFORM)
+        try:
+            # send to other monitors
+            self._herald.fire_group('monitors', msg)
+        except:
+            pass
+
+        try:
+            # send to local peer
+            msg2 = beans.MessageReceived(msg.uid, msg.subject, msg.content, "local", "local", "local")
+            threading.Thread(target=self._herald.handle_message, args=[msg2]).start()
+        except:
+            pass
