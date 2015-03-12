@@ -211,10 +211,13 @@ class ForkerBasic(object):
                 # Wait for it to be loaded (30 seconds max)
                 _logger.debug('Waiting for %s to come up', uid)
                 self._state_dir.wait_for(uid, 30)
-            except ValueError:
+            except KeyError:
+                _logger.error("Isolate %s (%s) stopped before the forker "
+                              "could wait for it", uid, name)
+            except ValueError as ex:
                 # Timeout reached or isolate lost
-                _logger.error("Error waiting for isolate %s (%s) to be loaded",
-                              uid, name)
+                _logger.error("Error waiting for isolate %s (%s) to be loaded:"
+                              " %s", uid, name, ex)
 
                 # Forget the isolate
                 self._state_dir.clear_isolate(uid)
