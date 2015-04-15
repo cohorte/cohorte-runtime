@@ -1,0 +1,3 @@
+MOD_OG_20150415
+- Enhancement of the comments of the methods of the interface IPlatformDirsSvc
+- no version change
