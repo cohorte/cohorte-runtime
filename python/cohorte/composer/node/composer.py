@@ -54,6 +54,8 @@ import pelix.threadpool
 import logging
 import threading
 
+import time
+
 # ------------------------------------------------------------------------------
 
 _logger = logging.getLogger(__name__)
@@ -300,7 +302,8 @@ class NodeComposer(object):
         with self._lock:
             # Stop the running timer, if any
             self.__stop_timer()
-
+            # wait already created isolates to get up. TODO: should enhance this solution!
+            time.sleep(5)
             try:
                 # Compute the implementation language of the components
                 bundles = self._compute_bundles(components)
