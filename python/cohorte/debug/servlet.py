@@ -36,10 +36,13 @@ import cohorte
 
 # Pelix framework
 from pelix.ipopo.decorators import ComponentFactory, Provides, \
-    Validate, Invalidate, Property
+    Validate, Invalidate, Property, Requires
 import pelix.constants
 import pelix.framework
 import pelix.http
+import pelix.ipopo.constants
+import pelix.shell
+from pelix.shell.ipopo import ipopo_state_to_str
 
 # Python standard library
 import logging
@@ -106,6 +109,8 @@ table tr td pre {
 
 @ComponentFactory('cohorte-debug-servlet-factory')
 @Provides(pelix.http.HTTP_SERVLET)
+@Requires("_ipopo", pelix.ipopo.constants.SERVICE_IPOPO)
+@Requires("_utils", pelix.shell.SERVICE_SHELL_UTILS)
 @Property('_path', pelix.http.HTTP_SERVLET_PATH, DEFAULT_DEBUG_PATH)
 class DebugServlet(object):
     """
@@ -120,6 +125,8 @@ class DebugServlet(object):
 
         # Bundle context
         self._context = None
+
+        self._ipopo = None
 
     def make_all(self, request):
         """
@@ -148,7 +155,7 @@ class DebugServlet(object):
         if errors:
             # Add the errors part only if needed
             lines.append("<h2>Page generation errors</h2>\n<ul>"
-                         "\n{errors}\n</ul>")
+                         "\n{errors}\n</ul>".format(errors=errors))
 
         return '\n'.join(lines)
 
@@ -166,6 +173,19 @@ class DebugServlet(object):
 
         return "<h2>Isolate information</h2>\n{body}\n" \
             .format(body='\n'.join(lines))
+
+    def make_instances(self, request):
+        headers = ('Name', 'Factory', 'State')
+
+        instances = self._ipopo.get_instances()
+        
+        # Lines are already sorted
+        lines = ((name, factory, ipopo_state_to_str(state))
+                 for name, factory, state in instances)
+
+        table = self._utils.make_table(headers, lines)
+        return '<h2>iPOPO Instances</h2><pre>' + table + '</pre>'
+        
 
     def make_bundles(self, request):
         """
