@@ -97,6 +97,9 @@ PROP_NODE_NAME = 'cohorte.node.name'
 PROP_RUN_TOP_COMPOSER = 'cohorte.composer.top.run'
 """ If present, the monitor must load the top composer """
 
+PROP_SHELL_CONSOLE = 'cohorte.shell.console'
+""" If present, the isolate must start the shell text UI """
+
 PROP_STATE_UPDATER = 'cohorte.state.updater.url'
 """ URL to the state updater, use during boot only """
 
