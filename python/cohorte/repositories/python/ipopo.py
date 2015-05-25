@@ -78,13 +78,19 @@ class ComponentFactoryVisitor(ast.NodeVisitor):
         Found a class definition
         """
         for decorator in node.decorator_list:
-            if hasattr(decorator, 'func') \
-                    and decorator.func.id == "ComponentFactory":
+            try:
+                if decorator.func.id != "ComponentFactory":
+                    # Not a ComponentFactory decorator
+                    continue
+            except AttributeError:
+                # Not our kind of decorator
+                pass
+            else:
                 name = None
                 if decorator.args:
                     # Name: First argument
                     argument = decorator.args[0]
-                elif decorator.kwargs:
+                elif decorator.kwargs and 'name' in decorator.kwargs:
                     # Keyword argument
                     argument = decorator.kwargs['name']
                 else:
@@ -342,7 +348,12 @@ class IPopoRepository(object):
             # Walk through artifacts
             for repository in self._repositories:
                 for artifact in repository.walk():
-                    self.add_artifact(artifact)
+                    try:
+                        self.add_artifact(artifact)
+                    except ValueError as ex:
+                        # Log the exception instead of stopping here
+                        _logger.warning("Error reading artifact: %s",
+                                        ex, exc_info=True)
 
     def __initial_loading(self):
         """
