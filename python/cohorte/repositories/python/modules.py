@@ -316,7 +316,8 @@ class PythonModuleRepository(object):
         else:
             return '{0}.{1}'.format(package, module)
 
-    def __test_import(self, name):
+    @staticmethod
+    def __test_import(name):
         """
         Tries to import the given module, using imp.find_module().
 
