@@ -126,7 +126,13 @@ class AstVisitor(ast.NodeVisitor):
         """
         if node.level > 0:
             # Relative import
-            return '.'.join(self.path_parts[-node.level:] + [node.module])
+            parent = '.'.join(self.path_parts[-node.level:])
+            if node.module:
+                # from .module import ...
+                return '.'.join((parent, node.module))
+            else:
+                # from . import ...
+                return parent
         else:
             # Absolute import
             return node.module
