@@ -51,7 +51,7 @@ import os
 
 # ######### added by: Bassem D.
 import json
-# ######### 
+# #########
 
 # ------------------------------------------------------------------------------
 
@@ -362,7 +362,7 @@ class PythonModuleRepository(object):
         repository
 
         :param dirname: A path to a directory
-        """        
+        """
         for root, _, filenames in os.walk(dirname, followlinks=True):
             for filename in filenames:
                 if os.path.splitext(filename)[1] == '.py':
@@ -536,63 +536,61 @@ class PythonModuleRepository(object):
         Loads the cache from system file to memory
         """
         use_cache = os.environ.get('COHORTE_USE_CACHE')
-        if use_cache:
-            if use_cache.lower() == "true":
-                if os.path.isfile('cache.js'):
-                    with open('cache.js') as input_file:
-                        cache = json.load(input_file)
-                        if cache:
-                            _logger.info("loading repository from cache...")
-                            # load modules
-                            for module in cache["modules"]:
+        if use_cache and use_cache.lower() == "true":
+            try:
+                with open('cache.js') as input_file:
+                    cache = json.load(input_file)
+                    if cache:
+                        _logger.info("loading repository from cache...")
+                        # load modules
+                        for module in cache["modules"]:
+                            language = module["language"]
+                            name = module["name"]
+                            version = Version(module["version"])
+                            filename = module["filename"]
 
-                                language = module["language"]
-                                name = module["name"]
-                                version = Version(module["version"])
-                                filename = module["filename"]                        
-                                
-                                m = Module(name, version, [], filename)
-                                self.__add_module(m, self._modules)
-                                #self._modules[name].append(m)
+                            m = Module(name, version, [], filename)
+                            self.__add_module(m, self._modules)
 
-                            for directory in cache["directories"]:
-                                self._directory_package[directory["dir_name"]] = directory["pkg_name"]
-                            return 0
-        return 1
+                        for directory in cache["directories"]:
+                            self._directory_package[directory["dir_name"]] \
+                                = directory["pkg_name"]
+
+                        return True
+            except (IOError, ValueError):
+                # Error reading/parsing cache file
+                return False
+        # No cache
+        return False
 
     def save_cache(self):
         """
-        Saves the cache from memory to system file 
+        Saves the cache from memory to system file
         """
         use_cache = os.environ.get('COHORTE_USE_CACHE')
-        if use_cache:
-            if use_cache.lower() == "true":
-                # Name -> [Modules]
-                #self._modules = {}
-                # dump modules
-                cache = {"modules": [], "directories": []}
-                _logger.info("dumping cache info...")
-                for name, modules in self._modules.items():
-                    for module in modules:
-                        m = {"name": module.name,
-                             "version": str(module.version),
-                             "language": module.language,
-                             "filename": module.file}
-                        cache["modules"].append(m)
+        if use_cache and use_cache.lower() == "true":
+            # dump modules
+            _logger.info("Dumping cache info...")
 
-                # Directory name -> Package name
-                #self._directory_package = {}
-                for key1 in self._directory_package:
-                    d = {"dir_name": key1, "pkg_name": self._directory_package[key1]}
-                    cache["directories"].append(d)
+            # Name -> [Modules]
+            cache_modules = [
+                {"name": module.name, "version": str(module.version),
+                 "language": module.language, "filename": module.file}
+                for name, modules in self._modules.items()
+                for module in modules]
 
-                # File -> Module
-                #self._files = {}
+            # Directory name -> Package name
+            cache_directories = [
+                {"dir_name": dir_name,
+                 "pkg_name": self._directory_package[dir_name]}
+                for dir_name in self._directory_package]
 
-                with open('cache.js', 'w') as outfile:
-                    json.dump(cache, outfile, indent=4)        
-
-    # ######### 
+            # Write cache
+            cache = {"modules": cache_modules,
+                     "directories": cache_directories}
+            with open('cache.js', 'w') as outfile:
+                json.dump(cache, outfile, indent=4)
+    # #########
 
     @Validate
     def validate(self, context):
@@ -605,12 +603,12 @@ class PythonModuleRepository(object):
         # if so, load the file and update the cached entry
         # if there were no cache file, we create it at the end of the parsing
         status = self.load_cache()
-        if status == 1:
-            _logger.info("loading repository from file system...")
-        # ######### 
+        if not status:
+            _logger.info("Loading repository from file system...")
+            # #########
 
-        # Load repositories in another thread
-        # Home/Base repository
+            # Load repositories in another thread
+            # Home/Base repository
             for key in (cohorte.PROP_BASE, cohorte.PROP_HOME):
                 repository = os.path.join(context.get_property(key), "repo")
                 self.add_directory(repository)
@@ -621,9 +619,9 @@ class PythonModuleRepository(object):
                 for path in python_path.split(os.pathsep):
                     self.add_directory(path)
 
-        # ######### added by: Bassem D.
-            self.save_cache()        
-        # ######### 
+            # ######### added by: Bassem D.
+            self.save_cache()
+            # #########
 
     @Invalidate
     def invalidate(self, context):
