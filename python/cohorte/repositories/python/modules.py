@@ -100,13 +100,14 @@ class AstVisitor(ast.NodeVisitor):
     AST visitor to extract imports and version
     """
     # pylint: disable=invalid-name
-    def __init__(self):
+    def __init__(self, filepath):
         """
         Sets up the visitor
         """
         ast.NodeVisitor.__init__(self)
         self.imports = set()
         self.version = None
+        self.path_parts = filepath.split(os.sep)[:-1]
 
     def generic_visit(self, node):
         """
@@ -115,6 +116,20 @@ class AstVisitor(ast.NodeVisitor):
         """
         if type(node) is ast.Module:
             ast.NodeVisitor.generic_visit(self, node)
+
+    def resolve_relative_import_from(self, node):
+        """
+        Converts a relative import (import .module) into an absolute one
+
+        :param node: An ImportFrom AST node
+        :return: The absolute module name
+        """
+        if node.level > 0:
+            # Relative import
+            return '.'.join(self.path_parts[-node.level:] + [node.module])
+        else:
+            # Absolute import
+            return node.module
 
     def visit_Import(self, node):
         """
@@ -127,7 +142,7 @@ class AstVisitor(ast.NodeVisitor):
         """
         Found a "from ... import ..."
         """
-        self.imports.add(node.module)
+        self.imports.add(self.resolve_relative_import_from(node))
 
     def visit_Assign(self, node):
         """
@@ -155,14 +170,13 @@ def _extract_module_info(filename):
     :return: A (version, [imports]) tuple
     :raise ValueError: Unreadable file
     """
-    visitor = AstVisitor()
-
     try:
         with open(filename) as filep:
             source = filep.read()
     except (OSError, IOError) as ex:
         raise ValueError("Error reading {0}: {1}".format(filename, ex))
 
+    visitor = AstVisitor(filename)
     try:
         module = ast.parse(source, filename, 'exec')
     except (ValueError, SyntaxError) as ex:
