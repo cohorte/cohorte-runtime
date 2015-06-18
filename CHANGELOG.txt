@@ -1,6 +1,0 @@
-1.0.0 TO 1.0.1 (dev)
-====================
-
-ENHANCEMENTS
-
- * add "iPOJO Isonates" to cohorte-debug servlet

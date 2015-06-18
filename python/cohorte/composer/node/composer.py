@@ -210,6 +210,9 @@ class NodeComposer(object):
             except ValueError:
                 # Factory not found
                 not_found.add(component.factory)
+            except AttributeError:
+                # _finder could be None when stoping the platform 
+                pass
 
         if not_found:
             raise FactoriesMissing(not_found)
