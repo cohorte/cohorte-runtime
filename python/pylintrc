@@ -6,6 +6,9 @@ profile=no
 # Pickle collected data for later comparisons.
 persistent=yes
 
+# Ignore 3rd party code
+ignore=cocoapy
+
 
 [MESSAGES CONTROL]
 

@@ -217,6 +217,13 @@ def _run_framework(framework, state_updater_url, fail_on_pdb):
             _logger.debug('Bundle %s (%d) started',
                           name, bundle.get_bundle_id())
 
+        # Install the text UI if requested. It still needs the Shell Core
+        # service to be usable
+        if context.get_property(cohorte.PROP_SHELL_CONSOLE):
+            _logger.debug("Installing the Pelix Shell UI "
+                          "(requires pelix.shell.core to work)")
+            context.install_bundle("pelix.shell.console").start()
+
         # Find the isolate loader to use
         if context.get_property(cohorte.PROP_CONFIG_BROKER):
             # If a broker has been given, use the Broker client...
@@ -521,6 +528,10 @@ def main(args=None):
                         help="If True and given to a monitor, starts the "
                         "TopComposer")
 
+    parser.add_argument("--console", action="store_true",
+                        dest="install_shell_console", default=False,
+                        help="If True, the shell console will be started")
+
     parser.add_argument("--version", action="version",
                         version="Cohorte bootstrap {0}".format(__version__))
 
@@ -566,6 +577,10 @@ def main(args=None):
     if args.top_composer:
         # The isolate contains the TopComposer
         framework_properties[cohorte.PROP_RUN_TOP_COMPOSER] = True
+
+    if args.install_shell_console:
+        # The isolate must activate its shell console (text UI)
+        framework_properties[cohorte.PROP_SHELL_CONSOLE] = True
 
     # Run PDB on unhandled exceptions, in debug mode
     use_pdb = args.debug and sys.stdin.isatty()

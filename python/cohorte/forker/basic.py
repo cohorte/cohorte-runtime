@@ -405,22 +405,25 @@ class ForkerBasic(object):
             self._timer.cancel()
             self._timer = None
 
-        # Send the "forker stopping" signal
-        self._send_stopping()
+        try:
+            # Send the "forker stopping" signal
+            self._send_stopping()
 
-        # Try to (nicely stop isolates)
-        self._stop_isolates()
+            # Try to (nicely stop isolates)
+            self._stop_isolates()
+        except:
+            pass
+        finally:
+            # Unregister from the framework
+            # (if we weren't stopped by the framework)
+            context.remove_framework_stop_listener(self)
 
-        # Unregister from the framework
-        # (if we weren't stopped by the framework)
-        context.remove_framework_stop_listener(self)
-
-        # Clean up
-        self._isolates.clear()
-        self._context = None
-        self._node_name = None
-        self._node_uid = None
-        _logger.info("Forker invalidated")
+            # Clean up
+            self._isolates.clear()
+            self._context = None
+            self._node_name = None
+            self._node_uid = None
+            _logger.info("Forker invalidated")
 
     @Validate
     def _validate(self, context):
