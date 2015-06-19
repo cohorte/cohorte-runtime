@@ -16,12 +16,12 @@
 
 package org.psem2m.isolates.base;
 
-import org.psem2m.utilities.logging.IActivityLoggerBase;
+import org.psem2m.utilities.logging.IActivityLogger;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  *
  */
-public interface IIsolateLoggerSvc extends IActivityLoggerBase {
+public interface IIsolateLoggerSvc extends IActivityLogger {
 
 }
