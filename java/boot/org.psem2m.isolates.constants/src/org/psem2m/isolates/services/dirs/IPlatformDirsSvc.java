@@ -21,11 +21,32 @@ import java.io.File;
 import org.psem2m.isolates.constants.IPlatformProperties;
 
 /**
- * MOD_OG_20150415 Enhancement of the comments
+ * MOD_OG_20150415, MOD_OG_20150625 Enhancement of the comments
+ *
+ *
+ * ATTENTION :
+ *
+ * the "user.dir" system property must contain the isolateDir.
+ *
+ * <pre>
+ * .../BASE/var/ISOLATE_NAME/ISOLATE_UUID/)
+ * </pre>
+ *
+ * @see look at cohorte forker !
+ *
  *
  * @author isandlatech (www.isandlatech.com) - ogattaz
  */
 public interface IPlatformDirsSvc extends IPlatformProperties {
+
+	/**
+	 * MOD_OG_20150625 standards sub dirs
+	 */
+	String DIRNAME_CONF = "conf";
+	String DIRNAME_LOG = "log";
+	String DIRNAME_REPOSITORY = "repo";
+	String DIRNAME_STORAGE = "storage";
+	String DIRNAME_VAR = "var";
 
 	/**
 	 * Returns the root directory of the current isolate
