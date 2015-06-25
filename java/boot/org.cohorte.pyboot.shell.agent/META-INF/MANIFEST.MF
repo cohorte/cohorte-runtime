@@ -6,34 +6,32 @@ Bundle-SymbolicName: org.cohorte.pyboot.shell.agent
 Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.0
 Created-By: iPOJO  1.8.0
-Import-Package: org.apache.felix.ipojo;version="1.8.0",
- org.apache.felix.ipojo.architecture;version="1.8.0",
- org.cohorte.herald;version="0.0.1",
- org.cohorte.pyboot.api,
- org.cohorte.shell;version="1.0.0",
- org.osgi.framework;version="1.6.0",
- org.osgi.service.cm;version="1.2",
- org.osgi.service.http;version="1.2.0",
- org.osgi.service.log;version="1.3"
+Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
+ .ipojo.architecture;version=1.8.0, org.cohorte.herald;version=0.0.1, 
+ org.cohorte.pyboot.api, org.cohorte.shell;version=1.0.0, org.osgi.fra
+ mework;version=1.6.0, org.osgi.service.cm;version=1.2, org.osgi.servi
+ ce.http;version=1.2.0, org.osgi.service.log;version=1.3
 iPOJO-Components: instance { $name="cohorte-shell-agent" $component="c
  ohorte-shell-agent-factory" }component { $name="cohorte-shell-agent-f
  actory" $classname="org.cohorte.pyboot.shell.agent.ShellAgent" provid
  es { $specifications="{org.cohorte.herald.IMessageListener}" property
   { $name="herald.filters" $field="pMessageFilter" $value="cohorte/she
- ll/agent/*" }}requires { $field="pBridge" }requires { $field="pLogger
- " $optional="true" }requires { $field="pRemoteShell" $optional="true"
-  $nullable="true" }requires { $optional="true" $id="http.service" cal
- lback { $method="bindHttpService" $type="bind" }callback { $method="u
- nbindHttpService" $type="unbind" }}manipulation { $classname="org.coh
- orte.pyboot.shell.agent.ShellAgent" interface { $name="org.cohorte.he
- rald.IMessageListener" }field { $name="pBridge" $type="org.cohorte.py
- boot.api.IPyBridge" }field { $name="pHttpPort" $type="int" }field { $
- name="pLogger" $type="org.osgi.service.log.LogService" }field { $name
- ="pMessageFilter" $type="java.lang.String" }field { $name="pRemoteShe
- ll" $type="org.cohorte.shell.IRemoteShell" }method { $name="bindHttpS
- ervice" $arguments="{org.osgi.service.http.HttpService,java.util.Map}
- " $names="{aHttpService,aServiceProperties}" }method { $name="getOsgi
- RemoteShellPort" $return="int" }method { $name="heraldMessage" $argum
- ents="{org.cohorte.herald.IHerald,org.cohorte.herald.MessageReceived}
- " $names="{aHerald,aMessage}" }method { $name="unbindHttpService" }}}
+ ll/agent/*" }}requires { $field="pBridge" }requires { $field="pHttpSe
+ rvice" $filter="(org.osgi.service.http.port=*)" $optional="true" $id=
+ "http.service" callback { $method="bindHttpService" $type="bind" }cal
+ lback { $method="unbindHttpService" $type="unbind" }}requires { $fiel
+ d="pLogger" $optional="true" }requires { $field="pRemoteShell" $optio
+ nal="true" $nullable="true" }manipulation { $classname="org.cohorte.p
+ yboot.shell.agent.ShellAgent" interface { $name="org.cohorte.herald.I
+ MessageListener" }field { $name="pBridge" $type="org.cohorte.pyboot.a
+ pi.IPyBridge" }field { $name="pHttpPort" $type="int" }field { $name="
+ pHttpService" $type="org.osgi.service.http.HttpService" }field { $nam
+ e="pLogger" $type="org.osgi.service.log.LogService" }field { $name="p
+ MessageFilter" $type="java.lang.String" }field { $name="pRemoteShell"
+  $type="org.cohorte.shell.IRemoteShell" }method { $name="bindHttpServ
+ ice" $arguments="{org.osgi.service.http.HttpService,java.util.Map}" $
+ names="{aHttpService,aServiceProperties}" }method { $name="getOsgiRem
+ oteShellPort" $return="int" }method { $name="heraldMessage" $argument
+ s="{org.cohorte.herald.IHerald,org.cohorte.herald.MessageReceived}" $
+ names="{aHerald,aMessage}" }method { $name="unbindHttpService" }}}
 
