@@ -19,6 +19,7 @@ package org.psem2m.isolates.services.dirs;
 import java.io.File;
 
 import org.psem2m.isolates.constants.IPlatformProperties;
+import org.psem2m.utilities.IXDescriber;
 
 /**
  * MOD_OG_20150415, MOD_OG_20150625 Enhancement of the comments
@@ -37,7 +38,7 @@ import org.psem2m.isolates.constants.IPlatformProperties;
  *
  * @author isandlatech (www.isandlatech.com) - ogattaz
  */
-public interface IPlatformDirsSvc extends IPlatformProperties {
+public interface IPlatformDirsSvc extends IPlatformProperties, IXDescriber {
 
 	/**
 	 * MOD_OG_20150625 standards sub dirs

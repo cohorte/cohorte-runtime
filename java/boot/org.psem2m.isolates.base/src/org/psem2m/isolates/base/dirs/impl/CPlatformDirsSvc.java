@@ -26,14 +26,13 @@ import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
 import org.psem2m.utilities.CXException;
 import org.psem2m.utilities.CXStringUtils;
-import org.psem2m.utilities.IXDescriber;
 import org.psem2m.utilities.files.CXFileDir;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  *
  */
-public class CPlatformDirsSvc implements IPlatformDirsSvc, IXDescriber {
+public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/**
 	 * MOD_OG_20150625 prefixes
@@ -120,7 +119,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc, IXDescriber {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * org.psem2m.utilities.IXDescriber#addDescriptionInBuffer(java.lang.Appendable
 	 * )
@@ -194,7 +193,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc, IXDescriber {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateDir()
 	 */
 	@Override
@@ -205,7 +204,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc, IXDescriber {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.isolates.osgi.IPlatformDirs#getIsolateLogDir()
 	 */
 	@Override
@@ -216,7 +215,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc, IXDescriber {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateName()
 	 */
 	@Override
@@ -236,7 +235,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc, IXDescriber {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateStorageDir()
 	 */
@@ -248,7 +247,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc, IXDescriber {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateUID()
 	 */
 	@Override
@@ -266,7 +265,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc, IXDescriber {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateUserDir()
 	 */
@@ -278,7 +277,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc, IXDescriber {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateNode()
 	 */
 	@Override
@@ -298,7 +297,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc, IXDescriber {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateNode()
 	 */
 	@Override
@@ -315,7 +314,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc, IXDescriber {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.isolates.osgi.IPlatformDirs#getPlatformBaseDir()
 	 */
 	@Override
@@ -343,7 +342,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc, IXDescriber {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.isolates.base.IPlatformDirsSvc#getPlatformHomeDir()
 	 */
 	@Override
@@ -361,7 +360,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc, IXDescriber {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.isolates.base.dirs.IPlatformDirsSvc#getPlatformRootDirs()
 	 */
 	@Override
@@ -373,7 +372,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc, IXDescriber {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.isolates.base.IPlatformDirsSvc#getRepositories()
 	 */
 	@Override
@@ -473,7 +472,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc, IXDescriber {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.utilities.IXDescriber#toDescription()
 	 */
 	@Override
