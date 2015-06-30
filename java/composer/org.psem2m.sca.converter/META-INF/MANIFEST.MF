@@ -4,7 +4,7 @@ Bundle-Name: PSEM2M :: Composer :: SCA Converter
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.psem2m.sca.converter
 Bundle-Vendor: isandlaTech.com
-Bundle-Version: 1.0.0
+Bundle-Version: 1.0.1.qualifier
 Created-By: iPOJO  1.8.0
 Import-Package: org.apache.felix.ipojo;version=1.8.1, org.apache.felix
  .ipojo.architecture;version=1.8.0, org.osgi.framework;version=1.5.0, 
@@ -15,22 +15,4 @@ Import-Package: org.apache.felix.ipojo;version=1.8.1, org.apache.felix
  ilities.files;version=1.0.0, org.psem2m.utilities.logging;version=1.0
  .0, org.w3c.dom, org.w3c.dom.bootstrap, org.w3c.dom.ls
 Main-Class: org.psem2m.sca.converter.standalone.Main
-iPOJO-Components: instance { $name="psem2m-composer-sca-converter-fact
- ory" $component="psem2m-composer-sca-converter-factory" }component { 
- $name="psem2m-composer-sca-converter-factory" $public="false" $classn
- ame="org.psem2m.sca.converter.core.ScaConverterService" provides { $s
- pecifications="{org.psem2m.composer.config.IComposerConfigHandler}" }
- requires { $field="pLogger" }callback { $transition="invalidate" $met
- hod="invalidatePojo" }callback { $transition="validate" $method="vali
- datePojo" }manipulation { $super="org.psem2m.isolates.base.activators
- .CPojoBase" interface { $name="org.psem2m.composer.config.IComposerCo
- nfigHandler" }field { $name="pConverter" $type="org.psem2m.sca.conver
- ter.core.SCAConverter" }field { $name="pLogger" $type="org.psem2m.iso
- lates.base.IIsolateLoggerSvc" }field { $name="pParser" $type="org.pse
- m2m.sca.converter.core.SCAParser" }method { $name="canHandle" $return
- ="boolean" $arguments="{java.lang.String}" }method { $name="invalidat
- ePojo" }method { $name="load" $return="org.psem2m.composer.model.Comp
- onentsSetBean" $arguments="{java.lang.String}" }method { $name="valid
- atePojo" }method { $name="write" $arguments="{org.psem2m.composer.mod
- el.ComponentsSetBean,java.lang.String}" }}}
 

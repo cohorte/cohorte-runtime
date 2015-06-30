@@ -4,29 +4,10 @@ Bundle-Name: COHORTE :: Python Bridge :: Core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.cohorte.pyboot
 Bundle-Vendor: isandlaTech.com
-Bundle-Version: 1.0.0
+Bundle-Version: 1.0.1.qualifier
 Created-By: iPOJO  1.8.0
 Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  .ipojo.architecture;version=1.8.0, org.cohorte.pyboot.api, org.osgi.f
  ramework;version=1.3.0, org.osgi.service.cm;version=1.2, org.osgi.ser
  vice.log;version=1.3
-iPOJO-Components: instance { $name="cohorte-java-bridge-client" $compo
- nent="cohorte-java-bridge-client-factory" }component { $name="cohorte
- -java-bridge-client-factory" $classname="org.cohorte.pyboot.BridgeCli
- ent" requires { $field="pBridge" }callback { $transition="invalidate"
-  $method="invalidate" }callback { $transition="validate" $method="val
- idate" }manipulation { $classname="org.cohorte.pyboot.BridgeClient" i
- nterface { $name="org.osgi.framework.ServiceListener" }field { $name=
- "pBridge" $type="org.cohorte.pyboot.api.IPyBridge" }field { $name="pC
- omponents" $type="java.util.List" }field { $name="pContext" $type="or
- g.osgi.framework.BundleContext" }method { $name="getGlobalProperty" $
- return="java.lang.String" $arguments="{java.lang.String}" $names="{aN
- ame}" }method { $name="instantiateComponents" $arguments="{org.osgi.f
- ramework.ServiceReference}" $names="{aFactoryRef}" }method { $name="i
- nvalidate" }method { $name="pollFactories" }method { $name="prepareIn
- stanceProperties" $return="java.util.Properties" $arguments="{org.apa
- che.felix.ipojo.Factory,org.cohorte.pyboot.api.ComponentBean}" $names
- ="{aFactory,aComponent}" }method { $name="serviceChanged" $arguments=
- "{org.osgi.framework.ServiceEvent}" $names="{aEvent}" }method { $name
- ="validate" }}}
 

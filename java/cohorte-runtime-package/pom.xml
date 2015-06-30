@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.cohorte.runtime</groupId>
 		<artifactId>cohorte-java</artifactId>
-		<version>1.0.0</version>
+		<version>1.0.1-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<artifactId>cohorte-runtime-package</artifactId>
@@ -17,32 +17,32 @@
 		<dependency>
 			<groupId>org.cohorte.runtime</groupId>
 			<artifactId>org.cohorte.pyboot</artifactId>
-			<version>1.0.0</version>		
+			<version>1.0.1-SNAPSHOT</version>		
 		</dependency>
 		<dependency>
 			<groupId>org.cohorte.runtime</groupId>
 			<artifactId>org.cohorte.pyboot.api</artifactId>
-			<version>1.0.0</version>		
+			<version>1.0.1-SNAPSHOT</version>		
 		</dependency>	
 		<dependency>
 			<groupId>org.cohorte.runtime</groupId>
 			<artifactId>org.cohorte.pyboot.config</artifactId>
-			<version>1.0.0</version>		
+			<version>1.0.1-SNAPSHOT</version>		
 		</dependency>	
 		<dependency>
 			<groupId>org.cohorte.runtime</groupId>
 			<artifactId>org.cohorte.pyboot.shell.agent</artifactId>
-			<version>1.0.0</version>		
+			<version>1.0.1-SNAPSHOT</version>		
 		</dependency>
 		<dependency>
 			<groupId>org.cohorte.runtime</groupId>
 			<artifactId>org.psem2m.isolates.base</artifactId>
-			<version>1.0.0</version>		
+			<version>1.0.1-SNAPSHOT</version>		
 		</dependency>
 		<dependency>
 			<groupId>org.cohorte.runtime</groupId>
 			<artifactId>org.psem2m.isolates.constants</artifactId>
-			<version>1.0.0</version>		
+			<version>1.0.1-SNAPSHOT</version>		
 		</dependency>
 		<dependency>
 			<groupId>org.cohorte.runtime</groupId>
@@ -57,37 +57,37 @@
 		<dependency>
 			<groupId>org.cohorte.runtime</groupId>
 			<artifactId>org.cohorte.shell.osgi</artifactId>
-			<version>1.0.0</version>		
+			<version>1.0.1-SNAPSHOT</version>		
 		</dependency>
 		<dependency>
 			<groupId>org.cohorte.runtime</groupId>
 			<artifactId>org.cohorte.shell.remote</artifactId>
-			<version>1.0.0</version>		
+			<version>1.0.1-SNAPSHOT</version>		
 		</dependency>
 		<dependency>
 			<groupId>org.cohorte.runtime</groupId>
 			<artifactId>org.psem2m.isolates.loggers</artifactId>
-			<version>1.0.0</version>		
+			<version>1.0.1-SNAPSHOT</version>		
 		</dependency>
 		<dependency>
 			<groupId>org.cohorte.runtime</groupId>
 			<artifactId>org.psem2m.isolates.slave.agent</artifactId>
-			<version>1.0.0</version>		
+			<version>1.0.1-SNAPSHOT</version>		
 		</dependency>
 		<dependency>
 			<groupId>org.cohorte.runtime</groupId>
 			<artifactId>org.psem2m.status.storage</artifactId>
-			<version>1.0.0</version>		
+			<version>1.0.1-SNAPSHOT</version>		
 		</dependency>
 		<dependency>
 			<groupId>org.cohorte.runtime</groupId>
 			<artifactId>org.psem2m.isolates.ui</artifactId>
-			<version>1.0.0</version>		
+			<version>1.0.1-SNAPSHOT</version>		
 		</dependency>
 		<dependency>
 			<groupId>org.cohorte.runtime</groupId>
 			<artifactId>org.psem2m.isolates.ui.admin</artifactId>
-			<version>1.0.0</version>		
+			<version>1.0.1-SNAPSHOT</version>		
 		</dependency>
 	</dependencies>
 

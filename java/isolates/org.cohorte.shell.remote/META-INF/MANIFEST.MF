@@ -4,7 +4,7 @@ Bundle-Name: COHORTE :: Remote Shell
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.cohorte.shell.remote
 Bundle-Vendor: isandlaTech.com
-Bundle-Version: 1.0.0
+Bundle-Version: 1.0.1.qualifier
 Created-By: iPOJO  1.8.0
 Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  .ipojo.architecture;version=1.8.0, org.apache.felix.service.command;v
@@ -14,28 +14,4 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  lates.base;version=1.0.1, org.psem2m.isolates.constants;version=1.0.1
  , org.psem2m.isolates.loggers, org.psem2m.utilities.logging;version=1
  .0.0
-iPOJO-Components: component { $name="cohorte-remote-shell-factory" $cl
- assname="org.cohorte.remote.shell.RemoteShellService" provides { $spe
- cifications="{org.cohorte.shell.IRemoteShell}" property { $name="osgi
- .shell.telnet.ip" $field="pAddress" $value="127.0.0.1" }property { $n
- ame="osgi.shell.telnet.port" $field="pPort" $value="0" }}requires { $
- field="pCommandProcessor" }requires { $field="pLogger" }callback { $t
- ransition="invalidate" $method="invalidate" }callback { $transition="
- validate" $method="validate" }manipulation { $classname="org.cohorte.
- remote.shell.RemoteShellService" interface { $name="org.cohorte.shell
- .IRemoteShell" }field { $name="pAddress" $type="java.lang.String" }fi
- eld { $name="pCommandProcessor" $type="org.apache.felix.service.comma
- nd.CommandProcessor" }field { $name="pContext" $type="org.osgi.framew
- ork.BundleContext" }field { $name="pLogger" $type="org.psem2m.isolate
- s.base.IIsolateLoggerSvc" }field { $name="pPort" $type="int" }field {
-  $name="pServer" $type="org.cohorte.remote.shell.Server" }method { $n
- ame="createGogoSession" $return="org.apache.felix.service.command.Com
- mandSession" $arguments="{java.io.InputStream,java.io.PrintStream,jav
- a.io.PrintStream}" $names="{aStdin,aStdout,aStderr}" }method { $name=
- "error" $arguments="{java.lang.String,java.lang.Object[]}" $names="{a
- What,aInfos}" }method { $name="getAddress" $return="java.lang.String"
-  }method { $name="getPort" $return="int" }method { $name="invalidate"
-  }method { $name="stopServer" }method { $name="validate" }method { $n
- ame="warning" $arguments="{java.lang.String,java.lang.Object[]}" $nam
- es="{aWhat,aInfos}" }}}
 
