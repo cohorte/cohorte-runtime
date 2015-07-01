@@ -98,7 +98,7 @@
 			<dependency>
 				<groupId>org.cohorte.utilities</groupId>
 				<artifactId>org.cohorte.utilities</artifactId>
-				<version>1.0.2.20150618</version>
+				<version>1.0.3</version>
 				<scope>provided</scope>
 			</dependency>
 			

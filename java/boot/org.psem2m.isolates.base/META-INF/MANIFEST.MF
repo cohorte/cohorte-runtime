@@ -26,6 +26,6 @@ Import-Package: org.apache.felix.ipojo;version="1.8.0",
  org.psem2m.isolates.constants;version="1.0.0",
  org.psem2m.isolates.services.dirs;version="1.0.0",
  org.psem2m.utilities,
- org.psem2m.utilities.files;version="[1.0.2,2.0.0)",
+ org.psem2m.utilities.files;version="[1.0.3,2.0.0)",
  org.psem2m.utilities.logging
 Service-Component: OSGI-INF/CBundleBaseActivator.xml
