@@ -14,4 +14,39 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  g.psem2m.isolates.base;version=1.0.0, org.psem2m.isolates.base.activa
  tors;version=1.0.0, org.psem2m.isolates.loggers, org.psem2m.utilities
  , org.psem2m.utilities.logging
+iPOJO-Components: instance { $component="psem2m-loggers-channel-factor
+ y" $name="psem2m-restserver-logger-channel" property { $name="pChanne
+ lName" $value="bundle-restserver" }}instance { $component="psem2m-res
+ tserver-isolatelogger-factory" $name="psem2m-restserver-isolatelogger
+ " }instance { $component="psem2m-restserver-restserver-factory" $name
+ ="psem2m-restserver-restserver" }component { $classname="org.psem2m.i
+ solates.tool.restserver.CBundleRestServerActivator" $architecture="tr
+ ue" $immediate="true" $name="psem2m-restserver-isolatelogger-factory"
+  $factory-method="getInstance" provides { $specifications="org.psem2m
+ .isolates.base.activators.IIsolateLoggerSvc" }callback { $transition=
+ "validate" $method="validatePojo" }callback { $transition="invalidate
+ " $method="invalidatePojo" }manipulation { $classname="org.psem2m.iso
+ lates.tool.restserver.CBundleRestServerActivator" $super="org.psem2m.
+ isolates.base.activators.CActivatorBase" interface { $name="org.psem2
+ m.isolates.base.activators.IActivatorBase" }method { $name="getInstan
+ ce" $return="org.psem2m.isolates.tool.restserver.CBundleRestServerAct
+ ivator" }method { $name="start" $arguments="{org.osgi.framework.Bundl
+ eContext}" $names="{bundleContext}" }method { $name="stop" $arguments
+ ="{org.osgi.framework.BundleContext}" $names="{bundleContext}" }}}com
+ ponent { $classname="org.psem2m.isolates.tool.restserver.impl.CRestSe
+ rverSvc" $architecture="true" $immediate="true" $name="psem2m-restser
+ ver-restserver-factory" provides { $specifications="org.psem2m.isolat
+ es.tool.restserver.IRestServerSvc" }requires { $field="pRestServerLog
+ gerSvc" $optional="false" $from="psem2m-restserver-logger-channel" }r
+ equires { $field="pIsolateLoggerSvc" $optional="false" $from="psem2m-
+ restserver-isolatelogger" }callback { $transition="validate" $method=
+ "validatePojo" }callback { $transition="invalidate" $method="invalida
+ tePojo" }manipulation { $classname="org.psem2m.isolates.tool.restserv
+ er.impl.CRestServerSvc" $super="org.psem2m.isolates.base.activators.C
+ PojoBase" interface { $name="org.psem2m.isolates.tool.restserver.IRes
+ tServerSvc" }field { $name="pIsolateLoggerSvc" $type="org.psem2m.isol
+ ates.base.IIsolateLoggerSvc" }field { $name="pRestServerLoggerSvc" $t
+ ype="org.psem2m.isolates.loggers.ILogChannelSvc" }method { $name="des
+ troy" }method { $name="init" }method { $name="invalidatePojo" }method
+  { $name="validatePojo" }}}
 

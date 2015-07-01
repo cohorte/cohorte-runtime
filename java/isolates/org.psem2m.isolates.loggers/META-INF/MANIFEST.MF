@@ -14,4 +14,67 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  g.psem2m.isolates.base;version=1.0.0, org.psem2m.isolates.base.activa
  tors;version=1.0.0, org.psem2m.isolates.services.dirs;version=1.0.0, 
  org.psem2m.utilities, org.psem2m.utilities.logging
+iPOJO-Components: instance { $component="psem2m-loggers-channels-facto
+ ry" $name="psem2m-loggers-channels" }component { $classname="org.psem
+ 2m.isolates.loggers.impl.CLogChannelsSvc" $architecture="true" $immed
+ iate="true" $name="psem2m-loggers-channels-factory" provides { $speci
+ fications="org.psem2m.isolates.loggers.ILogChannelsSvc" }requires { $
+ field="pPlatformDirsSvc" $optional="false" }requires { $field="pIsola
+ teLoggerSvc" $optional="false" }callback { $transition="validate" $me
+ thod="validatePojo" }callback { $transition="invalidate" $method="inv
+ alidatePojo" }manipulation { $classname="org.psem2m.isolates.loggers.
+ impl.CLogChannelsSvc" $super="org.psem2m.isolates.base.activators.CPo
+ joBase" interface { $name="org.psem2m.isolates.loggers.ILogChannelsSv
+ c" }field { $name="pIsolateLoggerSvc" $type="org.psem2m.isolates.base
+ .IIsolateLoggerSvc" }field { $name="pLoggers" $type="java.util.TreeMa
+ p" }field { $name="pPlatformDirsSvc" $type="org.psem2m.isolates.servi
+ ces.dirs.IPlatformDirsSvc" }method { $name="destroy" }method { $name=
+ "getChannels" $return="java.util.List" }method { $name="getChannelsId
+ s" $return="java.util.List" }method { $name="getLogChannel" $return="
+ org.psem2m.isolates.loggers.ILogChannelSvc" $arguments="{java.lang.St
+ ring}" $names="{aChannelId}" }method { $name="instanciateLogChannel" 
+ $return="org.psem2m.isolates.loggers.ILogChannelSvc" $arguments="{jav
+ a.lang.String,java.io.File}" $names="{aChannelId,aLogDir}" }method { 
+ $name="invalidatePojo" }method { $name="newLogChannel" $return="org.p
+ sem2m.isolates.loggers.ILogChannelSvc" $arguments="{java.lang.String}
+ " $names="{aChannelId}" }method { $name="validatePojo" }inner { $name
+ ="CActivityLoggerConsole" }inner { $name="CActivityLoggerPsem2m" }}}c
+ omponent { $classname="org.psem2m.isolates.loggers.impl.CLogChannelSv
+ c" $architecture="true" $immediate="true" $name="psem2m-loggers-chann
+ el-factory" provides { $specifications="org.psem2m.isolates.loggers.I
+ LogChannelSvc" }properties { property { $field="pChannelName" $mandat
+ ory="false" $immutable="false" }}requires { $field="pIsolateLoggerSvc
+ " $optional="false" }requires { $field="pLogChannelsSvc" $optional="f
+ alse" $from="psem2m-loggers-channels" }callback { $transition="valida
+ te" $method="validatePojo" }callback { $transition="invalidate" $meth
+ od="invalidatePojo" }manipulation { $classname="org.psem2m.isolates.l
+ oggers.impl.CLogChannelSvc" $super="org.psem2m.isolates.base.activato
+ rs.CPojoBase" interface { $name="org.psem2m.isolates.loggers.ILogChan
+ nelSvc" }field { $name="pChannelName" $type="java.lang.String" }field
+  { $name="pIsolateLoggerSvc" $type="org.psem2m.isolates.base.IIsolate
+ LoggerSvc" }field { $name="pLogChannelsSvc" $type="org.psem2m.isolate
+ s.loggers.ILogChannelsSvc" }field { $name="pLogger" $type="org.psem2m
+ .isolates.loggers.ILogChannelSvc" }method { $name="close" }method { $
+ name="destroy" }method { $name="getLevel" $return="java.util.logging.
+ Level" }method { $name="getRequester" $return="org.psem2m.utilities.l
+ ogging.IActivityRequester" }method { $name="hasLogger" $return="boole
+ an" }method { $name="invalidatePojo" }method { $name="isLogDebugOn" $
+ return="boolean" }method { $name="isLoggable" $return="boolean" $argu
+ ments="{java.util.logging.Level}" $names="{aLevel}" }method { $name="
+ isLogInfoOn" $return="boolean" }method { $name="isLogSevereOn" $retur
+ n="boolean" }method { $name="isLogWarningOn" $return="boolean" }metho
+ d { $name="log" $arguments="{java.util.logging.Level,java.lang.Object
+ ,java.lang.CharSequence,java.lang.Object[]}" $names="{aLevel,aWho,aWh
+ at,aInfos}" }method { $name="log" $arguments="{java.util.logging.LogR
+ ecord}" $names="{record}" }method { $name="logDebug" $arguments="{jav
+ a.lang.Object,java.lang.CharSequence,java.lang.Object[]}" $names="{aW
+ ho,aWhat,aInfos}" }method { $name="logInfo" $arguments="{java.lang.Ob
+ ject,java.lang.CharSequence,java.lang.Object[]}" $names="{aWho,aWhat,
+ aInfos}" }method { $name="logSevere" $arguments="{java.lang.Object,ja
+ va.lang.CharSequence,java.lang.Object[]}" $names="{aWho,aWhat,aInfos}
+ " }method { $name="logWarn" $arguments="{java.lang.Object,java.lang.C
+ harSequence,java.lang.Object[]}" $names="{aWho,aWhat,aInfos}" }method
+  { $name="setLevel" $arguments="{java.util.logging.Level}" $names="{a
+ Level}" }method { $name="setLevel" $arguments="{java.lang.String}" $n
+ ames="{aLevelName}" }method { $name="validatePojo" }}}
 
