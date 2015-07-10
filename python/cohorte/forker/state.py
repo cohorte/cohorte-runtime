@@ -29,7 +29,7 @@ Stores the state of isolates started by the forker, until there dead.
 __docformat__ = "restructuredtext en"
 
 # Boot module version
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 # ------------------------------------------------------------------------------
 

@@ -5,7 +5,7 @@ Common code for isolate starters
 
 :author: Thomas Calmant
 :license: Apache Software License 2.0
-:version: 1.0.0
+:version: 1.0.1
 
 ..
 
@@ -28,7 +28,7 @@ Common code for isolate starters
 __docformat__ = "restructuredtext en"
 
 # Boot module version
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 # ------------------------------------------------------------------------------
 

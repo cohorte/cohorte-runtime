@@ -30,7 +30,7 @@ Java JARs repository utility module
 __docformat__ = "restructuredtext en"
 
 # Boot module version
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 # ------------------------------------------------------------------------------
 

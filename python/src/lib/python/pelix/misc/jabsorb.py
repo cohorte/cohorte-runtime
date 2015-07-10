@@ -36,7 +36,7 @@ https://github.com/isandlaTech/cohorte-org.jabsorb.ng
 __docformat__ = "restructuredtext en"
 
 # Boot module version
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 # ------------------------------------------------------------------------------
 

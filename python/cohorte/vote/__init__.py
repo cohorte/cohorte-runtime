@@ -5,7 +5,7 @@ Voting system implementation
 
 :author: Thomas Calmant
 :license: Apache Software License 2.0
-:version: 1.0.0
+:version: 1.0.1
 
 ..
 
