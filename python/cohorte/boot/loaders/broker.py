@@ -28,7 +28,7 @@ configuration using a HTTP request
 __docformat__ = "restructuredtext en"
 
 # Version
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 # ------------------------------------------------------------------------------
 

@@ -17,11 +17,11 @@
   <parent>
     <groupId>org.cohorte.runtime</groupId>
     <artifactId>cohorte-java</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.1</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <groupId>org.cohorte</groupId>
   <artifactId>org.psem2m.composer.ui</artifactId>
-  <version>1.0.1-SNAPSHOT</version>
+  <version>1.0.1</version>
   <packaging>eclipse-plugin</packaging>
 </project>

@@ -29,7 +29,7 @@ To instantiate in every Python isolate
 __docformat__ = "restructuredtext en"
 
 # Boot module version
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 # ------------------------------------------------------------------------------
 
@@ -150,9 +150,12 @@ class IsolateAgent(object):
         """
         Component invalidated
         """
-        # Send the stopping signal
-        message = beans.Message(cohorte.monitor.SIGNAL_ISOLATE_STOPPING)
-        self._sender.fire_group('monitors', message)
+        try:
+            # Send the stopping signal
+            message = beans.Message(cohorte.monitor.SIGNAL_ISOLATE_STOPPING)
+            self._sender.fire_group('monitors', message)
+        except:
+            _logger.info("Herald transports are not bound.")
 
         # Clear the context
         self._context = None

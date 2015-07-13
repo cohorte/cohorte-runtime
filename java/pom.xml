@@ -17,7 +17,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.cohorte.runtime</groupId>
 	<artifactId>cohorte-java</artifactId>
-	<version>1.0.1-SNAPSHOT</version>
+	<version>1.0.1</version>
 
 	<packaging>pom</packaging>
 
@@ -44,6 +44,7 @@
 		<module>isolates/org.psem2m.isolates.loggers</module>
 		<module>isolates/org.psem2m.isolates.slave.agent</module>
 		<module>isolates/org.psem2m.status.storage</module>
+		<module>isolates/org.cohorte.isolates.debug</module>
 
 		<module>ui/org.psem2m.isolates.ui</module>
 		<module>ui/org.psem2m.isolates.ui.admin</module>
@@ -90,7 +91,7 @@
 			<dependency>
 				<groupId>org.cohorte.herald</groupId>
 				<artifactId>org.cohorte.herald.api</artifactId>
-				<version>0.0.4-SNAPSHOT</version>
+				<version>0.0.4</version>
 				<scope>provided</scope>
 			</dependency>
 

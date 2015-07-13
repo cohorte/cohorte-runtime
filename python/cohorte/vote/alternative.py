@@ -7,7 +7,7 @@ See C.G.P. Grey video on Alternative vote
 
 :author: Thomas Calmant
 :license: Apache Software License 2.0
-:version: 1.0.0
+:version: 1.0.1
 
 ..
 
@@ -27,7 +27,7 @@ See C.G.P. Grey video on Alternative vote
 """
 
 # Module version
-__version_info__ = (1, 0, 0)
+__version_info__ = (1, 0, 1)
 __version__ = ".".join(str(x) for x in __version_info__)
 
 # Documentation strings format

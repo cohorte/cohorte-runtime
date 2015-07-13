@@ -5,7 +5,7 @@ Instrumentation servlet
 
 :author: Thomas Calmant
 :license: Apache Software License 2.0
-:version: 1.0.0
+:version: 1.0.1
 
 ..
 
@@ -25,7 +25,7 @@ Instrumentation servlet
 """
 
 # Module version
-__version_info__ = (1, 0, 0)
+__version_info__ = (1, 0, 1)
 __version__ = ".".join(str(x) for x in __version_info__)
 
 # Documentation strings format
