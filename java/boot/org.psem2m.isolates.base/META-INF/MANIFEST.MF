@@ -5,7 +5,7 @@ Bundle-Name: COHORTE :: Base Services
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-SymbolicName: org.psem2m.isolates.base
 Bundle-Vendor: isandlaTech.com
-Bundle-Version: 1.0.1.qualifier
+Bundle-Version: 1.0.1
 Created-By: iPOJO  1.8.0
 Export-Package: org.psem2m.isolates.base;version="1.0.1";
   uses:="org.osgi.service.log,

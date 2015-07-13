@@ -4,7 +4,7 @@ Bundle-Name: COHORTE :: Python Bridge :: Isolate Configuration
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.cohorte.pyboot.config
 Bundle-Vendor: isandlaTech.com
-Bundle-Version: 1.0.1.qualifier
+Bundle-Version: 1.0.1
 Created-By: iPOJO  1.8.0
 Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  .ipojo.architecture;version=1.8.0, org.cohorte.pyboot.api, org.osgi.s
