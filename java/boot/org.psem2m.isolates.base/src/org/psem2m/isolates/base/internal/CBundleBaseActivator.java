@@ -325,6 +325,13 @@ public class CBundleBaseActivator extends CXObjectBase implements
 	 */
 	private void initLogger(final BundleContext aBundleContext) {
 
+		String wIsolateName = aBundleContext
+				.getProperty(IPlatformProperties.PROP_ISOLATE_NAME);
+
+		if (wIsolateName == null || wIsolateName.isEmpty()) {
+			wIsolateName = "IsolateX";
+		}
+
 		try {
 			// Be sure we have a valid platform service instance
 			final IPlatformDirsSvc wPlatformDirsSvc = getPlatformDirs();
@@ -332,13 +339,6 @@ public class CBundleBaseActivator extends CXObjectBase implements
 			// the name of the logger
 			final String wLoggerName = "cohorte.isolate."
 					+ wPlatformDirsSvc.getIsolateUID();
-
-			String wIsolateName = aBundleContext
-					.getProperty(IPlatformProperties.PROP_ISOLATE_NAME);
-
-			if (wIsolateName == null || wIsolateName.isEmpty()) {
-				wIsolateName = "IsolateX";
-			}
 
 			// the FilePathPattern of the logger
 			final StringBuilder wSB = new StringBuilder();
@@ -355,24 +355,16 @@ public class CBundleBaseActivator extends CXObjectBase implements
 					wFilePathPattern, IActivityLoggerBase.ALL, LOG_FILES_SIZE,
 					LOG_FILES_COUNT);
 
-			// log the name
-			pActivityLogger.logInfo(this, "initLogger",
-					"LoggerName=[%s] FilePathPattern=[%s] ", wLoggerName,
-					wFilePathPattern);
-
 		} catch (final Exception e) {
 			pActivityLogger = CActivityLoggerBasicConsole.getInstance();
 			pActivityLogger.logSevere(this, "initLogger",
 					"Can't instanciate a CIsolateLoggerChannel", e);
 		}
 
-		// add the java context
-		pActivityLogger
-				.logInfo(this, "initLogger", CXJvmUtils.getJavaContext());
-
-		// add the environment context
-		pActivityLogger.logInfo(this, "initLogger", CXOSUtils.getEnvContext());
-
+		// Logs the isolatename, the java context and the environment context
+		pActivityLogger.logInfo(this, "initLogger",
+				"Logger of the isolate=[%s] %s %s", wIsolateName,
+				CXJvmUtils.getJavaContext(), CXOSUtils.getEnvContext());
 	}
 
 	/**
@@ -536,7 +528,7 @@ public class CBundleBaseActivator extends CXObjectBase implements
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
 	 * )
@@ -613,7 +605,7 @@ public class CBundleBaseActivator extends CXObjectBase implements
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
 	 */
