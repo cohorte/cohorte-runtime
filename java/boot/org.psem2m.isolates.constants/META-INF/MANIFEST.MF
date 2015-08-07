@@ -7,10 +7,10 @@ Bundle-Vendor: isandlaTech.com
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Import-Package: org.osgi.framework;version="1.5.0",
  org.psem2m.utilities;version="[1.0.3,2.0.0)"
-Export-Package: org.cohorte.shell;version="1.0.0",
+Export-Package: org.cohorte.shell,
  org.psem2m.isolates.constants,
  org.psem2m.isolates.services.conf;uses:="org.psem2m.isolates.services.conf.beans",
- org.psem2m.isolates.services.conf.beans;version="1.0.0",
+ org.psem2m.isolates.services.conf.beans,
  org.psem2m.isolates.services.dirs;uses:="org.psem2m.isolates.constants",
  org.psem2m.isolates.services.monitoring,
  org.psem2m.isolates.slave.agent

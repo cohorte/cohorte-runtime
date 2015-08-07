@@ -6,11 +6,11 @@ Bundle-SymbolicName: org.cohorte.pyboot.config
 Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.2.qualifier
 Created-By: iPOJO  1.8.0
-Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
- .ipojo.architecture;version=1.8.0, org.cohorte.pyboot.api, org.osgi.s
+Import-Package: org.apache.felix.ipojo, org.apache.felix
+ .ipojo.architecture, org.cohorte.pyboot.api, org.osgi.s
  ervice.cm;version=1.2, org.osgi.service.log;version=1.3, org.psem2m.i
- solates.services.conf;version=1.0.2.qualifier, org.psem2m.isolates.services.con
- f.beans;version=1.0.0
+ solates.services.conf, org.psem2m.isolates.services.con
+ f.beans
 iPOJO-Components: component { $name="cohorte-pyboot-configuration-pars
  er-factory" $classname="org.cohorte.pyboot.config.ConfigurationParser
  " provides { $specifications="{org.psem2m.isolates.services.conf.ICon

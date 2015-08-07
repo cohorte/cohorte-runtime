@@ -5,8 +5,8 @@ Bundle-SymbolicName: org.psem2m.isolates.utilities.teststools
 Bundle-Version: 1.0.2.qualifier
 Bundle-Vendor: isandlaTech
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Export-Package: org.psem2m.utilities.teststools;version="1.0.0"
+Export-Package: org.psem2m.utilities.teststools
 Import-Package: junit.framework,
- org.psem2m.utilities;version="1.0.0",
- org.psem2m.utilities.files;version="1.0.0",
- org.psem2m.utilities.logging;version="1.0.0"
+ org.psem2m.utilities,
+ org.psem2m.utilities.files,
+ org.psem2m.utilities.logging

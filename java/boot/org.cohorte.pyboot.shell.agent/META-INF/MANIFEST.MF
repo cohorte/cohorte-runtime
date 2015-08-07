@@ -6,9 +6,9 @@ Bundle-SymbolicName: org.cohorte.pyboot.shell.agent
 Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.2.qualifier
 Created-By: iPOJO  1.8.0
-Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
- .ipojo.architecture;version=1.8.0, org.cohorte.herald;version=0.0.1, 
- org.cohorte.pyboot.api, org.cohorte.shell;version=1.0.0, org.osgi.fra
+Import-Package: org.apache.felix.ipojo, org.apache.felix
+ .ipojo.architecture, org.cohorte.herald, 
+ org.cohorte.pyboot.api, org.cohorte.shell, org.osgi.fra
  mework;version=1.6.0, org.osgi.service.cm;version=1.2, org.osgi.servi
  ce.http;version=1.2.0, org.osgi.service.log;version=1.3
 

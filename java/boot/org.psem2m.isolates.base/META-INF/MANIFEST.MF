@@ -7,7 +7,7 @@ Bundle-SymbolicName: org.psem2m.isolates.base
 Bundle-Vendor: isandlaTech.com
 Bundle-Version: 1.0.2.qualifier
 Created-By: iPOJO  1.8.0
-Export-Package: org.psem2m.isolates.base;version="1.0.2.qualifier";
+Export-Package: org.psem2m.isolates.base;
   uses:="org.osgi.service.log,
    org.osgi.framework,
    org.psem2m.utilities.logging,
@@ -17,8 +17,8 @@ Export-Package: org.psem2m.isolates.base;version="1.0.2.qualifier";
  org.psem2m.isolates.base.bundles;uses:="org.osgi.framework,org.psem2m.utilities.files",
  org.psem2m.isolates.base.isolates,
  org.psem2m.isolates.base.isolates.boot
-Import-Package: org.apache.felix.ipojo;version="1.8.0",
- org.apache.felix.ipojo.architecture;version="1.8.0",
+Import-Package: org.apache.felix.ipojo,
+ org.apache.felix.ipojo.architecture,
  org.osgi.framework;version="1.3.0",
  org.osgi.service.cm;version="1.2",
  org.osgi.service.log;version="1.3.0",

@@ -6,11 +6,11 @@ Bundle-SymbolicName: org.cohorte.composer.isolate
 Bundle-Vendor: isandlaTech.com
 Bundle-Version: 3.0.0
 Created-By: iPOJO 1.10.1
-Import-Package: org.apache.felix.ipojo;version="[1.8.0,2.0.0)", org.ap
- ache.felix.ipojo.annotations;version="[1.8.0,2.0.0)", org.apache.feli
- x.ipojo.architecture;version="[1.12.1,2.0.0)", org.apache.felix.ipojo
- .handlers.providedservice;version="[1.8.0,2.0.0)", org.apache.felix.i
- pojo.metadata;version="[1.8.0,2.0.0)", org.cohorte.composer.api;versi
+Import-Package: org.apache.felix.ipojo, org.ap
+ ache.felix.ipojo.annotations, org.apache.feli
+ x.ipojo.architecture, org.apache.felix.ipojo
+ .handlers.providedservice, org.apache.felix.i
+ pojo.metadata, org.cohorte.composer.api;versi
  on=3.0.0, org.cohorte.remote, org.osgi.framework;version=1.7.0, org.o
  sgi.service.cm;version=1.2, org.osgi.service.log;version=1.3, org.pse
  m2m.isolates.constants
