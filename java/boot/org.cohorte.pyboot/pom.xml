@@ -18,12 +18,11 @@
 	<parent>
 		<groupId>org.cohorte.runtime</groupId>
 		<artifactId>cohorte-java</artifactId>
-		<version>1.0.1</version>
+		<version>1.0.2-SNAPSHOT</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
 	<artifactId>org.cohorte.pyboot</artifactId>
 	<packaging>eclipse-plugin</packaging>
-	<version>1.0.1</version>
 	<build>
 		<plugins>
 			<plugin>

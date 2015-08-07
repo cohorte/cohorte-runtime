@@ -13,7 +13,7 @@ Import-Package: org.apache.felix.ipojo;version="[1.8.0,2.0.0)", org.ap
  pojo.metadata;version="[1.8.0,2.0.0)", org.cohorte.composer.api;versi
  on=3.0.0, org.cohorte.remote, org.osgi.framework;version=1.7.0, org.o
  sgi.service.cm;version=1.2, org.osgi.service.log;version=1.3, org.pse
- m2m.isolates.constants;version=1.0.1
+ m2m.isolates.constants
 iPOJO-Components: instance { $name="cohorte-composer-isolate" $compone
  nt="org.cohorte.composer.isolate.IsolateComposer" }instance { $name="
  cohorte-composer-agent-ipojo" $component="org.cohorte.composer.isolat

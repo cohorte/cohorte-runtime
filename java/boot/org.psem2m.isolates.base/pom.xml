@@ -18,11 +18,10 @@
 	<parent>
 		<groupId>org.cohorte.runtime</groupId>
 		<artifactId>cohorte-java</artifactId>
-		<version>1.0.1</version>
+		<version>1.0.2-SNAPSHOT</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
-	<artifactId>org.psem2m.isolates.base</artifactId>
-	<version>1.0.1</version>
+	<artifactId>org.psem2m.isolates.base</artifactId>	
 	<packaging>eclipse-plugin</packaging>
 
 	<dependencies>

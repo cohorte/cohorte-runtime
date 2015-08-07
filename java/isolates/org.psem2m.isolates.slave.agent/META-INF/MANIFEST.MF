@@ -4,7 +4,7 @@ Bundle-Name: PSEM2M :: Isolate Agent
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.psem2m.isolates.slave.agent
 Bundle-Vendor: isandlaTech.com
-Bundle-Version: 1.0.1
+Bundle-Version: 1.0.2.qualifier
 Created-By: iPOJO  1.8.0
 Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  .ipojo.architecture;version=1.8.0, org.cohorte.herald;version=0.0.1, 
@@ -14,6 +14,6 @@ Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
  activators;version=1.0.0, org.psem2m.isolates.base.bundles;version=1.
  0.0, org.psem2m.isolates.constants;version=1.0.0, org.psem2m.isolates
  .services.dirs;version=1.0.0, org.psem2m.isolates.services.monitoring
- ;version=1.0.0, org.psem2m.isolates.slave.agent;version=1.0.1, org.ps
+ ;version=1.0.0, org.psem2m.isolates.slave.agent, org.ps
  em2m.utilities.logging;version=1.0.0
 

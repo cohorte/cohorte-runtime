@@ -5,26 +5,26 @@ Bundle-Name: COHORTE :: Base Services
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-SymbolicName: org.psem2m.isolates.base
 Bundle-Vendor: isandlaTech.com
-Bundle-Version: 1.0.1
+Bundle-Version: 1.0.2.qualifier
 Created-By: iPOJO  1.8.0
-Export-Package: org.psem2m.isolates.base;version="1.0.1";
+Export-Package: org.psem2m.isolates.base;version="1.0.2.qualifier";
   uses:="org.osgi.service.log,
    org.osgi.framework,
    org.psem2m.utilities.logging,
    org.psem2m.utilities.files,
    org.psem2m.utilities",
- org.psem2m.isolates.base.activators;version="1.0.1",
- org.psem2m.isolates.base.bundles;version="1.0.0";uses:="org.osgi.framework,org.psem2m.utilities.files",
- org.psem2m.isolates.base.isolates;version="1.0.0",
- org.psem2m.isolates.base.isolates.boot;version="1.0.0"
+ org.psem2m.isolates.base.activators,
+ org.psem2m.isolates.base.bundles;uses:="org.osgi.framework,org.psem2m.utilities.files",
+ org.psem2m.isolates.base.isolates,
+ org.psem2m.isolates.base.isolates.boot
 Import-Package: org.apache.felix.ipojo;version="1.8.0",
  org.apache.felix.ipojo.architecture;version="1.8.0",
  org.osgi.framework;version="1.3.0",
  org.osgi.service.cm;version="1.2",
  org.osgi.service.log;version="1.3.0",
- org.psem2m.isolates.base.isolates.boot;version="1.0.0",
- org.psem2m.isolates.constants;version="1.0.0",
- org.psem2m.isolates.services.dirs;version="1.0.0",
+ org.psem2m.isolates.base.isolates.boot,
+ org.psem2m.isolates.constants,
+ org.psem2m.isolates.services.dirs,
  org.psem2m.utilities,
  org.psem2m.utilities.files;version="[1.0.3,2.0.0)",
  org.psem2m.utilities.logging

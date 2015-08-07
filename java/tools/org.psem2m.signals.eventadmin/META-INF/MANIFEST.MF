@@ -4,15 +4,12 @@ Bundle-Name: PSEM2M :: Signals :: Event Admin Bridge
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.psem2m.signals.eventadmin
 Bundle-Vendor: isandlaTech.com
-Bundle-Version: 1.0.1
+Bundle-Version: 1.0.2.qualifier
 Created-By: iPOJO  1.8.0
-Import-Package: org.apache.felix.ipojo;version=1.8.0, org.apache.felix
- .ipojo.architecture;version=1.8.0, org.osgi.framework;version=1.3.0, 
- org.osgi.service.cm;version=1.2, org.osgi.service.event;version=1.2.0
- , org.osgi.service.log;version=1.3, org.psem2m.isolates.base;version=
- 1.0.0, org.psem2m.isolates.base.activators;version=1.0.0, org.psem2m.
- isolates.constants;version=1.0.0, org.psem2m.signals;version=1.0.1, o
- rg.psem2m.utilities;version=1.0.0, org.psem2m.utilities.logging;versi
- on=1.0.0
+Import-Package: org.apache.felix.ipojo, org.apache.felix
+ .ipojo.architecture, org.osgi.framework, 
+ org.osgi.service.cm, org.osgi.service.event
+ , org.osgi.service.log, org.psem2m.isolates.base, org.psem2m.isolates.base.activators, org.psem2m.
+ isolates.constants, org.psem2m.signals, org.psem2m.utilities, org.psem2m.utilities.logging
 Service-Component: OSGI-INF/*.xml
 
