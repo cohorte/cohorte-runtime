@@ -1,0 +1,1 @@
+Il faut mettre à jour ce composant pour exporter vers une composition Cohorte.
