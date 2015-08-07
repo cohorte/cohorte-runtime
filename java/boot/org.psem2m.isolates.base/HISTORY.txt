@@ -1,0 +1,10 @@
+
+de 1.0.1 (relase 1.1) a 1.0.2
+
+MOD_OG_20150713 
+Enhancement of the initialization of the Isolate Logger 
+
+
+MOD_OG_20150713 
+Documentation enhancements
+Isolate ActivityLogger enhancements
