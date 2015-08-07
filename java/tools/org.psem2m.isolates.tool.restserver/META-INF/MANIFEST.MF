@@ -8,12 +8,11 @@ Bundle-SymbolicName: org.psem2m.isolates.tool.restserver
 Bundle-Vendor: isandlaTech (www.isandlatech.com)
 Bundle-Version: 1.0.2.qualifier
 Created-By: iPOJO  1.8.0
-Import-Package: org.apache.felix.ipojo, org.apache.felix
- .ipojo.architecture, org.osgi.framework;version=1.3.0, 
- org.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.3, or
- g.psem2m.isolates.base, org.psem2m.isolates.base.activa
- tors, org.psem2m.isolates.loggers, org.psem2m.utilities
- , org.psem2m.utilities.logging
+Import-Package: org.apache.felix.ipojo, org.apache.felix.ipojo.archite
+ cture, org.osgi.framework;version=1.3.0, org.osgi.service.cm;version=
+ 1.2, org.osgi.service.log;version=1.3, org.psem2m.isolates.base, org.
+ psem2m.isolates.base.activators, org.psem2m.isolates.loggers, org.pse
+ m2m.utilities, org.psem2m.utilities.logging
 iPOJO-Components: instance { $component="psem2m-loggers-channel-factor
  y" $name="psem2m-restserver-logger-channel" property { $name="pChanne
  lName" $value="bundle-restserver" }}instance { $component="psem2m-res

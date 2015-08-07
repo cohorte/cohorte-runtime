@@ -9,12 +9,11 @@ Bundle-Version: 1.0.2.qualifier
 Created-By: iPOJO  1.8.0
 Export-Package: org.psem2m.isolates.tracer,org.psem2m.isolates.tracer.
  essais,org.psem2m.isolates.tracer.impl
-Import-Package: org.apache.felix.ipojo, org.apache.felix
- .ipojo.architecture, org.osgi.framework;version=1.3.0, 
- org.osgi.service.cm;version=1.2, org.osgi.service.log;version=1.3, or
- g.psem2m.isolates.base, org.psem2m.isolates.base.activa
- tors, org.psem2m.isolates.loggers, org.psem2m.utilities
- , org.psem2m.utilities.logging
+Import-Package: org.apache.felix.ipojo, org.apache.felix.ipojo.archite
+ cture, org.osgi.framework;version=1.3.0, org.osgi.service.cm;version=
+ 1.2, org.osgi.service.log;version=1.3, org.psem2m.isolates.base, org.
+ psem2m.isolates.base.activators, org.psem2m.isolates.loggers, org.pse
+ m2m.utilities, org.psem2m.utilities.logging
 iPOJO-Components: instance { $component="psem2m-tracer-factory" $name=
  "psem2m-tracer" }component { $classname="org.psem2m.isolates.tracer.i
  mpl.CTracerSvc" $architecture="true" $immediate="true" $name="psem2m-
