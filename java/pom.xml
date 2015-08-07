@@ -25,6 +25,9 @@
 		<tycho-version>0.21.0</tycho-version>
 		<osgi-version>5.0.0</osgi-version>
 		<ipojo-version>1.12.1</ipojo-version>
+		<herald-version>0.0.5-SNAPSHOT</herald-version>
+		<remote-services-version>1.2.1-SNAPSHOT</remote-services-version>
+		<cohorte-utilities-version>1.0.3</cohorte-utilities-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
@@ -45,10 +48,10 @@
 		<module>isolates/org.psem2m.isolates.slave.agent</module>
 		<module>isolates/org.psem2m.status.storage</module>
 		<!--module>isolates/org.cohorte.isolates.debug</module-->
-
+		<!--
 		<module>ui/org.psem2m.isolates.ui</module>
 		<module>ui/org.psem2m.isolates.ui.admin</module>
-
+		-->
 		<module>cohorte-runtime-package</module>
 	</modules>
 
@@ -91,7 +94,7 @@
 			<dependency>
 				<groupId>org.cohorte.herald</groupId>
 				<artifactId>org.cohorte.herald.api</artifactId>
-				<version>0.0.4</version>
+				<version>${herald-version}</version>
 				<scope>provided</scope>
 			</dependency>
 
@@ -99,7 +102,7 @@
 			<dependency>
 				<groupId>org.cohorte.utilities</groupId>
 				<artifactId>org.cohorte.utilities</artifactId>
-				<version>1.0.3</version>
+				<version>${cohorte-utilities-version}</version>
 				<scope>provided</scope>
 			</dependency>
 			
@@ -107,7 +110,7 @@
             <dependency>
                 <groupId>org.cohorte.remote</groupId>
                 <artifactId>org.cohorte.remote.api</artifactId>
-                <version>1.2.0</version>
+                <version>${remote-services-version}</version>
                 <scope>provided</scope>
             </dependency>
 		</dependencies>
