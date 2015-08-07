@@ -227,9 +227,7 @@ class MonitorBasic(object):
             return False
 
         # Use/Generate the isolate UID
-        uid = isolate.get('custom_uid')
-        if not uid:
-            uid = str(uuid.uuid4())
+        uid = isolate.get('custom_uid') or str(uuid.uuid4())
 
         # Store it, to force the forker to use the same UID
         isolate['uid'] = uid
@@ -305,18 +303,14 @@ class MonitorBasic(object):
         custom_artifacts = [artifact for artifact in resolution[0]
                             if artifact not in isolate_artifacts]
 
-        # Generate a UID, if necessary
-        if not uid:
-            uid = uuid.uuid4()
-
-        # Convert the UID into a string
-        uid = str(uid)
-
         # Prepare a configuration
         # Node name and UID will be given by the forker
         config = self._config.prepare_isolate(uid, name, kind,
                                               level, sublevel,
                                               custom_artifacts)
+
+        # Get the UID as a result of the configuration (support custom ones)
+        uid = config['uid']
 
         # Store the isolate in the status
         self._status.add_isolate(uid)

@@ -42,6 +42,7 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
 # Python standard library
 import collections
 import logging
+import uuid
 
 # ------------------------------------------------------------------------------
 
@@ -223,7 +224,8 @@ class BootConfigParser(object):
             configuration = {}
 
         # Set up isolate properties
-        configuration['uid'] = uid
+        configuration['uid'] = uid \
+            or configuration.get('custom_uid') or str(uuid.uuid4())
         configuration['name'] = name
         configuration['kind'] = kind
 
