@@ -53,7 +53,7 @@ public interface IPlatformDirsSvc extends IPlatformProperties, IXDescriber {
 	 * Returns the root directory of the current isolate
 	 *
 	 * <pre>
-	 * $BASE/var/$ISOLATE_NAME/$ISOLATE_UUID/
+	 * ...base/var/[ISOLATE_NAME]/[ISOLATE_UUID]/
 	 * </pre>
 	 *
 	 * @return The isolate working directory
@@ -65,7 +65,7 @@ public interface IPlatformDirsSvc extends IPlatformProperties, IXDescriber {
 	 * if needed.
 	 *
 	 * <pre>
-	 * $BASE / var / $ISOLATE_NAME / $ISOLATE_UUID / log
+	 * ...base/var/[ISOLATE_NAME]/[ISOLATE_UUID]/log
 	 * </pre>
 	 *
 	 * @return the log directory of the current isolate
@@ -146,7 +146,7 @@ public interface IPlatformDirsSvc extends IPlatformProperties, IXDescriber {
 	 * Retrieves the cohorte base dir path
 	 *
 	 * <pre>
-	 * -Dcohorte-Dcohorte.base=${workspace_loc:platform}/BASE
+	 * -Dcohorte.base=/opt/isandlaTech/product/base
 	 * </pre>
 	 *
 	 * @return the base directory of the platform
@@ -157,7 +157,7 @@ public interface IPlatformDirsSvc extends IPlatformProperties, IXDescriber {
 	 * Retrieves the cohorte home dir path
 	 *
 	 * <pre>
-	 * -Dcohorte.home=${workspace_loc:platform}/HOME
+	 * -Dcohorte.home=/opt/isandlaTech/product/home
 	 * </pre>
 	 *
 	 * @return the home directory of the platform
@@ -165,15 +165,14 @@ public interface IPlatformDirsSvc extends IPlatformProperties, IXDescriber {
 	File getPlatformHome();
 
 	/**
-	 * Retrieves the platform root directories : base, home and working
-	 * directory
+	 * Returns the platform root directories : base, home and working directory
 	 *
-	 * @return The platform root directories
+	 * @return an array of directories
 	 */
 	File[] getPlatformRootDirs();
 
 	/**
-	 * Retrieves all known repositories, in order of priority.
+	 * Returns an array of all known repositories, in order of priority.
 	 *
 	 * The first element is the base repository, then the home repository, then
 	 * the system repository.

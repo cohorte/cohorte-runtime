@@ -1,3 +1,8 @@
-MOD_OG_20150415
-- Enhancement of the comments of the methods of the interface IPlatformDirsSvc
-- no version change
+
+- MOD_OG_20150821
+  - decalre the property "cohorte.isolate.log.storage" used to to localize the directory where the log of the isolate will be stored
+
+
+- MOD_OG_20150415
+  - Enhancement of the comments of the methods of the interface IPlatformDirsSvc
+  - no version change

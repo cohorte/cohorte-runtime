@@ -22,83 +22,91 @@ package org.psem2m.isolates.constants;
  */
 public interface IPlatformProperties {
 
-    /**
-     * The debug port used by the forker
-     *
-     * If present, the platform is ran in debug mode and the isolates must be
-     * started in remote debug mode, connecting to localhost:debug_port+n, with
-     * n > 0.
-     */
-    String PROP_BASE_DEBUG_PORT = "org.psem2m.debug.port";
+	/**
+	 * The debug port used by the forker
+	 *
+	 * If present, the platform is ran in debug mode and the isolates must be
+	 * started in remote debug mode, connecting to localhost:debug_port+n, with
+	 * n > 0.
+	 */
+	String PROP_BASE_DEBUG_PORT = "org.psem2m.debug.port";
 
-    /**
-     * URL to the configuration broker
-     */
-    String PROP_BROKER_URL = "cohorte.configuration.broker.url";
+	/**
+	 * URL to the configuration broker
+	 */
+	String PROP_BROKER_URL = "cohorte.configuration.broker.url";
 
-    /**
-     * contains the name of the current isolates.
-     *
-     * <pre>
-     * -Dcohorte.isolate.name=development
-     * </pre>
-     */
-    String PROP_ISOLATE_NAME = "cohorte.isolate.name";
+	/**
+	 * MOD_0G_20150821
+	 *
+	 * Path (absolute or relative ) to localize the directory where the log are
+	 * stored
+	 */
+	String PROP_ISOLATE_LOG_STORAGE = "cohorte.isolate.log.storage";
 
-    /**
-     * contains the uuid of the current isolates.
-     *
-     * <pre>
-     * -Dcohorte.isolate.uid=POSD-UEZS-NBG9-JA72
-     * </pre>
-     */
-    String PROP_ISOLATE_UID = "cohorte.isolate.uid";
+	/**
+	 * contains the name of the current isolates.
+	 *
+	 * <pre>
+	 * -Dcohorte.isolate.name=development
+	 * </pre>
+	 */
+	String PROP_ISOLATE_NAME = "cohorte.isolate.name";
 
-    /**
-     * contains the node name of the current isolates.
-     *
-     * <pre>
-     * -Dcohorte.node.uid=GFRY-HYRZ-LOIS-85HY
-     * </pre>
-     */
-    String PROP_NODE_NAME = "cohorte.node.name";
+	/**
+	 * contains the uuid of the current isolates.
+	 *
+	 * <pre>
+	 * -Dcohorte.isolate.uid=POSD-UEZS-NBG9-JA72
+	 * </pre>
+	 */
+	String PROP_ISOLATE_UID = "cohorte.isolate.uid";
 
-    /**
-     * contains the node uuid of the current isolates.
-     *
-     * <pre>
-     * -Dcohorte.node.uid=GFRY-HYRZ-LOIS-85HY
-     * </pre>
-     */
-    String PROP_NODE_UID = "cohorte.node.uid";
+	/**
+	 * contains the node name of the current isolates.
+	 *
+	 * <pre>
+	 * -Dcohorte.node.uid=GFRY-HYRZ-LOIS-85HY
+	 * </pre>
+	 */
+	String PROP_NODE_NAME = "cohorte.node.name";
 
-    /**
-     * contains the absolute path of the BASE folder of the current application
-     */
-    String PROP_PLATFORM_BASE = "cohorte.base";
+	/**
+	 * contains the node uuid of the current isolates.
+	 *
+	 * <pre>
+	 * -Dcohorte.node.uid=GFRY-HYRZ-LOIS-85HY
+	 * </pre>
+	 */
+	String PROP_NODE_UID = "cohorte.node.uid";
 
-    /**
-     * contains the absolute path of the HOME folder of the current application
-     */
-    String PROP_PLATFORM_HOME = "cohorte.home";
+	/**
+	 * contains the absolute path of the BASE folder of the current application
+	 */
+	String PROP_PLATFORM_BASE = "cohorte.base";
 
-    /**
-     * Contains the name (or IP) of the current isolate host machine
-     */
-    String PROP_PLATFORM_HOST_NAME = "org.psem2m.platform.host.name";
+	/**
+	 * contains the absolute path of the HOME folder of the current application
+	 */
+	String PROP_PLATFORM_HOME = "cohorte.home";
 
-    /**
-     * if "true", allows the redirection of the output of the OSGi log service
-     * in the logger of the current isolate.
-     *
-     * <pre>
-     * -Dorg.psem2m.platform.isolate.redirect.logservice=true
-     * </pre>
-     */
-    String PROP_PLATFORM_REDIRECT_LOGSVC = "org.psem2m.platform.isolate.redirect.logservice";
+	/**
+	 * Contains the name (or IP) of the current isolate host machine
+	 */
+	String PROP_PLATFORM_HOST_NAME = "org.psem2m.platform.host.name";
 
-    /**
-     * Special isolate name: forker
-     */
-    String SPECIAL_NAME_FORKER = "cohorte.internals.forker";
+	/**
+	 * if "true", allows the redirection of the output of the OSGi log service
+	 * in the logger of the current isolate.
+	 *
+	 * <pre>
+	 * -Dorg.psem2m.platform.isolate.redirect.logservice=true
+	 * </pre>
+	 */
+	String PROP_PLATFORM_REDIRECT_LOGSVC = "org.psem2m.platform.isolate.redirect.logservice";
+
+	/**
+	 * Special isolate name: forker
+	 */
+	String SPECIAL_NAME_FORKER = "cohorte.internals.forker";
 }
