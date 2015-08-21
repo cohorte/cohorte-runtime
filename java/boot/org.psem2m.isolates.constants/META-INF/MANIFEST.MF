@@ -11,6 +11,6 @@ Export-Package: org.cohorte.shell,
  org.psem2m.isolates.constants,
  org.psem2m.isolates.services.conf;uses:="org.psem2m.isolates.services.conf.beans",
  org.psem2m.isolates.services.conf.beans,
- org.psem2m.isolates.services.dirs;uses:="org.psem2m.isolates.constants",
+ org.psem2m.isolates.services.dirs;uses:="org.psem2m.isolates.constants,org.psem2m.utilities",
  org.psem2m.isolates.services.monitoring,
  org.psem2m.isolates.slave.agent
