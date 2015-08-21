@@ -103,8 +103,9 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 		pContext = aBundleContext;
 
 		// Store the working directory fixed by the launcher of the isolate :
-		// The "user.dir" path is the isolateDir path ( eg.
-		// ...BASE/var/myIsolate/OIUE-HGD8-JUSC-8VS)
+		// The "user.dir" path is the isolateDir path
+		// eg.
+		// ${project_loc:/fr.agilium.ng.base}/var/serverldap/0000-SERV-ERLD-AP38-1010
 		pIsolateUserDir = validIsolateUserDir(new File(
 				System.getProperty("user.dir")));
 
@@ -119,7 +120,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.psem2m.utilities.IXDescriber#addDescriptionInBuffer(java.lang.Appendable
 	 * )
@@ -142,7 +143,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 				getPlatformBase());
 
 		appendKeyValInBuff(aBuffer, "IsolateDir", getIsolateDir());
-		boolean wIsolateDirRespectsFormat = testIsolateUserDir();
+		final boolean wIsolateDirRespectsFormat = testIsolateUserDir();
 		appendKeyValInBuff(aBuffer, "IsolateDirRespectsFormat",
 				wIsolateDirRespectsFormat);
 		if (!wIsolateDirRespectsFormat) {
@@ -153,10 +154,10 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 		appendKeyValInBuff(aBuffer, "IsolateStorageDir", getIsolateStorageDir());
 
 		// MOD_OG_20150625
-		File[] wRepositories = getRepositories();
+		final File[] wRepositories = getRepositories();
 		appendKeyValInBuff(aBuffer, "Repositories", wRepositories.length);
 		int wIdx = 0;
-		for (File wRepository : wRepositories) {
+		for (final File wRepository : wRepositories) {
 			appendKeyValInBuff(aBuffer, String.format("Repository(%s)", wIdx),
 					wRepository.getAbsolutePath());
 			wIdx++;
@@ -186,14 +187,14 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 	 */
 	private File calculateIsolateDir() {
 
-		// eg. ...BASE/var/myIsolate/OIUE-HGD8-JUSC-8VS
+		// eg. ...base/var/myIsolate/OIUE-HGD8-JUSC-8VS
 		return new CXFileDir(getPlatformBase(), DIRNAME_VAR, getIsolateName(),
 				getIsolateUID());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateDir()
 	 */
 	@Override
@@ -204,7 +205,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.psem2m.isolates.osgi.IPlatformDirs#getIsolateLogDir()
 	 */
 	@Override
@@ -215,7 +216,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateName()
 	 */
 	@Override
@@ -235,7 +236,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateStorageDir()
 	 */
@@ -247,7 +248,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateUID()
 	 */
 	@Override
@@ -265,7 +266,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateUserDir()
 	 */
@@ -277,7 +278,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateNode()
 	 */
 	@Override
@@ -297,7 +298,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateNode()
 	 */
 	@Override
@@ -314,7 +315,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.psem2m.isolates.osgi.IPlatformDirs#getPlatformBaseDir()
 	 */
 	@Override
@@ -322,10 +323,11 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 		// init if null with Valid directory
 		if (pPlatformBaseDir == null) {
-			pPlatformBaseDir = validDirectory(
-					new File(
-							pContext.getProperty(IPlatformProperties.PROP_PLATFORM_BASE)),
-					pIsolateUserDir);
+
+			// eg. -Dcohorte.base=${project_loc:/fr.agilium.ng.base}
+			final File wBaseDir = new File(
+					System.getProperty(IPlatformProperties.PROP_PLATFORM_BASE));
+			pPlatformBaseDir = validDirectory(wBaseDir, pIsolateUserDir);
 		}
 
 		return pPlatformBaseDir;
@@ -342,7 +344,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.psem2m.isolates.base.IPlatformDirsSvc#getPlatformHomeDir()
 	 */
 	@Override
@@ -360,7 +362,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.psem2m.isolates.base.dirs.IPlatformDirsSvc#getPlatformRootDirs()
 	 */
 	@Override
@@ -372,7 +374,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.psem2m.isolates.base.IPlatformDirsSvc#getRepositories()
 	 */
 	@Override
@@ -466,13 +468,13 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 	 */
 	private boolean testIsolateUserDir(final File aIsolateUserDir) {
 		return aIsolateUserDir != null
-				&& aIsolateUserDir.getAbsolutePath().equals(
+				&& aIsolateUserDir.getAbsolutePath().equalsIgnoreCase(
 						calculateIsolateDir().getAbsolutePath());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.psem2m.utilities.IXDescriber#toDescription()
 	 */
 	@Override
@@ -531,6 +533,17 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 	 *
 	 * @param aDirectory
 	 *            to valid
+	 * @return the passed aDirectory
+	 */
+	private File validDirectory(final File aDirectory) {
+		return validDirectory(aDirectory, aDirectory);
+	}
+
+	/**
+	 * MOD_OG_20150625 add warning messages
+	 *
+	 * @param aDirectory
+	 *            to valid
 	 * @param aDefault
 	 *            a default directory
 	 * @return aDirectory or aDefault if aDirectory doesn't exist
@@ -557,17 +570,22 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 	 *
 	 * MOD_OG_20150625
 	 *
+	 * This method logs warning in the stdout if there's an error
+	 *
 	 * @param aIsolateUserDir
 	 *            the IsolateUserDir to valid
 	 * @return the validated IsolateUserDir
 	 */
 	private File validIsolateUserDir(final File aIsolateUserDir) {
 
-		validDirectory(aIsolateUserDir, aIsolateUserDir);
+		// to log wargning if needed
+		validDirectory(aIsolateUserDir);
 
 		if (aIsolateUserDir != null && !testIsolateUserDir(aIsolateUserDir)) {
-			logWarn("%s Isolate UserDir [%s] doesn't respect the format [../BASE/var/ISOLATE_NAME/ISOLATE_UUID/]",
-					PREFIX_VALID_USERDIR_WARNING, aIsolateUserDir);
+			logWarn("%s\nUserDir system prop.=[%s] doesn't respect the format [...base/var/[ISOLATE_NAME]/[ISOLATE_UUID]/]"
+					+ "\nCalculatedIsolateDir=[%s]",
+					PREFIX_VALID_USERDIR_WARNING, aIsolateUserDir,
+					calculateIsolateDir());
 
 		}
 		return aIsolateUserDir;

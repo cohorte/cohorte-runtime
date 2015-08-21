@@ -41,6 +41,7 @@ import org.psem2m.isolates.base.dirs.impl.CPlatformDirsSvc;
 import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.services.dirs.IFileFinderSvc;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
+import org.psem2m.utilities.CXException;
 import org.psem2m.utilities.CXJvmUtils;
 import org.psem2m.utilities.CXOSUtils;
 import org.psem2m.utilities.CXObjectBase;
@@ -165,6 +166,8 @@ public class CBundleBaseActivator extends CXObjectBase implements
 	/** The service listener */
 	private ServiceListener pRegistrationListener = null;
 
+	private final String UNKNOWN_ISOLATE_NAME = "UnknownIsolate";
+
 	/**
 	 * do nothing ! This Activator is instanciated by the Osgi framework, the
 	 * first metod to be called is the method "start()"
@@ -172,6 +175,20 @@ public class CBundleBaseActivator extends CXObjectBase implements
 	public CBundleBaseActivator() {
 
 		super();
+	}
+
+	/**
+	 *
+	 */
+
+	/**
+	 * @param aReport
+	 * @param aFormat
+	 * @param aArgs
+	 */
+	private void addLineInReport(final StringBuilder aReport,
+			final String aFormat, final Object... aArgs) {
+		aReport.append(String.format('\n' + aFormat, aArgs));
 	}
 
 	/**
@@ -321,28 +338,96 @@ public class CBundleBaseActivator extends CXObjectBase implements
 	}
 
 	/**
-	 *
+	 * @param aBundleContext
 	 */
 	private void initLogger(final BundleContext aBundleContext) {
 
-		String wIsolateName = aBundleContext
+		final StringBuilder wReport = new StringBuilder();
+
+		String wIsolateName = UNKNOWN_ISOLATE_NAME;
+
+		final String wStr = aBundleContext
 				.getProperty(IPlatformProperties.PROP_ISOLATE_NAME);
 
-		if (wIsolateName == null || wIsolateName.isEmpty()) {
-			wIsolateName = "IsolateX";
+		if (wStr == null) {
+			addLineInReport(
+					wReport,
+					"ERROR: The system property [%s] is not available : verify the isolate launcher",
+					IPlatformProperties.PROP_ISOLATE_NAME);
+		}
+		//
+		else if (wStr.isEmpty()) {
+			addLineInReport(
+					wReport,
+					"ERROR: The system property [%s] is not empty : verify the isolate launcher",
+					IPlatformProperties.PROP_ISOLATE_NAME);
+
+		}
+		//
+		else {
+			wIsolateName = wStr;
+
+			addLineInReport(wReport, "The system property [%s] contains [%s]",
+					IPlatformProperties.PROP_ISOLATE_NAME, wIsolateName);
 		}
 
 		try {
+
 			// Be sure we have a valid platform service instance
 			final IPlatformDirsSvc wPlatformDirsSvc = getPlatformDirs();
 
+			File wLogStorageDir = wPlatformDirsSvc.getIsolateLogDir();
+
 			// the name of the logger
-			final String wLoggerName = "cohorte.isolate."
-					+ wPlatformDirsSvc.getIsolateUID();
+			final String wLoggerName = String.format("cohorte.isolate.%s.%s",
+					wIsolateName, wPlatformDirsSvc.getIsolateUID());
+
+			addLineInReport(wReport, "The name of the logger : [%s]",
+					wLoggerName);
+
+			final String wLogStoragePath = aBundleContext
+					.getProperty(IPlatformProperties.PROP_ISOLATE_LOG_STORAGE);
+
+			if (wLogStoragePath != null) {
+				if (wLogStoragePath.isEmpty()) {
+					addLineInReport(wReport,
+							"ERROR: The system property [%s] is empty",
+							IPlatformProperties.PROP_ISOLATE_LOG_STORAGE);
+				} else {
+					addLineInReport(wReport,
+							"The system property [%s] contains [%s]",
+							IPlatformProperties.PROP_ISOLATE_LOG_STORAGE,
+							wLogStoragePath);
+
+					final File wDir = new File(wLogStoragePath);
+					if (!wDir.exists()) {
+						addLineInReport(
+								wReport,
+								"ERROR: The given log storage path [%s] doesn't exist",
+								wDir);
+					}
+					//
+					else if (!wDir.isDirectory()) {
+						addLineInReport(
+								wReport,
+								"ERROR: The given log storage path [%s] isn't a directory",
+								wDir);
+
+					}
+					// The given log storage path is an existing directory
+					else {
+						wLogStorageDir = wDir;
+					}
+				}
+			}
+
+			addLineInReport(wReport, "The log storage path : [%s]",
+					wLogStorageDir.getAbsolutePath());
 
 			// the FilePathPattern of the logger
 			final StringBuilder wSB = new StringBuilder();
-			wSB.append(wPlatformDirsSvc.getIsolateLogDir().getAbsolutePath());
+
+			wSB.append(wLogStorageDir.getAbsolutePath());
 			wSB.append(File.separator);
 			wSB.append("Log-");
 			wSB.append(wIsolateName);
@@ -355,16 +440,21 @@ public class CBundleBaseActivator extends CXObjectBase implements
 					wFilePathPattern, IActivityLoggerBase.ALL, LOG_FILES_SIZE,
 					LOG_FILES_COUNT);
 
+			addLineInReport(wReport, "ActivityLogger opened : %s",
+					((CIsolateLoggerChannel) pActivityLogger).toDescription());
+
 		} catch (final Exception e) {
 			pActivityLogger = CActivityLoggerBasicConsole.getInstance();
-			pActivityLogger.logSevere(this, "initLogger",
-					"Can't instanciate a CIsolateLoggerChannel", e);
+
+			addLineInReport(wReport,
+					"ERROR: Can't instanciate a CIsolateLoggerChannel : %s",
+					CXException.eInString(e));
 		}
 
-		// Logs the isolatename, the java context and the environment context
-		pActivityLogger.logInfo(this, "initLogger",
-				"Logger of the isolate=[%s] %s %s", wIsolateName,
-				CXJvmUtils.getJavaContext(), CXOSUtils.getEnvContext());
+		// Logs the report, the java context and the environment context
+		pActivityLogger
+				.logInfo(this, "initLogger", "Initialized:%s %s %s", wReport,
+						CXJvmUtils.getJavaContext(), CXOSUtils.getEnvContext());
 	}
 
 	/**
@@ -528,7 +618,7 @@ public class CBundleBaseActivator extends CXObjectBase implements
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
 	 * )
@@ -605,7 +695,7 @@ public class CBundleBaseActivator extends CXObjectBase implements
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
 	 */
