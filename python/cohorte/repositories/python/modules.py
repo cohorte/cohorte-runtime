@@ -108,6 +108,14 @@ class AstVisitor(ast.NodeVisitor):
         self.imports = set()
         self.version = None
         self.path_parts = filepath.split(os.sep)[:-1]
+        for i in range(len(self.path_parts), 0, -1):
+            init_file = os.sep.join(
+                self.path_parts[:i] +
+               ["__init__.py"]);
+            if not os.path.exists(init_file):
+                break
+        self.path_parts = self.path_parts[i:]
+
 
     def generic_visit(self, node):
         """
@@ -126,7 +134,7 @@ class AstVisitor(ast.NodeVisitor):
         """
         if node.level > 0:
             # Relative import
-            parent = '.'.join(self.path_parts[-node.level:])
+            parent = '.'.join(self.path_parts[:-node.level+1])
             if node.module:
                 # from .module import ...
                 return '.'.join((parent, node.module))
