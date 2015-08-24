@@ -205,4 +205,4 @@ class TopStatusStorage(object):
         """
         return {component
                 for distribution in self._storage.values()
-                for component in distribution[node_name]}
+                for component in distribution.get(node_name, [])}
