@@ -292,8 +292,10 @@ class MonitorBasic(object):
                                                      isolate_artifacts)
         if resolution[2]:
             # Some artifacts are missing
-            _logger.error("Missing artifacts: %s", resolution[2])
-            return False
+            _logger.warning("Missing artifacts: %s", resolution[2])
+            # MOD_BD_20150824 isandlaTech/cohorte-platforms/issues/59
+            # continue the isolat starting when some artifacts are missing
+            # return False
 
         elif resolution[3]:
             # Some extra dependencies are missing
