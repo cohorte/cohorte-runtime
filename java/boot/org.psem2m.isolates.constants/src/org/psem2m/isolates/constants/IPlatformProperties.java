@@ -39,8 +39,16 @@ public interface IPlatformProperties {
 	/**
 	 * MOD_0G_20150821
 	 *
-	 * Path (absolute or relative ) to localize the directory where the log are
-	 * stored
+	 * Path to localize a directory where the isolate log file are stored
+	 *
+	 * Accept an absolute path or relative path to the "user.dir" one of the
+	 * isolate.
+	 *
+	 * Allows the isolates to store their log file outside their isolate
+	 * directory when they are a singleton one.
+	 *
+	 * Note: the isolate directory is in .../base/var which is clean each time
+	 * the node is launched
 	 */
 	String PROP_ISOLATE_LOG_STORAGE = "cohorte.isolate.log.storage";
 
