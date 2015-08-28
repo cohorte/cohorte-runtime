@@ -57,6 +57,7 @@ import json
 
 _logger = logging.getLogger(__name__)
 
+
 # ------------------------------------------------------------------------------
 
 
@@ -64,6 +65,7 @@ class Module(Artifact):
     """
     Represents a bundle
     """
+
     def __init__(self, name, version, imports, filename):
         """
         Sets up the bundle details
@@ -92,6 +94,7 @@ class Module(Artifact):
 
         return artifact.name in self.all_imports
 
+
 # ------------------------------------------------------------------------------
 
 
@@ -100,22 +103,20 @@ class AstVisitor(ast.NodeVisitor):
     AST visitor to extract imports and version
     """
     # pylint: disable=invalid-name
-    def __init__(self, filepath):
+    def __init__(self, module_name, is_package):
         """
         Sets up the visitor
+        :param module_name: The module name
+        :param is_package: Whether the name is a package name
         """
         ast.NodeVisitor.__init__(self)
         self.imports = set()
         self.version = None
-        self.path_parts = filepath.split(os.sep)[:-1]
-        for i in range(len(self.path_parts), 0, -1):
-            init_file = os.sep.join(
-                self.path_parts[:i] +
-               ["__init__.py"]);
-            if not os.path.exists(init_file):
-                break
-        self.path_parts = self.path_parts[i:]
-
+        self.module_parts = module_name.split(".")
+        # Drop module name, keeping only packages' names
+        if not is_package:
+            self.module_parts = self.module_parts[:-1]
+        self.module_name = module_name
 
     def generic_visit(self, node):
         """
@@ -134,7 +135,10 @@ class AstVisitor(ast.NodeVisitor):
         """
         if node.level > 0:
             # Relative import
-            parent = '.'.join(self.path_parts[:-node.level+1])
+            if node.level == 1:
+                parent = '.'.join(self.module_parts)
+            else:
+                parent = '.'.join(self.module_parts[:-node.level + 1])
             if node.module:
                 # from .module import ...
                 return '.'.join((parent, node.module))
@@ -156,7 +160,8 @@ class AstVisitor(ast.NodeVisitor):
         """
         Found a "from ... import ..."
         """
-        self.imports.add(self.resolve_relative_import_from(node))
+        imp = self.resolve_relative_import_from(node)
+        self.imports.add(imp)
 
     def visit_Assign(self, node):
         """
@@ -176,11 +181,13 @@ class AstVisitor(ast.NodeVisitor):
                 pass
 
 
-def _extract_module_info(filename):
+def _extract_module_info(filename, module_name, is_package):
     """
     Extract the version and the imports from the given Python file
 
     :param filename: Path to the file to parse
+    :param module_name: The fully-qualified module name
+    :param is_package: Whether the name is a package name
     :return: A (version, [imports]) tuple
     :raise ValueError: Unreadable file
     """
@@ -190,7 +197,7 @@ def _extract_module_info(filename):
     except (OSError, IOError) as ex:
         raise ValueError("Error reading {0}: {1}".format(filename, ex))
 
-    visitor = AstVisitor(filename)
+    visitor = AstVisitor(module_name, is_package)
     try:
         module = ast.parse(source, filename, 'exec')
     except (ValueError, SyntaxError) as ex:
@@ -198,6 +205,7 @@ def _extract_module_info(filename):
 
     visitor.visit(module)
     return visitor.version, visitor.imports
+
 
 # ------------------------------------------------------------------------------
 
@@ -209,6 +217,7 @@ class PythonModuleRepository(object):
     """
     Represents a repository
     """
+
     def __init__(self):
         """
         Sets up the repository
@@ -275,60 +284,26 @@ class PythonModuleRepository(object):
         # Associate the file name with the module
         self._files[module.file] = module
 
-    def __compute_name(self, filename):
+    @staticmethod
+    def __compute_name(root, filename):
         """
         Computes the module name of the given file by looking for '__init__.py'
         files in its parent directories
 
         :param filename: Path of the module file
-        :return: The Python name of the module
+        :return: The Python name of the module, and a boolean indicating whether
+            the name is a package name
         :raise ValueError: Invalid directory name
         """
-        # Compute the complete module name
-        filename = os.path.abspath(filename)
-        dirname = os.path.dirname(filename)
-
-        module = os.path.basename(os.path.splitext(filename)[0])
-        package_parts = []
-
-        while dirname:
-            if dirname in self._directory_package:
-                # Known directory: stop there
-                package_parts.append(self._directory_package[dirname])
-                break
-            elif not os.path.exists(os.path.join(dirname, "__init__.py")):
-                # Not a package anymore
-                break
-            else:
-                package = os.path.basename(dirname)
-                if ' ' in package:
-                    # Invalid package name
-                    raise ValueError("Invalid package name: {0}"
-                                     .format(package))
-                else:
-                    # Go further up
-                    package_parts.append(package)
-                    dirname = os.path.dirname(dirname)
-
-        # Store the package information
-        package_parts.reverse()
-        package = None
-        package_path = dirname
-
-        for part in package_parts:
-            try:
-                package = '.'.join((package, part))
-            except TypeError:
-                package = part
-
-            package_path = os.path.join(package_path, part)
-            self._directory_package[package_path] = package
-
-        if module == '__init__':
-            # Do not append the __init__ in packages
-            return package
-        else:
-            return '{0}.{1}'.format(package, module)
+        # Subtract the root part
+        filename = os.path.relpath(filename, root)
+        # Drop extension
+        filename = os.path.splitext(filename)[0]
+        name_parts = filename.split(os.path.sep)
+        is_package = name_parts[len(name_parts)-1] == "__init__"
+        if is_package:
+            name_parts = name_parts[:-1]
+        return ".".join(name_parts), is_package
 
     @staticmethod
     def __test_import(name):
@@ -352,24 +327,36 @@ class PythonModuleRepository(object):
 
             return True
 
-    def add_file(self, filename):
+    def add_file(self, root, filename):
         """
         Adds a Python file to the repository
 
-        :param filename: A Python file name
+        :param root: Path to the python package base of the added file
+        :param filename: A Python full-path file name
         :raise ValueError: Unreadable file
         """
         # Compute the complete module name
-        name = self.__compute_name(filename)
+        name, is_package = self.__compute_name(root, filename)
 
         # Compute the real name of the Python file
         realfile = os.path.realpath(filename)
 
         # Parse the file
-        version, imports = _extract_module_info(realfile)
+        version, imports = _extract_module_info(realfile, name, is_package)
 
         # Store the module
         self.__add_module(Module(name, version, imports, realfile))
+
+    @staticmethod
+    def __is_module(dirname):
+        """
+        Class method testing whether a directory, given its name, contains a
+        valid python package.
+        :param dirname: The directory' name
+        :return: True if the directory contains a valid python package. False otherwise.
+        """
+        init_file = os.path.join(dirname, "__init__.py")
+        return os.path.exists(init_file)
 
     def add_directory(self, dirname):
         """
@@ -378,12 +365,18 @@ class PythonModuleRepository(object):
 
         :param dirname: A path to a directory
         """
-        for root, _, filenames in os.walk(dirname, followlinks=True):
+        for root, dirnames, filenames in os.walk(dirname, followlinks=True):
+            # Check if the current directory, ie. root, is either the base directory
+            # or a valid python package. Otherwise, do not walk through sub-directories.
+            if (not os.path.samefile(dirname, root)
+                and not self.__is_module(root)):
+                dirnames = [];
+                continue;
             for filename in filenames:
                 if os.path.splitext(filename)[1] == '.py':
-                    fullname = os.path.join(root, filename)
                     try:
-                        self.add_file(fullname)
+                        fullname = os.path.join(root, filename)
+                        self.add_file(dirname, fullname)
                     except ValueError as ex:
                         _logger.warning("Error analyzing %s: %s", fullname, ex)
 
@@ -605,6 +598,7 @@ class PythonModuleRepository(object):
                      "directories": cache_directories}
             with open('cache.js', 'w') as outfile:
                 json.dump(cache, outfile, indent=4)
+
     # #########
 
     @Validate
