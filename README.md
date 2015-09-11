@@ -8,6 +8,8 @@ This modular architecture ensures automatic service recovery after errors and to
 The platform incorporates a range of tried and tested basic components dramatically reducing specific developments, thereby reducing the cost of projects using them.
 The level of reliability of software produced with COHORTE SDK also reduces operating and maintenance costs for the companies software packages.
 
+More details are available on [Cohorte Web Site](http://cohorte.github.io/).
+
 # About
 
 The Cohorte Project is an open source framework hosted on GitHub and sponsored by [isandlaTech](http://isandlatech.com).
