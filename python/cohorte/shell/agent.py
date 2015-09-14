@@ -448,7 +448,7 @@ class ShellAgentCommands(object):
             io_handler.write_line("These isolates didn't respond:")
             for uid in failed:
                 io_handler.write_line("{0} - {1}",
-                                      self._directory.get_isolate_name(uid),
+                                      self._directory.get_peer(uid).name,
                                       uid)
 
     def http(self, io_handler, isolate=None):
