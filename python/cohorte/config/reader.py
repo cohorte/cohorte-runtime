@@ -367,12 +367,22 @@ class ConfigurationFileReader(object):
                         # No multiline comment found
                         pass
 
-                    try:
-                        # Single line comment
-                        line = line[:line.index('//')]
-                    except ValueError:
-                        # No comment
-                        pass
+                    # Single line comment
+                    can_comment = True
+                    for idx, char in enumerate(line):
+                        if char == '"':
+                            can_comment = not can_comment
+                        elif char == "/" and line[idx-1] == '/' \
+                                and can_comment:
+                            # Found a '//' and we're not in a string
+                            break
+                    else:
+                        # No break, no comment found
+                        idx = -1
+
+                    if idx > -1:
+                        # Valid index, remove the comment
+                        line = line[:idx]
 
                     # Store the treated line
                     if line:
@@ -381,7 +391,7 @@ class ConfigurationFileReader(object):
                 else:
                     # We are in a comment block
                     try:
-                        # Look for the end of the multiline comment block
+                        # Look for the end of the multi-line comment block
                         end_idx = line.index('*/')
                         end_idx += len('*/')
                     except ValueError:
