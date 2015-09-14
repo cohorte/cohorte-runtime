@@ -326,7 +326,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 			// eg. -Dcohorte.base=${project_loc:/fr.agilium.ng.base}
 			final File wBaseDir = new File(
-					System.getProperty(IPlatformProperties.PROP_PLATFORM_BASE));
+					pContext.getProperty(IPlatformProperties.PROP_PLATFORM_BASE));
 			pPlatformBaseDir = validDirectory(wBaseDir, pIsolateUserDir);
 		}
 
