@@ -289,8 +289,8 @@ class PythonModuleRepository(object):
         files in its parent directories
 
         :param filename: Path of the module file
-        :return: The Python name of the module, and a boolean indicating whether
-            the name is a package name
+        :return: The Python name of the module, and a boolean indicating
+                 whether the name is a package name
         :raise ValueError: Invalid directory name
         """
         # Subtract the root part

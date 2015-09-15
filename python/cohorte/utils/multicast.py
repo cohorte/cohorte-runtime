@@ -181,7 +181,8 @@ def create_multicast_socket(address, port, join=True):
     # Only accept IPv4/v6 addresses
     if addr_info[0] not in (socket.AF_INET, socket.AF_INET6):
         # Unhandled address family
-        raise ValueError("Unhandled socket family : {0:d}".format(addr_info[0]))
+        raise ValueError("Unhandled socket family : {0:d}"
+                         .format(addr_info[0]))
 
     # Prepare the socket
     sock = socket.socket(addr_info[0], socket.SOCK_DGRAM)
