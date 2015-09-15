@@ -124,10 +124,12 @@ class DebugServlet(object):
         # Servlet path
         self._path = DEFAULT_DEBUG_PATH
 
+        # Injected services
+        self._ipopo = None
+        self._utils = None
+
         # Bundle context
         self._context = None
-
-        self._ipopo = None
 
     def make_all(self, request):
         """
@@ -176,17 +178,20 @@ class DebugServlet(object):
             .format(body='\n'.join(lines))
 
     def make_instances(self, request):
+        """
+        Prints iPOPO components instances details
+        """
         headers = ('Name', 'Factory', 'State')
 
         instances = self._ipopo.get_instances()
-        
+
         # Lines are already sorted
         lines = ((name, factory, ipopo_state_to_str(state))
                  for name, factory, state in instances)
 
         table = self._utils.make_table(headers, lines)
         return '<h2>iPOPO Instances</h2><pre>' + table + '</pre>'
-        
+
     def make_bundles(self, request):
         """
         Lists the bundles installed
@@ -210,8 +215,8 @@ class DebugServlet(object):
             lines.append('<tr>')
             lines.append('<td>{0}</td>'.format(bundle.get_bundle_id()))
             lines.append('<td>{0}</td>'.format(bundle.get_symbolic_name()))
-            lines.append('<td>{0}</td>'.format(states.get(bundle.get_state(),
-                                                          '<UNKNOWN>')))
+            lines.append('<td>{0}</td>'.format(
+                states.get(bundle.get_state(), '<UNKNOWN>')))
             lines.append('</tr>')
 
         lines.append('</table>\n')

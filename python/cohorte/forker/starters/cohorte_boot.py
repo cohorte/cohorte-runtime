@@ -136,8 +136,7 @@ class CohorteBoot(common.CommonStarter):
             args.append('--looper={0}'.format(looper_name))
 
         # Log file
-        logname = 'log_{0}.log'.format(configuration['name'],
-                                       configuration['uid'])
+        logname = 'log_{0}.log'.format(configuration['name'])
         args.append('--logfile={0}'.format(os.path.join(working_directory,
                                                         logname)))
 

@@ -86,8 +86,7 @@ class CohorteMaker(object):
         :return: The content of the file
         :raise IOError: Error loading the file
         """
-        fp = urllib2.urlopen(url)
-        return fp.read()
+        return urllib2.urlopen(url).read()
 
     def load_index(self, force=False):
         """
@@ -117,10 +116,10 @@ class CohorteMaker(object):
         if force or name not in self._templates:
             # Download the template
             content = self._get_file_content(self._index[name])
-            fp = tempfile.TemporaryFile()
-            fp.write(content)
-            fp.flush()
-            self._templates[name] = fp
+            filep = tempfile.TemporaryFile()
+            filep.write(content)
+            filep.flush()
+            self._templates[name] = filep
 
     def extract_template(self, name, directory):
         """

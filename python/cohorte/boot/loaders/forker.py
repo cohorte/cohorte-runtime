@@ -222,12 +222,11 @@ class ForkerLoader(object):
         uid = self._update_uid()
 
         _logger.info('''Loading a forker with the following properties:
-* Home.....: {home}
-* Base.....: {base}
-* Node UID.: {node_uid}
-* Node Name: {node_name}
-* UID......: {uid}'''.format(home=home, base=base, node_uid=node_uid,
-                             node_name=node_name, uid=uid))
+* Home.....: %s
+* Base.....: %s
+* Node UID.: %s
+* Node Name: %s
+* UID......: %s''', home, base, node_uid, node_name, uid)
 
         # Update the file finder, as framework properties may have been
         # modified

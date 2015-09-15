@@ -189,7 +189,7 @@ class Attribute(object):
         """
         Object representation string
         """
-        return "Attribute('{1}')".format(__name__, self.__str__())
+        return "Attribute('{0}')".format(self.__str__())
 
 # ------------------------------------------------------------------------------
 

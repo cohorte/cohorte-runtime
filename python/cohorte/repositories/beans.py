@@ -173,14 +173,14 @@ class Artifact(object):
         """
         String representation of the artifact
         """
-        return "Artifact('{self.language}', '{self.name}', " \
-               "{self.version!r}, '{self.file}')".format(self=self)
+        return "Artifact('{art.language}', '{art.name}', " \
+               "{art.version!r}, '{art.file}')".format(art=self)
 
     def __str__(self):
         """
         Human-readable representation
         """
-        return "{self.name}-{self.version}".format(self=self)
+        return "{art.name}-{art.version}".format(art=self)
 
     @property
     def file(self):
@@ -270,14 +270,14 @@ class Factory(object):
         """
         String representation of the factory
         """
-        return "Factory('{self.name}', '{self.language}', " \
-               "'{self.model}', {self.artifact!r})".format(self=self)
+        return "Factory('{fact.name}', '{fact.language}', " \
+               "'{fact.model}', {fact.artifact!r})".format(fact=self)
 
     def __str__(self):
         """
         Human-readable representation
         """
-        return "{self.name} ({self.model})".format(self=self)
+        return "{fact.name} ({fact.model})".format(fact=self)
 
     @property
     def artifact(self):
@@ -340,7 +340,7 @@ class Version(object):
         """
         Object string representation
         """
-        return "Version('{1}')".format(__name__, self.__str__())
+        return "Version('{0}')".format(self.__str__())
 
     def __normalize_cmp(self, other):
         """

@@ -600,7 +600,7 @@ def main(args=None):
             """
             Logs an unhandled exception
             """
-            logging.critical('{0}: {1}'.format(ex_cls, ex))
+            logging.critical('%s: %s', ex_cls, ex)
             logging.critical(''.join(traceback.format_tb(traceb)))
 
         sys.excepthook = log_exception

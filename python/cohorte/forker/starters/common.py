@@ -33,7 +33,7 @@ try:
     from urllib.parse import quote
 except ImportError:
     # Python 2
-    # pylint: disable=F0401
+    # pylint: disable=F0401,E0611
     from urllib import quote
 
 # Pelix framework

@@ -164,6 +164,9 @@ class NodeComposer(object):
         self._controller = True
 
     def set_platform_stopping(self):
+        """
+        Platform is stopping: stop providing the Node Composer service
+        """
         self._controller = False
         # self.invalidate(None)
 
@@ -211,7 +214,7 @@ class NodeComposer(object):
                 # Factory not found
                 not_found.add(component.factory)
             except AttributeError:
-                # _finder could be None when stoping the platform 
+                # _finder could be None when stopping the platform
                 pass
 
         if not_found:

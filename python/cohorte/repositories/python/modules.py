@@ -551,13 +551,12 @@ class PythonModuleRepository(object):
                         _logger.info("loading repository from cache...")
                         # load modules
                         for module in cache["modules"]:
-                            language = module["language"]
                             name = module["name"]
                             version = Version(module["version"])
                             filename = module["filename"]
 
-                            m = Module(name, version, [], filename)
-                            self.__add_module(m, self._modules)
+                            module_bean = Module(name, version, [], filename)
+                            self.__add_module(module_bean, self._modules)
 
                         for directory in cache["directories"]:
                             self._directory_package[directory["dir_name"]] \
