@@ -23,16 +23,17 @@ Starts Cohorte isolates using the boot script
     See the License for the specific language governing permissions and
     limitations under the License.
 """
-from herald import beans
-from herald.exceptions import HeraldException
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
 
-# Boot module version
-__version__ = "1.0.1"
+# Standard library
+import logging
+import os
+import subprocess
+import sys
 
-# ------------------------------------------------------------------------------
+# Pelix framework
+from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
+    Property, Instantiate
 
 # COHORTE modules
 import cohorte
@@ -43,16 +44,17 @@ import cohorte.utils
 
 # Herald
 import herald
+from herald import beans
+from herald.exceptions import HeraldException
 
-# Pelix framework
-from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
-    Property, Instantiate
+# ------------------------------------------------------------------------------
 
-# Standard library
-import logging
-import os
-import subprocess
-import sys
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 

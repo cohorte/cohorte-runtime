@@ -96,5 +96,3 @@ Isolate status: stopping (an "isolate lost" signal should follow)
 - sent by the isolate itself
 - no content
 """
-
-# ------------------------------------------------------------------------------

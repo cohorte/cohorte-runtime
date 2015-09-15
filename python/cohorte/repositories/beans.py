@@ -23,17 +23,6 @@ Classes and constants for the representation of repositories
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# Boot module version
-__version__ = "1.0.1"
-
-# ------------------------------------------------------------------------------
-
-# Pelix utilities
-from pelix.utilities import is_string
-
 # Standard library
 import os
 
@@ -47,6 +36,18 @@ except ImportError:
     # pylint: disable=F0401
     import urlparse
     import urllib
+
+# Pelix utilities
+from pelix.utilities import is_string
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 

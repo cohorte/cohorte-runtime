@@ -24,19 +24,10 @@ The Isolate Composer
     limitations under the License.
 """
 
-# Module version
-__version_info__ = (3, 0, 0)
-__version__ = ".".join(str(x) for x in __version_info__)
-
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
-
-# Composer
-import cohorte.composer
-import cohorte.composer.beans as beans
-from cohorte.repositories.beans import Version
+# Standard library
+import logging
+import threading
+import sys
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
@@ -46,10 +37,20 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
 import pelix.constants
 import pelix.remote
 
-# Standard library
-import logging
-import threading
-import sys
+# Composer
+import cohorte
+import cohorte.composer
+import cohorte.composer.beans as beans
+from cohorte.repositories.beans import Version
+
+# ------------------------------------------------------------------------------
+
+# Module version
+__version_info__ = (3, 0, 0)
+__version__ = ".".join(str(x) for x in __version_info__)
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 
@@ -133,11 +134,10 @@ class IsolateComposer(object):
         :param bundles: A list of (name, version) tuples
         """
         # Convert to dictionaries, for easier filtering
-        pre_installed = dict((bundle.get_symbolic_name(),
-                              Version(bundle.get_version()))
-                             for bundle in self._context.get_bundles())
-        to_install = dict((name, Version(version))
-                          for name, version in bundles)
+        pre_installed = {
+            bundle.get_symbolic_name(): Version(bundle.get_version())
+            for bundle in self._context.get_bundles()}
+        to_install = {name: Version(version) for name, version in bundles}
 
         for name, installed_version in pre_installed.items():
             try:
@@ -184,7 +184,7 @@ class IsolateComposer(object):
         :return: An Isolate bean
         """
         # Language
-        if sys.version_info[0] == 3:
+        if sys.version_info[0] >= 3:
             language = cohorte.composer.LANGUAGE_PYTHON3
         else:
             language = cohorte.composer.LANGUAGE_PYTHON
@@ -231,11 +231,9 @@ class IsolateComposer(object):
                     try:
                         # Kill the component
                         self._agent.kill(name)
-
                     except ValueError:
                         # Unknown component
                         pass
-
             else:
                 # Update the remaining components
                 self._remaining.difference_update(

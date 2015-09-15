@@ -26,26 +26,26 @@ See C.G.P. Grey video on Alternative vote
     limitations under the License.
 """
 
-# Module version
-__version_info__ = (1, 0, 1)
-__version__ = ".".join(str(x) for x in __version_info__)
-
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
-
-# Voting system
-import cohorte.vote
+# Standard library
+import collections
+import logging
+import math
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
     Property
 
-# Standard library
-import collections
-import logging
-import math
+# Voting system
+import cohorte.vote
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 

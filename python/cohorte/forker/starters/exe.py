@@ -24,25 +24,26 @@ Starts basic executable file as isolates
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# Boot module version
-__version__ = "1.0.1"
-
-# ------------------------------------------------------------------------------
-
-# COHORTE modules
-import cohorte.forker
-import cohorte.forker.starters.common as common
+# Standard library
+import logging
+import subprocess
 
 # Pelix framework
 from pelix.ipopo.decorators import ComponentFactory, Property, Provides, \
     Instantiate
 
-# Standard library
-import logging
-import subprocess
+# COHORTE modules
+import cohorte.forker
+import cohorte.forker.starters.common as common
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 

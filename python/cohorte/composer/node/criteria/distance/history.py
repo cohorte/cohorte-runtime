@@ -25,25 +25,25 @@ This algorithm is a test: it can be a memory hog
     limitations under the License.
 """
 
+# Standard library
+import logging
+import operator
+
+# iPOPO Decorators
+from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
+    Invalidate, Validate, Requires
+
+# Composer
+import cohorte.composer
+
+# ------------------------------------------------------------------------------
+
 # Module version
 __version_info__ = (3, 0, 0)
 __version__ = ".".join(str(x) for x in __version_info__)
 
 # Documentation strings format
 __docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
-
-# Composer
-import cohorte.composer
-
-# iPOPO Decorators
-from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
-    Invalidate, Validate, Requires
-
-# Standard library
-import logging
-import operator
 
 # ------------------------------------------------------------------------------
 

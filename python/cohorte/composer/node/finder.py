@@ -25,25 +25,25 @@ factory
     limitations under the License.
 """
 
+# Standard library
+import logging
+
+# iPOPO Decorators
+from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
+    Instantiate, BindField, UnbindField
+
+# Cohorte
+import cohorte.composer
+import cohorte.repositories
+
+# ------------------------------------------------------------------------------
+
 # Module version
 __version_info__ = (3, 0, 0)
 __version__ = ".".join(str(x) for x in __version_info__)
 
 # Documentation strings format
 __docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
-
-# Cohorte
-import cohorte.composer
-import cohorte.repositories
-
-# iPOPO Decorators
-from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
-    Instantiate, BindField, UnbindField
-
-# Standard library
-import logging
 
 # ------------------------------------------------------------------------------
 

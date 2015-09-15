@@ -26,23 +26,16 @@ Utility methods implementations for Win32
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
-
-import cohorte
-import cohorte.utils as utils
-
+# Standard library
 import logging
 import os
 import sys
 
-_logger = logging.getLogger(__name__)
+# Cohorte
+import cohorte
+import cohorte.utils as utils
 
-# ------------------------------------------------------------------------------
 # Windows specific modules
-
 # pylint: disable=F0401
 import pywintypes
 import win32api
@@ -57,6 +50,17 @@ except ImportError:
     import _winreg as winreg
 
 # ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
+
+# ------------------------------------------------------------------------------
+
+_logger = logging.getLogger(__name__)
 
 # From http://msdn.microsoft.com/en-us/library/ms681382%28v=VS.85%29.aspx
 ERROR_INVALID_PARAMETER = 0x57
@@ -239,7 +243,7 @@ class OSUtils(utils.BaseOSUtils):
         :raise OSError: Unauthorized operation
         """
         if pid is None or not self.is_process_running(pid):
-            raise ValueError("Invalid PID: %d" % pid)
+            raise ValueError("Invalid PID: {0:d}".format(pid))
 
         handle = None
         try:
@@ -248,7 +252,7 @@ class OSUtils(utils.BaseOSUtils):
         except pywintypes.error as ex:
             # PID not in the system anymore
             if ex.winerror == ERROR_INVALID_PARAMETER:
-                raise ValueError("Invalid PID: %d" % pid)
+                raise ValueError("Invalid PID: {0:d}".format(pid))
 
             # Other kind of exception
             raise ex
@@ -328,5 +332,3 @@ class OSUtils(utils.BaseOSUtils):
         java = os.path.join(java_home, "bin", "java.exe")
         if utils.is_file(java):
             return java
-
-        return None

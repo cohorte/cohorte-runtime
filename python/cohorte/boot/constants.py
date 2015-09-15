@@ -27,14 +27,15 @@ COHORTE Python bootstrap constants
 __docformat__ = "restructuredtext en"
 
 # Boot module version
-__version__ = "1.0.1"
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 
 STATE_FAILED = -1
 """ Boot failed """
 
-STATE_INEXISTANT = 0
+STATE_NONEXISTENT = 0
 """ Isolate has been freshly registered in the state directory """
 
 STATE_BOOTING = 1

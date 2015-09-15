@@ -26,25 +26,25 @@ Simply stores the components associated to local isolates
     limitations under the License.
 """
 
+# Standard library
+import logging
+import threading
+
+# iPOPO Decorators
+from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
+    Requires
+
+# Composer
+import cohorte.composer
+
+# ------------------------------------------------------------------------------
+
 # Module version
 __version_info__ = (3, 0, 0)
 __version__ = ".".join(str(x) for x in __version_info__)
 
 # Documentation strings format
 __docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
-
-# Composer
-import cohorte.composer
-
-# iPOPO Decorators
-from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
-    Requires
-
-# Standard library
-import logging
-import threading
 
 # ------------------------------------------------------------------------------
 
@@ -124,11 +124,11 @@ class NodeStatusStorage(object):
             # Store the distribution in history
             if self._history is not None:
                 # Make a complete dictionary
-                distribution = dict((isolate_name,
-                                     sorted(component.name
-                                            for component in components))
-                                    for isolate_name, components
-                                    in self._isolate_components.copy().items())
+                distribution = {
+                    isolate_name: sorted(component.name
+                                         for component in components)
+                    for isolate_name, components
+                    in self._isolate_components.copy().items()}
 
                 self._history.store(distribution)
 

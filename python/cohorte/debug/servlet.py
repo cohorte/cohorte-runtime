@@ -23,16 +23,11 @@ COHORTE debug servlet, to visualize the state of the framework in a browser
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# Boot module version
-__version__ = "1.0.1"
-
-# ------------------------------------------------------------------------------
-
-# Cohorte
-import cohorte
+# Python standard library
+import logging
+import sys
+import threading
+import traceback
 
 # Pelix framework
 from pelix.ipopo.decorators import ComponentFactory, Provides, \
@@ -44,11 +39,17 @@ import pelix.ipopo.constants
 import pelix.shell
 from pelix.shell.ipopo import ipopo_state_to_str
 
-# Python standard library
-import logging
-import sys
-import threading
-import traceback
+# Cohorte
+import cohorte
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 

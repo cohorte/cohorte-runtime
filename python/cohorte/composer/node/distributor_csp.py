@@ -26,7 +26,22 @@ criteria.
     See the License for the specific language governing permissions and
     limitations under the License.
 """
+
+# Standard library
+import logging
+
+# iPOPO Decorators
+from pelix.ipopo.decorators import ComponentFactory, Provides, \
+    Instantiate
+
+# OR-Tools Linear solver
+from ortools.linear_solver import pywraplp as ortools
+
+# Composer
 from cohorte.composer.node.beans import EligibleIsolate
+import cohorte.composer
+
+# ------------------------------------------------------------------------------
 
 # Module version
 __version_info__ = (1, 0, 1)
@@ -34,21 +49,6 @@ __version__ = ".".join(str(x) for x in __version_info__)
 
 # Documentation strings format
 __docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
-
-# OR-Tools Linear solver
-from ortools.linear_solver import pywraplp as ortools
-
-# Composer
-import cohorte.composer
-
-# iPOPO Decorators
-from pelix.ipopo.decorators import ComponentFactory, Provides, \
-    Instantiate
-
-# Standard library
-import logging
 
 # ------------------------------------------------------------------------------
 

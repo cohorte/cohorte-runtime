@@ -24,17 +24,17 @@ Voting system beans
     limitations under the License.
 """
 
-# Module version
-__version_info__ = (1, 0, 1)
-__version__ = ".".join(str(x) for x in __version_info__)
+# Standard library
+import operator
+
+# ------------------------------------------------------------------------------
 
 # Documentation strings format
 __docformat__ = "restructuredtext en"
 
-# ------------------------------------------------------------------------------
-
-# Standard library
-import operator
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 
@@ -208,9 +208,9 @@ class VoteResults(object):
         """
         String representation
         """
-        text = "Vote {0}, of kind {1}, in {2} rounds".format(self.name,
-                                                             self.kind,
-                                                             len(self.round))
+        text = "Vote {0}, of kind {1}, in {2} rounds".format(
+            self.name, self.kind, len(self.round))
+
         if self.subject:
             text = "{0}, about {1}".format(text, self.subject)
 

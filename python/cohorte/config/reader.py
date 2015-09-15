@@ -25,24 +25,25 @@ Parses JSON files and handles "import-files" and "from-file" special fields.
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# Version
-__version__ = '1.0.1'
-
-# ------------------------------------------------------------------------------
-
-# COHORTE constants
-import cohorte
+# Python standard library
+import json
+import logging
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
     Requires, Property
 
-# Python standard library
-import json
-import logging
+# COHORTE constants
+import cohorte
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 
@@ -160,9 +161,8 @@ class ConfigurationFileReader(object):
             i = 0
             while i < len(json_data):
                 entry = json_data[i]
-                new_data = self._do_recursive_imports(filename, entry,
-                                                      overridden_props,
-                                                      include_stack)
+                new_data = self._do_recursive_imports(
+                    filename, entry, overridden_props, include_stack)
                 if new_data is not entry:
                     # The entry has been updated
                     json_data[i] = new_data

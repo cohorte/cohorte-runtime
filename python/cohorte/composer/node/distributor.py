@@ -27,14 +27,13 @@ criteria.
     limitations under the License.
 """
 
-# Module version
-__version_info__ = (3, 0, 0)
-__version__ = ".".join(str(x) for x in __version_info__)
+# Standard library
+import logging
+import operator
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
+# iPOPO Decorators
+from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
+    Instantiate
 
 # Composer
 import cohorte.composer
@@ -43,13 +42,14 @@ import cohorte.composer.node.beans as beans
 # Vote service
 import cohorte.vote
 
-# iPOPO Decorators
-from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
-    Instantiate
+# ------------------------------------------------------------------------------
 
-# Standard library
-import logging
-import operator
+# Module version
+__version_info__ = (3, 0, 0)
+__version__ = ".".join(str(x) for x in __version_info__)
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 

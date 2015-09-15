@@ -23,25 +23,26 @@ iPOJO component factories repository
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# Boot module version
-__version__ = "1.0.1"
-
-# ------------------------------------------------------------------------------
-
-# Repository beans
-import cohorte.repositories
-from cohorte.repositories.beans import Factory
+# Standard library
+import logging
+import threading
 
 # Pelix
 from pelix.ipopo.decorators import ComponentFactory, Provides, Invalidate, \
     Property, Requires, Validate
 
-# Standard library
-import logging
-import threading
+# Repository beans
+import cohorte.repositories
+from cohorte.repositories.beans import Factory
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 

@@ -24,17 +24,9 @@ The iPOPO composer agent
     limitations under the License.
 """
 
-# Module version
-__version_info__ = (3, 0, 0)
-__version__ = ".".join(str(x) for x in __version_info__)
-
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
-
-# Composer
-import cohorte.composer
+# Standard library
+import logging
+import threading
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
@@ -44,9 +36,17 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
 import pelix.ipopo.constants as constants
 import pelix.remote
 
-# Standard library
-import logging
-import threading
+# Composer
+import cohorte.composer
+
+# ------------------------------------------------------------------------------
+
+# Module version
+__version_info__ = (3, 0, 0)
+__version__ = ".".join(str(x) for x in __version_info__)
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 
@@ -157,9 +157,7 @@ class IPopoAgent(object):
             properties = self._compute_properties(component)
 
             # Instantiate the component
-            self._ipopo.instantiate(factory,
-                                    component.name,
-                                    properties)
+            self._ipopo.instantiate(factory, component.name, properties)
 
             # Component instantiated
             try:

@@ -23,16 +23,17 @@ COHORTE Monitor: State machines definitions
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# Boot module version
-__version__ = "1.0.1"
+# State machine
+from cohorte.utils.statemachine import StateMachine
 
 # ------------------------------------------------------------------------------
 
-# State machine
-from cohorte.utils.statemachine import StateMachine
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 

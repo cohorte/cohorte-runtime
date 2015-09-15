@@ -24,23 +24,22 @@ Instrumentation servlet
     limitations under the License.
 """
 
-# Module version
-__version_info__ = (1, 0, 1)
-__version__ = ".".join(str(x) for x in __version_info__)
-
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
-
-# Instruments constants
-import cohorte.instruments
-
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, RequiresMap, \
     Instantiate, Property, Validate, BindField
 import pelix.http
 
+# Instruments constants
+import cohorte.instruments
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 # ------------------------------------------------------------------------------
 
 

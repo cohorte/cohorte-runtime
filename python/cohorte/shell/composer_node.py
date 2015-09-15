@@ -24,17 +24,8 @@ Shell commands to control the node composer
     limitations under the License.
 """
 
-# Module version
-__version_info__ = (3, 0, 0)
-__version__ = ".".join(str(x) for x in __version_info__)
-
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
-
-# Composer
-import cohorte.composer
+# Standard library
+import logging
 
 # Shell constants
 from pelix.shell import SHELL_COMMAND_SPEC, SHELL_UTILS_SERVICE_SPEC
@@ -44,8 +35,17 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
     Instantiate, Validate, Invalidate
 from pelix.utilities import use_service
 
-# Standard library
-import logging
+# Composer
+import cohorte.composer
+
+# ------------------------------------------------------------------------------
+
+# Module version
+__version_info__ = (3, 0, 0)
+__version__ = ".".join(str(x) for x in __version_info__)
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 

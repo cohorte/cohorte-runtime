@@ -26,22 +26,26 @@ This module uses the ``Intellect`` module.
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# Boot module version
-__version__ = "1.0.1"
-
-# ------------------------------------------------------------------------------
-
-# Intellect (rule engine)
-import intellect.Intellect
-Intellect = intellect.Intellect.Intellect
-Callable = intellect.Intellect.Callable
-
 # Standard library
 import keyword
 import re
+
+# Intellect (rule engine)
+import intellect.Intellect
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
+
+# ------------------------------------------------------------------------------
+
+Intellect = intellect.Intellect.Intellect
+Callable = intellect.Intellect.Callable
 
 # ------------------------------------------------------------------------------
 

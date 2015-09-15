@@ -7,7 +7,6 @@ Provides commands to the Pelix shell to work with the forker
 
 :author: Thomas Calmant
 :license: Apache Software License 2.0
-:version: 0.2
 
 ..
 
@@ -26,21 +25,8 @@ Provides commands to the Pelix shell to work with the forker
     limitations under the License.
 """
 
-# Module version
-__version_info__ = (0, 2, 0)
-__version__ = ".".join(str(x) for x in __version_info__)
-
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# -----------------------------------------------------------------------------
-
-# Cohorte
-import cohorte
-import cohorte.monitor
-import herald
-import herald.exceptions
-import herald.beans as beans
+# Standard library
+import threading
 
 # Shell constants
 from pelix.shell import SHELL_COMMAND_SPEC
@@ -49,9 +35,23 @@ from pelix.shell import SHELL_COMMAND_SPEC
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
     Instantiate
 
-import threading 
+# Cohorte
+import cohorte
+import cohorte.monitor
+import herald
+import herald.exceptions
+import herald.beans as beans
 
 # ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
+
+# -----------------------------------------------------------------------------
 
 
 @ComponentFactory("cohorte-forker-shell-commands-factory")

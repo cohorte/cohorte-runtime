@@ -24,25 +24,26 @@ beans
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# Version
-__version__ = '1.0.1'
-
-# ------------------------------------------------------------------------------
-
-# COHORTE constants
-import cohorte
+# Python standard library
+import collections
+import logging
+import uuid
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
     Requires
 
-# Python standard library
-import collections
-import logging
-import uuid
+# COHORTE constants
+import cohorte
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 
@@ -51,18 +52,17 @@ _logger = logging.getLogger(__name__)
 # ------------------------------------------------------------------------------
 
 # Component to be instantiated
-Component = collections.namedtuple('Component', ('factory', 'name',
-                                                 'properties'))
+Component = collections.namedtuple(
+    'Component', ('factory', 'name', 'properties'))
 
 # Bundle to be installed
-Bundle = collections.namedtuple('Bundle', ('name', 'filename', 'properties',
-                                           'version', 'optional'))
+Bundle = collections.namedtuple(
+    'Bundle', ('name', 'filename', 'properties', 'version', 'optional'))
 
 # Simplest configuration possible
-BootConfiguration = collections.namedtuple('BootConfiguration',
-                                           ('bundles', 'composition',
-                                            'properties', 'environment',
-                                            'boot_args'))
+BootConfiguration = collections.namedtuple(
+    'BootConfiguration', ('bundles', 'composition', 'properties',
+                          'environment', 'boot_args'))
 
 # Boot configuration + Isolate basic description
 Isolate = collections.namedtuple(

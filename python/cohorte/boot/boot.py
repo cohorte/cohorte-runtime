@@ -23,13 +23,14 @@ COHORTE Python bootstrap
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# Boot module version
-__version__ = "1.0.1"
-
-# ------------------------------------------------------------------------------
+# Python standard library
+from pprint import pformat
+import argparse
+import logging
+import os
+import sys
+import threading
+import traceback
 
 # COHORTE modules
 import cohorte
@@ -39,14 +40,14 @@ import cohorte.boot.constants as constants
 from pelix.ipopo.constants import get_ipopo_svc_ref
 import pelix.framework
 
-# Python standard library
-from pprint import pformat
-import argparse
-import logging
-import os
-import sys
-import threading
-import traceback
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Boot module version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 
@@ -480,9 +481,8 @@ def main(args=None):
     group = parser.add_argument_group("Isolate boot")
     group.add_argument("--uid", action="store",
                        dest="isolate_uid", default=None, metavar="UID",
-                       help="Unique IDentifier of this isolate.")
+                       help="Unique identifier of this isolate.")
 
-    # TODO: Are node & broker mutually exclusive ?
     group.add_argument('--node', action="store",
                        dest="isolate_node_name", default=None, metavar="NAME",
                        help="Sets the isolate node name. Only used by the "

@@ -24,17 +24,8 @@ Top composer distribution storage, hosted by node composers
     limitations under the License.
 """
 
-# Module version
-__version_info__ = (3, 0, 0)
-__version__ = ".".join(str(x) for x in __version_info__)
-
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
-
-# Cohorte
-import cohorte.composer
+# Standard library
+import logging
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Property, \
@@ -43,8 +34,17 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Property, \
 # Pelix
 import pelix.remote
 
-# Standard library
-import logging
+# Cohorte
+import cohorte.composer
+
+# ------------------------------------------------------------------------------
+
+# Module version
+__version_info__ = (3, 0, 0)
+__version__ = ".".join(str(x) for x in __version_info__)
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 

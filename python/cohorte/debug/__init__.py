@@ -32,9 +32,7 @@ __docformat__ = "restructuredtext en"
 # ------------------------------------------------------------------------------
 
 SERVICE_DEBUG = "java:/org.cohorte.isolates.debug.IDebug"
-"""
-Debug Agent Service
-"""
+""" Debug Agent Service """
 
 # ------------------------------------------------------------------------------
 

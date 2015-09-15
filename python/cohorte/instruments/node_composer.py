@@ -24,29 +24,28 @@ Node composer instrument
     limitations under the License.
 """
 
-# Module version
-__version_info__ = (1, 0, 1)
-__version__ = ".".join(str(x) for x in __version_info__)
-
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
-
-# Instruments constants
-import cohorte.instruments
-
-# Composer
-import cohorte.composer
+# Standard library
+import datetime
+import json
+import logging
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Requires, \
     Instantiate, Property, Validate
 
-# Standard library
-import datetime
-import json
-import logging
+# Cohorte
+import cohorte
+import cohorte.composer
+import cohorte.instruments
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 
@@ -191,9 +190,8 @@ class NodeComposerInstrument(cohorte.instruments.CommonHttp):
                 handler = self._paths[parts[0]]
             except KeyError:
                 # ... not found
-                self.page_not_found(response,
-                                    "Unknown page: {0}".format(parts[0]),
-                                    self._name)
+                self.page_not_found(
+                    response, "Unknown page: {0}".format(parts[0]), self._name)
             else:
                 # ... use it
                 handler(response)
@@ -229,7 +227,7 @@ class NodeComposerInstrument(cohorte.instruments.CommonHttp):
         all_names = self.__extract_story_characters(hist_scenes)
 
         # Prepare temporary dictionary
-        data = dict((name, {"name": name, "scenes": []}) for name in all_names)
+        data = {name: {"name": name, "scenes": []} for name in all_names}
 
         # Store data
         for timestamp, distribution in hist_scenes:
@@ -344,8 +342,8 @@ class NodeComposerInstrument(cohorte.instruments.CommonHttp):
             start = scale(timestamp)
             for isolate, components in distribution.items():
                 idx += 1
-                scenes.append(self.__make_story_scene(idx, isolate, start,
-                                                      components, characters))
+                scenes.append(self.__make_story_scene(
+                    idx, isolate, start, components, characters))
 
         return tuple(scenes)
 

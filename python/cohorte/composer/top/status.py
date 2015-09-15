@@ -26,24 +26,24 @@ Stores the distributions computed by the Top Composer and assigns them an UUID
     limitations under the License.
 """
 
+# Standard library
+import logging
+import uuid
+
+# iPOPO Decorators
+from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate
+
+# Composer
+import cohorte.composer
+
+# ------------------------------------------------------------------------------
+
 # Module version
 __version_info__ = (3, 0, 0)
 __version__ = ".".join(str(x) for x in __version_info__)
 
 # Documentation strings format
 __docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
-
-# Composer
-import cohorte.composer
-
-# iPOPO Decorators
-from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate
-
-# Standard library
-import logging
-import uuid
 
 # ------------------------------------------------------------------------------
 

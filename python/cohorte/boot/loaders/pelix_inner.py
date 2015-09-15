@@ -23,24 +23,25 @@ COHORTE Pelix isolate loader
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# Version
-__version__ = '1.0.1'
-
-# ------------------------------------------------------------------------------
-
-# COHORTE constants
-import cohorte
-import cohorte.boot.loaders.utils as utils
+# Python standard library
+import logging
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
     Invalidate, Property, Requires
 
-# Python standard library
-import logging
+# COHORTE constants
+import cohorte
+import cohorte.boot.loaders.utils as utils
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 

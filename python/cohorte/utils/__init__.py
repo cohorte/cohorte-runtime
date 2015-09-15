@@ -28,13 +28,17 @@ COHORTE directory into the FileFinder service
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-import cohorte
-
+# Standard library
 import importlib
 import os
+
+# Cohorte
+import cohorte
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 
@@ -46,19 +50,20 @@ def get_os_utils():
 
     :return: System utility instance
     """
-    module_name = "%s.%s" % (__name__, os.name)
+    module_name = "{0}.{1}".format(__name__, os.name)
     try:
         # Do not use the __import__ statement, as it would return the package,
         # not the module
         module = importlib.import_module(module_name)
     except ImportError as ex:
-        raise ImportError("Can't import Utilities for OS : %s (%s) - %s"
-                          % (os.name, module_name, str(ex)))
+        raise ImportError(
+            "Can't import Utilities for OS : {0} ({1}) - {2}"
+            .format(os.name, module_name, str(ex)))
 
     utils = getattr(module, "OSUtils", None)
     if not utils:
-        raise ImportError("No OS utilities implementation found for %s (%s)"
-                          % (os.name, module_name))
+        raise ImportError("No OS utilities implementation found for {0} ({1})"
+                          .format(os.name, module_name))
 
     return utils()
 
@@ -154,8 +159,8 @@ class TimeoutExpired(Exception):
 
         :param pid: PID of the process that failed to respond
         """
-        Exception.__init__(self, "Timeout expired waiting for PID: %d" % pid)
-
+        Exception.__init__(
+            self, "Timeout expired waiting for PID: {0:d}".format(pid))
 
 # ------------------------------------------------------------------------------
 

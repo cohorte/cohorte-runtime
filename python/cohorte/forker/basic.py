@@ -24,13 +24,16 @@ Core of the COHORTE Forker, in the Forker/Monitor/NodeComposer process
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
+# Standard library
+import logging
+import threading
+import uuid
 
-# Boot module version
-__version__ = "1.0.1"
-
-# ------------------------------------------------------------------------------
+# Pelix framework
+from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
+    Invalidate, Provides, RequiresMap, BindField
+import pelix.http
+import pelix.threadpool
 
 # COHORTE modules
 import cohorte
@@ -41,16 +44,13 @@ import cohorte.monitor
 import herald
 from herald.beans import Message
 
-# Pelix framework
-from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
-    Invalidate, Provides, RequiresMap, BindField
-import pelix.http
-import pelix.threadpool
+# ------------------------------------------------------------------------------
 
-# Standard library
-import logging
-import threading
-import uuid
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Boot module version
+__version__ = "1.0.1"
 
 # ------------------------------------------------------------------------------
 

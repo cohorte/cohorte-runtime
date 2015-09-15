@@ -25,19 +25,25 @@ Utility methods implementations for POSIX
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
-
-import cohorte
-import cohorte.utils as utils
-
+# Standard library
 import errno
 import os
 import signal
 import sys
 import time
+
+# Cohorte
+import cohorte
+import cohorte.utils as utils
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 
@@ -84,7 +90,7 @@ class OSUtils(utils.BaseOSUtils):
             return sys.executable
 
         # Try with common names
-        common_names = ("python", "python2", "python2.6", "python2.7")
+        common_names = ("python", "python2", "python2.7")
         for name in common_names:
             found = utils.find_in_path(name)
             if found is not None:
@@ -110,7 +116,7 @@ class OSUtils(utils.BaseOSUtils):
             return sys.executable
 
         # Try with common names
-        common_names = ("python3", "python3.1", "python3.2")
+        common_names = ("python3", "python3.3", "python3.4", "python3.5")
         for name in common_names:
             found = utils.find_in_path(name)
             if found is not None:
@@ -148,7 +154,7 @@ class OSUtils(utils.BaseOSUtils):
         :raise OSError: Unauthorized operation
         """
         if pid is None or not self.is_process_running(pid):
-            raise ValueError("Invalid PID: %d" % pid)
+            raise ValueError("Invalid PID: {0:d}".format(pid))
 
         os.kill(pid, signal.SIGKILL)
 

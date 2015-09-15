@@ -24,26 +24,6 @@ configuration using a HTTP request
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# Version
-__version__ = '1.0.1'
-
-# ------------------------------------------------------------------------------
-
-# COHORTE constants
-import cohorte
-import cohorte.boot.loaders.utils as utils
-
-# Herald
-import herald
-
-# iPOPO Decorators
-from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
-    Invalidate, Provides, Property
-from pelix.utilities import to_unicode
-
 # Standard library
 import json
 import logging
@@ -58,6 +38,27 @@ except ImportError:
     # pylint: disable=F0401
     import httplib
     import urlparse
+
+# iPOPO Decorators
+from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
+    Invalidate, Provides, Property
+from pelix.utilities import to_unicode
+
+# COHORTE constants
+import cohorte
+import cohorte.boot.loaders.utils as utils
+
+# Herald
+import herald
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 

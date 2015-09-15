@@ -25,23 +25,23 @@ descriptions.
     limitations under the License.
 """
 
-# Module version
-__version_info__ = (3, 0, 0)
-__version__ = ".".join(str(x) for x in __version_info__)
-
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
+# iPOPO Decorators
+from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
+    Instantiate
 
 # Cohorte Composer
 import cohorte
 import cohorte.composer
 import cohorte.composer.beans as beans
 
-# iPOPO Decorators
-from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
-    Instantiate
+# ------------------------------------------------------------------------------
+
+# Module version
+__version_info__ = (3, 0, 0)
+__version__ = ".".join(str(x) for x in __version_info__)
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 
@@ -146,7 +146,6 @@ class CompositionParser(object):
 
         if not name:
             raise ValueError("Component name can't be empty")
-
         elif '.' in name:
             raise ValueError("A component name can't contain a '.' (dot)")
 

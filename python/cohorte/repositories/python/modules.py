@@ -23,26 +23,6 @@ Python modules repository
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# Boot module version
-__version__ = "1.0.1"
-
-# ------------------------------------------------------------------------------
-
-# Repository beans
-import cohorte.repositories
-from cohorte.repositories.beans import Artifact
-# ######### added by: Bassem D.
-from cohorte.repositories.beans import Version
-# #########
-
-# Pelix
-from pelix.ipopo.decorators import ComponentFactory, Provides, Property, \
-    Invalidate, Validate
-from pelix.utilities import is_string
-
 # Standard library
 import ast
 import imp
@@ -53,10 +33,28 @@ import os
 import json
 # #########
 
+# Pelix
+from pelix.ipopo.decorators import ComponentFactory, Provides, Property, \
+    Invalidate, Validate
+from pelix.utilities import is_string
+
+# Repository beans
+import cohorte
+import cohorte.repositories
+from cohorte.repositories.beans import Artifact, Version
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
+
 # ------------------------------------------------------------------------------
 
 _logger = logging.getLogger(__name__)
-
 
 # ------------------------------------------------------------------------------
 

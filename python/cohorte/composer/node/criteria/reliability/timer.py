@@ -25,26 +25,26 @@ last check.
     limitations under the License.
 """
 
+# Standard library
+import logging
+import threading
+
+# iPOPO Decorators
+from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
+    Invalidate, Validate, Requires
+
+# Composer
+import cohorte.composer
+import cohorte.composer.node.beans as beans
+
+# ------------------------------------------------------------------------------
+
 # Module version
 __version_info__ = (3, 0, 0)
 __version__ = ".".join(str(x) for x in __version_info__)
 
 # Documentation strings format
 __docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
-
-# Composer
-import cohorte.composer
-import cohorte.composer.node.beans as beans
-
-# iPOPO Decorators
-from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
-    Invalidate, Validate, Requires
-
-# Standard library
-import logging
-import threading
 
 # ------------------------------------------------------------------------------
 

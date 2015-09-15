@@ -25,13 +25,13 @@ To instantiate in every Python isolate
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
+# Standard library
+import logging
+import threading
 
-# Boot module version
-__version__ = "1.0.1"
-
-# ------------------------------------------------------------------------------
+# iPOPO Decorators
+from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
+    Invalidate, Provides, Property
 
 # Cohorte & Herald
 import cohorte
@@ -40,13 +40,14 @@ import herald
 import herald.exceptions
 import herald.beans as beans
 
-# iPOPO Decorators
-from pelix.ipopo.decorators import ComponentFactory, Requires, Validate, \
-    Invalidate, Provides, Property
+# ------------------------------------------------------------------------------
 
-# Standard library
-import logging
-import threading
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 

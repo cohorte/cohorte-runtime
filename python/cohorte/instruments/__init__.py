@@ -24,12 +24,12 @@ Instrumentation web UI
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
+from cohorte.instruments.common import CommonHttp
 
 # ------------------------------------------------------------------------------
 
-from cohorte.instruments.common import CommonHttp
+# Documentation strings format
+__docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 

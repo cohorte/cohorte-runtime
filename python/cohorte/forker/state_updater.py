@@ -23,16 +23,9 @@ Updates the isolate state directory
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# Boot module version
-__version__ = "1.0.1"
-
-# ------------------------------------------------------------------------------
-
-# Cohorte boot constants
-import cohorte.boot.constants as constants
+# Python standard library
+import json
+import logging
 
 # Pelix framework
 from pelix.ipopo.decorators import ComponentFactory, Requires, Property, \
@@ -40,9 +33,17 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Property, \
 from pelix.utilities import to_str
 import pelix.http
 
-# Python standard library
-import json
-import logging
+# Cohorte boot constants
+import cohorte.boot.constants as constants
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 
@@ -86,7 +87,7 @@ class StateUpdater(object):
         :param parameters: The server & servlet parameters
         """
         if path == self._servlet_path:
-            # Update our access informations
+            # Update our access information
             self._host = parameters['http.address']
             self._port = int(parameters['http.port'])
 

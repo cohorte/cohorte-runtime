@@ -24,26 +24,27 @@ Node Commander; gives orders to isolate composers
     limitations under the License.
 """
 
-# Module version
-__version_info__ = (3, 0, 0)
-__version__ = ".".join(str(x) for x in __version_info__)
-
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
-
-# Composer
-import cohorte.composer
+# Standard library
+import logging
+import threading
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
     Property, Instantiate, BindField, UpdateField, UnbindField, \
     Invalidate, Validate
 
-# Standard library
-import logging
-import threading
+# Composer
+import cohorte
+import cohorte.composer
+
+# ------------------------------------------------------------------------------
+
+# Module version
+__version_info__ = (3, 0, 0)
+__version__ = ".".join(str(x) for x in __version_info__)
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 

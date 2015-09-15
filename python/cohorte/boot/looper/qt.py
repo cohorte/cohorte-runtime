@@ -23,22 +23,6 @@ Defines the main thread handler for Qt applications
     limitations under the License.
 """
 
-# Module version
-__version_info__ = (0, 1, 0)
-__version__ = ".".join(str(x) for x in __version_info__)
-
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
-
-# PyQt 4
-import PyQt4.QtCore as QtCore
-import PyQt4.QtGui as QtGui
-
-# Pelix utilities
-import pelix.utilities as utils
-
 # Standard library
 import logging
 import sys
@@ -50,6 +34,22 @@ except ImportError:
     # Python 2
     import Queue as queue
 
+# Pelix utilities
+import pelix.utilities as utils
+
+# PyQt 4
+import PyQt4.QtCore as QtCore
+import PyQt4.QtGui as QtGui
+
+# ------------------------------------------------------------------------------
+
+# Module version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
 # ------------------------------------------------------------------------------
 
 _logger = logging.getLogger(__name__)
@@ -57,7 +57,7 @@ _logger = logging.getLogger(__name__)
 # ------------------------------------------------------------------------------
 
 
-def get_looper(*args, **kwargs):
+def get_looper():
     """
     Constructs the QtLoader
     """
@@ -67,7 +67,7 @@ def get_looper(*args, **kwargs):
 class QtLoader(QtCore.QObject):
     """
     Qt application loader.
-    Provides a run_on_ui() method to allow multithreaded application
+    Provides a run_on_ui() method to allow multi-threaded application
     construction.
 
     setup(), loop() and stop() should be called in the same thread, which

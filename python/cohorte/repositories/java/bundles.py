@@ -26,30 +26,32 @@ Java JARs repository utility module
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# Boot module version
-__version__ = "1.0.1"
-
-# ------------------------------------------------------------------------------
-
-# Cohorte
-import cohorte.repositories
-from cohorte.repositories.beans import Artifact, Version
-from cohorte.repositories.java.manifest import Manifest
-
-# Pelix
-from pelix.utilities import to_str
-from pelix.ipopo.decorators import ComponentFactory, Provides, Property, \
-    Invalidate, Validate
-
 # Standard library
 import contextlib
 import logging
 import operator
 import os
 import zipfile
+
+# Pelix
+from pelix.utilities import to_str
+from pelix.ipopo.decorators import ComponentFactory, Provides, Property, \
+    Invalidate, Validate
+
+# Cohorte
+import cohorte
+import cohorte.repositories
+from cohorte.repositories.beans import Artifact, Version
+from cohorte.repositories.java.manifest import Manifest
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 

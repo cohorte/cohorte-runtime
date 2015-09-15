@@ -24,25 +24,25 @@ Voting system core service
     limitations under the License.
 """
 
-# Module version
-__version_info__ = (1, 0, 1)
-__version__ = ".".join(str(x) for x in __version_info__)
-
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
-
-# Voting system
-import cohorte.vote
-import cohorte.vote.beans as beans
+# Standard library
+import logging
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Requires, \
     Instantiate
 
-# Standard library
-import logging
+# Voting system
+import cohorte.vote
+import cohorte.vote.beans as beans
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Module version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 

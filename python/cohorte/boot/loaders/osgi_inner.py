@@ -26,19 +26,10 @@ COHORTE Java isolate loader, based on jPype
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# Version
-__version__ = '1.0.1'
-
-# ------------------------------------------------------------------------------
-
-# COHORTE constants
-import cohorte.repositories
-
-# Herald
-import herald
+# Python standard library
+import logging
+import os
+import sys
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
@@ -46,13 +37,24 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
 import pelix.framework
 import pelix.shell
 
+# COHORTE constants
+import cohorte
+import cohorte.repositories
+
+# Herald
+import herald
+
 # JPype (Java bridge)
 import jpype
 
-# Python standard library
-import logging
-import os
-import sys
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 
@@ -267,9 +269,8 @@ class PyBridge(object):
         Prepares the configuration dictionary of an isolate
         """
         try:
-            conf = self._parser.prepare_isolate(uid, name, node, kind,
-                                                level, sublevel,
-                                                bundles, composition)
+            conf = self._parser.prepare_isolate(
+                uid, name, node, kind, level, sublevel, bundles, composition)
         except:
             _logger.exception("Error preparing isolate...")
             return None

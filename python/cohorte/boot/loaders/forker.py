@@ -23,13 +23,15 @@ COHORTE forker/monitor loader
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
+# Python standard library
+import logging
+import os
+import uuid
 
-# Version
-__version__ = '1.0.1'
-
-# ------------------------------------------------------------------------------
+# iPOPO Decorators
+from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
+    Invalidate, Requires, Property
+import pelix.framework
 
 # COHORTE constants
 import cohorte
@@ -38,15 +40,14 @@ import cohorte.boot.loaders.utils as utils
 # Herald
 import herald
 
-# iPOPO Decorators
-from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
-    Invalidate, Requires, Property
-import pelix.framework
+# ------------------------------------------------------------------------------
 
-# Python standard library
-import logging
-import os
-import uuid
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 

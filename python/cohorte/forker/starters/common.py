@@ -24,21 +24,6 @@ Common code for isolate starters
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# Boot module version
-__version__ = "1.0.1"
-
-# ------------------------------------------------------------------------------
-
-# COHORTE modules
-import cohorte.forker
-import cohorte.utils
-
-# Pelix framework
-from pelix.ipopo.decorators import Requires, Validate, Invalidate
-
 # Standard library
 import os
 
@@ -50,6 +35,23 @@ except ImportError:
     # Python 2
     # pylint: disable=F0401
     from urllib import quote
+
+# Pelix framework
+from pelix.ipopo.decorators import Requires, Validate, Invalidate
+
+# COHORTE modules
+import cohorte
+import cohorte.forker
+import cohorte.utils
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 

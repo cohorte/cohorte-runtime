@@ -10,8 +10,6 @@ Exported functions:
 * callAfter - call a function on the main thread (async)
 """
 
-__all__ = ('runEventLoop', 'stopEventLoop', 'callAfter')
-
 # Use cocoa-python instead of PyObjC
 import logging
 import sys
@@ -21,6 +19,8 @@ from cohorte.cocoapy import ObjCClass, ObjCSubclass, ObjCInstance, \
     send_super, PyObjectEncoding
 
 # ------------------------------------------------------------------------------
+
+__all__ = ('runEventLoop', 'stopEventLoop', 'callAfter')
 
 _logger = logging.getLogger(__name__)
 
@@ -76,7 +76,8 @@ class PyObjCAppHelperCaller_Implementation(object):
         self.performSelectorOnMainThread_withObject_waitUntilDone_(
             self.call_, self.args, False)
 
-    def call_(self, func_args_kwargs):
+    @staticmethod
+    def call_(func_args_kwargs):
         """
         Where the method call really happens
         """

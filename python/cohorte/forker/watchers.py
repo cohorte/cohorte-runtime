@@ -25,26 +25,27 @@ I/0 threads and process waiter component
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# Boot module version
-__version__ = "1.0.1"
-
-# ------------------------------------------------------------------------------
-
-# Cohorte
-import cohorte.forker
-import cohorte.utils
+# Python standard library
+import logging
+import threading
 
 # Pelix framework
 from pelix.ipopo.decorators import ComponentFactory, Validate, Invalidate, \
     Provides, Requires, Instantiate
 import pelix.threadpool
 
-# Python standard library
-import logging
-import threading
+# Cohorte
+import cohorte.forker
+import cohorte.utils
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 

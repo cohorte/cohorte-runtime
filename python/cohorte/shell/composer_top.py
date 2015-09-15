@@ -24,18 +24,10 @@ Shell commands to control the top composer
     limitations under the License.
 """
 
-# Module version
-__version_info__ = (3, 0, 0)
-__version__ = ".".join(str(x) for x in __version_info__)
-
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
-
-# Composer
-import cohorte
-import cohorte.composer
+# Standard library
+from pprint import pformat
+import logging
+import json
 
 # Shell constants
 from pelix.shell import SHELL_COMMAND_SPEC, SHELL_UTILS_SERVICE_SPEC
@@ -44,10 +36,18 @@ from pelix.shell import SHELL_COMMAND_SPEC, SHELL_UTILS_SERVICE_SPEC
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
     Instantiate
 
-# Standard library
-from pprint import pformat
-import logging
-import json
+# Composer
+import cohorte
+import cohorte.composer
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Module version
+__version_info__ = (3, 0, 0)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 

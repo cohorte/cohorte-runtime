@@ -28,16 +28,9 @@ stop the JVM, you must start the next one in a new process.
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# Boot module version
-__version__ = "1.0.1"
-
-# ------------------------------------------------------------------------------
-
-# COHORTE modules
-import cohorte
+# Python standard library
+import logging
+import os
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
@@ -46,9 +39,17 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
 # jPype
 import jpype
 
-# Python standard library
-import logging
-import os
+# COHORTE modules
+import cohorte
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 

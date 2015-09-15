@@ -25,24 +25,25 @@ Stores the state of isolates started by the forker, until there dead.
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# Boot module version
-__version__ = "1.0.1"
-
-# ------------------------------------------------------------------------------
-
-# Cohorte boot constants
-import cohorte.boot.constants as constants
+# Python standard library
+import logging
+import threading
 
 # Pelix framework
 from pelix.ipopo.decorators import ComponentFactory, Validate, Invalidate, \
     Provides
 
-# Python standard library
-import logging
-import threading
+# Cohorte boot constants
+import cohorte.boot.constants as constants
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 
@@ -79,12 +80,12 @@ class IsolateStateDirectory(object):
             # Test if the isolate is already known
             cur_state = self._directory.get(uid)
             if cur_state is not None \
-                    and cur_state != constants.STATE_INEXISTANT:
+                    and cur_state != constants.STATE_NONEXISTENT:
                 raise ValueError('{0} is already known in state {1}'
                                  .format(uid, cur_state))
 
             # Store the isolate and prepare its waiter
-            self._directory[uid] = constants.STATE_INEXISTANT
+            self._directory[uid] = constants.STATE_NONEXISTENT
             self._waiters[uid] = threading.Event()
 
     def knows(self, uid):

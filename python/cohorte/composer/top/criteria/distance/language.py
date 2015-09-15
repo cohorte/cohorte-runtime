@@ -28,22 +28,22 @@ criteria.
     along with Cohorte. If not, see <http://www.gnu.org/licenses/>.
 """
 
+# iPOPO Decorators
+from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
+    Instantiate
+
+# Composer
+import cohorte.composer
+import cohorte.repositories
+
+# ------------------------------------------------------------------------------
+
 # Module version
 __version_info__ = (3, 0, 0)
 __version__ = ".".join(str(x) for x in __version_info__)
 
 # Documentation strings format
 __docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
-
-# Composer
-import cohorte.composer
-import cohorte.repositories
-
-# iPOPO Decorators
-from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
-    Instantiate
 
 # ------------------------------------------------------------------------------
 

@@ -23,22 +23,23 @@ Multicast sockets utility module
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# Boot module version
-__version__ = "1.0.1"
-
-# ------------------------------------------------------------------------------
-
-# Pelix utilities
-from pelix.utilities import to_bytes
-
 # Standard library
 import logging
 import os
 import socket
 import struct
+
+# Pelix utilities
+from pelix.utilities import to_bytes
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 

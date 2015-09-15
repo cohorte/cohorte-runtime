@@ -25,20 +25,20 @@ The modification of its name is limited.
     limitations under the License.
 """
 
+# Standard library
+import itertools
+
+# Composer beans
+import cohorte.composer.beans as beans
+
+# ------------------------------------------------------------------------------
+
 # Module version
 __version_info__ = (3, 0, 0)
 __version__ = ".".join(str(x) for x in __version_info__)
 
 # Documentation strings format
 __docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
-
-# Composer beans
-import cohorte.composer.beans as beans
-
-# Standard library
-import itertools
 
 # ------------------------------------------------------------------------------
 

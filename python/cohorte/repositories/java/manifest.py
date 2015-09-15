@@ -23,14 +23,6 @@ Utility module to handle Java Manifest.mf files
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# Boot module version
-__version__ = "1.0.1"
-
-# ------------------------------------------------------------------------------
-
 import contextlib
 import shlex
 import sys
@@ -44,6 +36,15 @@ else:
     # Python 2
     import StringIO
     StringIO = StringIO.StringIO
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 

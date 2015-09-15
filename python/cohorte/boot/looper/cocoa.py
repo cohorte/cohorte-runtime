@@ -23,8 +23,20 @@ Defines the main thread handler for Cocoa applications
     limitations under the License.
 """
 
+# Standard library
+import logging
+
+# Pelix utilities
+import pelix.utilities as utils
+
+# Cocoa
+import cohorte.boot.looper.AppHelper as AppHelper
+from cohorte.cocoapy import ObjCClass
+
+
+# ------------------------------------------------------------------------------
 # Module version
-__version_info__ = (0, 1, 0)
+__version_info__ = (1, 0, 1)
 __version__ = ".".join(str(x) for x in __version_info__)
 
 # Documentation strings format
@@ -32,27 +44,14 @@ __docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 
-# Pelix utilities
-import pelix.utilities as utils
-
-# Standard library
-import logging
-
-# ------------------------------------------------------------------------------
-
 _logger = logging.getLogger(__name__)
 
-# ------------------------------------------------------------------------------
-
-# Cocoa
-import cohorte.boot.looper.AppHelper as AppHelper
-from cohorte.cocoapy import ObjCClass
 NSApplication = ObjCClass('NSApplication')
 
 # ------------------------------------------------------------------------------
 
 
-def get_looper(*args, **kwargs):
+def get_looper():
     """
     Constructs the CocoaLoader
     """

@@ -7,7 +7,6 @@ Should aggregate some services that would start nodes (VMs, EC2, ...)
 
 :author: Thomas Calmant
 :license: Apache Software License 2.0
-:version: 0.1.0
 
 ..
 
@@ -26,20 +25,20 @@ Should aggregate some services that would start nodes (VMs, EC2, ...)
     limitations under the License.
 """
 
-# Module version
-__version_info__ = (0, 1, 0)
-__version__ = ".".join(str(x) for x in __version_info__)
-
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
+# iPOPO Decorators
+from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate
 
 # Cohorte constants
 import cohorte
 
-# iPOPO Decorators
-from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 

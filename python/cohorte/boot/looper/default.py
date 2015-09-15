@@ -23,18 +23,6 @@ Defines the default main thread handler
     limitations under the License.
 """
 
-# Module version
-__version_info__ = (0, 1, 0)
-__version__ = ".".join(str(x) for x in __version_info__)
-
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
-
-# Pelix utilities
-import pelix.utilities as utils
-
 # Standard library
 import logging
 import threading
@@ -46,6 +34,18 @@ except ImportError:
     # Python 2
     import Queue as queue
 
+# Pelix utilities
+import pelix.utilities as utils
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
+
 # ------------------------------------------------------------------------------
 
 _logger = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ _logger = logging.getLogger(__name__)
 # ------------------------------------------------------------------------------
 
 
-def get_looper(*args, **kwargs):
+def get_looper():
     """
     Constructs the DefaultLooper
     """

@@ -30,13 +30,7 @@ isandlaTech servers
 # Print compatibility
 from __future__ import print_function
 
-# Module version
-__version_info__ = (0, 0, 1)
-__version__ = ".".join(str(x) for x in __version_info__)
-
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
+# Standard library
 import argparse
 import json
 import os
@@ -45,6 +39,7 @@ import sys
 import tempfile
 import zipfile
 
+# Pelix
 from pelix.utilities import to_str
 
 try:
@@ -53,6 +48,17 @@ try:
 except ImportError:
     # pylint: disable=F0401,E0611
     import urllib.request as urllib2
+
+# ------------------------------------------------------------------------------
+
+# Module version
+__version_info__ = (0, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# ------------------------------------------------------------------------------
 
 
 class CohorteMaker(object):
@@ -242,6 +248,7 @@ def main(args=None):
         print(ex)
         return 1
 
+# ------------------------------------------------------------------------------
 
 if __name__ == '__main__':
     sys.exit(main())

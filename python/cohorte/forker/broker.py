@@ -32,26 +32,27 @@ read it correctly.
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# Boot module version
-__version__ = "1.0.1"
-
-# ------------------------------------------------------------------------------
-
-# COHORTE constants
-import cohorte
+# Python standard library
+import json
+import logging
+import threading
 
 # Pelix framework
 from pelix.ipopo.decorators import ComponentFactory, Invalidate, Property, \
     Provides
 import pelix.http
 
-# Python standard library
-import json
-import logging
-import threading
+# COHORTE constants
+import cohorte
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 

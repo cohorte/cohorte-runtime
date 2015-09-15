@@ -24,14 +24,18 @@ The Node Composer
     limitations under the License.
 """
 
-# Module version
-__version_info__ = (3, 0, 0)
-__version__ = ".".join(str(x) for x in __version_info__)
+# Standard library
+import logging
+import threading
+import time
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
+# iPOPO Decorators
+from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
+    Instantiate, Property, Validate, Invalidate
 
-# ------------------------------------------------------------------------------
+# Pelix remote services
+import pelix.remote
+import pelix.threadpool
 
 # Composer
 import cohorte
@@ -43,19 +47,14 @@ import cohorte.monitor
 # Herald
 import herald
 
-# iPOPO Decorators
-from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
-    Instantiate, Property, Validate, Invalidate
+# ------------------------------------------------------------------------------
 
-# Pelix remote services
-import pelix.remote
-import pelix.threadpool
+# Module version
+__version_info__ = (3, 0, 0)
+__version__ = ".".join(str(x) for x in __version_info__)
 
-# Standard library
-import logging
-import threading
-
-import time
+# Documentation strings format
+__docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 
@@ -292,10 +291,9 @@ class NodeComposer(object):
                            for component in isolate.components}
 
         # Start the isolate (should be done asynchronously)
-        self._monitor.start_isolate(isolate.name,
-                                    self._compute_kind(isolate),
-                                    isolate.language, 'isolate',
-                                    isolate_bundles)
+        self._monitor.start_isolate(
+            isolate.name, self._compute_kind(isolate), isolate.language,
+            'isolate', isolate_bundles)
 
     def instantiate(self, components):
         """

@@ -26,23 +26,23 @@ Simply stores the components associated to the current isolate
     limitations under the License.
 """
 
+# Standard library
+import logging
+
+# iPOPO Decorators
+from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate
+
+# Composer
+import cohorte.composer
+
+# ------------------------------------------------------------------------------
+
 # Module version
 __version_info__ = (3, 0, 0)
 __version__ = ".".join(str(x) for x in __version_info__)
 
 # Documentation strings format
 __docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
-
-# Composer
-import cohorte.composer
-
-# iPOPO Decorators
-from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate
-
-# Standard library
-import logging
 
 # ------------------------------------------------------------------------------
 
@@ -76,10 +76,9 @@ class IsolateStatusStorage(object):
         Dumps the content of the storage
         """
         lines = ['Components:']
-        lines.extend('\t- {0} ({1})'.format(component,
-                                            component in self._instantiated)
-                     for component in self._components.values())
-
+        lines.extend(
+            '\t- {0} ({1})'.format(component, component in self._instantiated)
+            for component in self._components.values())
         return '\n'.join(lines)
 
     def store(self, components):
@@ -91,7 +90,6 @@ class IsolateStatusStorage(object):
         :return: The set of components that wasn't already known
         """
         added_components = set()
-
         for component in components:
             name = component.name
             if name not in self._components:
@@ -99,7 +97,6 @@ class IsolateStatusStorage(object):
                 self._components[name] = component
                 self._instantiated.add(component)
                 added_components.add(component)
-
         return added_components
 
     def remove(self, names):
@@ -113,7 +110,6 @@ class IsolateStatusStorage(object):
                 component = self._components.pop(name)
                 self._remaining.discard(component)
                 self._instantiated.discard(component)
-
             except KeyError:
                 _logger.warning("Unknown component: %s", name)
 

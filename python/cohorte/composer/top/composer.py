@@ -24,6 +24,22 @@ Top Composer entry point service
     limitations under the License.
 """
 
+# ######### added by: Bassem D.
+# Standard Library
+import logging
+# #########
+
+# iPOPO Decorators
+from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
+    Validate, Invalidate, Property
+
+# Composer
+import cohorte
+import cohorte.composer
+import cohorte.monitor
+
+# ------------------------------------------------------------------------------
+
 # Module version
 __version_info__ = (3, 0, 0)
 __version__ = ".".join(str(x) for x in __version_info__)
@@ -32,20 +48,6 @@ __version__ = ".".join(str(x) for x in __version_info__)
 __docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
-
-# ######### added by: Bassem D.
-# Standard Library
-import logging
-# #########
-
-# Composer
-import cohorte
-import cohorte.composer
-import cohorte.monitor
-
-# iPOPO Decorators
-from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
-    Instantiate, Validate, Invalidate, Property
 
 # ######### added by: Bassem D.
 _logger = logging.getLogger(__name__)

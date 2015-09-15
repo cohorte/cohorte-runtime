@@ -7,7 +7,6 @@ Provides commands to the Pelix shell to find other shells
 
 :author: Thomas Calmant
 :license: Apache Software License 2.0
-:version: 0.2
 
 ..
 
@@ -26,18 +25,9 @@ Provides commands to the Pelix shell to find other shells
     limitations under the License.
 """
 
-# Module version
-__version_info__ = (0, 2, 0)
-__version__ = ".".join(str(x) for x in __version_info__)
-
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# -----------------------------------------------------------------------------
-
-# Herald
-import herald
-import herald.beans as beans
+# Standard library
+import logging
+import os
 
 # Shell constants
 from pelix.shell import SHELL_COMMAND_SPEC, SHELL_UTILS_SERVICE_SPEC, \
@@ -51,11 +41,20 @@ from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
 from pelix.utilities import CountdownEvent
 import pelix.http
 
-# Standard library
-import logging
-import os
+# Herald
+import herald
+import herald.beans as beans
 
 # ------------------------------------------------------------------------------
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# -----------------------------------------------------------------------------
 
 _SUBJECT_PREFIX = "cohorte/shell/agent"
 """ Common prefix to agent signals """

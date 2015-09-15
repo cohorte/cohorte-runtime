@@ -24,27 +24,27 @@ Node Composer: Node status history
     limitations under the License.
 """
 
+# Standard library
+from pprint import pformat
+import logging
+import threading
+import time
+
+# iPOPO Decorators
+from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
+    Invalidate
+
+# Composer
+import cohorte.composer
+
+# ------------------------------------------------------------------------------
+
 # Module version
 __version_info__ = (3, 0, 0)
 __version__ = ".".join(str(x) for x in __version_info__)
 
 # Documentation strings format
 __docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
-
-# Composer
-import cohorte.composer
-
-# iPOPO Decorators
-from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
-    Invalidate
-
-# Standard library
-from pprint import pformat
-import logging
-import threading
-import time
 
 # ------------------------------------------------------------------------------
 
@@ -113,8 +113,8 @@ class NodeHistory(object):
 
         with self._lock:
             # Store our distribution
-            self._storage[timestamp] = dict((isolate, tuple(components))
-                                            for isolate, components
-                                            in distribution.items())
+            self._storage[timestamp] = {
+                isolate: tuple(components)
+                for isolate, components in distribution.items()}
             _logger.info("Node composer stored in history:\n%s",
                          pformat(self._storage[timestamp]))

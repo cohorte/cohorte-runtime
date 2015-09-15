@@ -23,24 +23,25 @@ COHORTE Monitor: Monitor status storage (isolates finite state machines)
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# Boot module version
-__version__ = "1.0.1"
-
-# ------------------------------------------------------------------------------
-
-# Composer core
-import cohorte.monitor
-import cohorte.monitor.fsm as fsm
+# Standard library
+import logging
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
     Invalidate
 
-# Standard library
-import logging
+# Composer core
+import cohorte.monitor
+import cohorte.monitor.fsm as fsm
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 

@@ -24,14 +24,11 @@ Votes according to the composition configuration
     limitations under the License.
 """
 
-# Module version
-__version_info__ = (3, 0, 0)
-__version__ = ".".join(str(x) for x in __version_info__)
+# Standard library
+import logging
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
+# iPOPO Decorators
+from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate
 
 # Composer
 import cohorte.composer
@@ -40,11 +37,14 @@ import cohorte.composer.node.beans as beans
 # Vote
 import cohorte.vote.beans as vote
 
-# iPOPO Decorators
-from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate
+# ------------------------------------------------------------------------------
 
-# Standard library
-import logging
+# Module version
+__version_info__ = (3, 0, 0)
+__version__ = ".".join(str(x) for x in __version_info__)
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 

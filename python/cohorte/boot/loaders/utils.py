@@ -9,22 +9,22 @@ configuration broker...
 :author: Thomas Calmant
 :license: Apache Software License 2.0
 """
-from pelix.ipopo.constants import use_ipopo
+
+# Python standard library
+import logging
+
+# Pelix / iPOPO
+import pelix.framework
+import pelix.ipopo.constants as constants
+
+# ------------------------------------------------------------------------------
 
 # Documentation strings format
 __docformat__ = "restructuredtext en"
 
 # Version
-__version__ = '1.0.1'
-
-# ------------------------------------------------------------------------------
-
-# Pelix / iPOPO
-import pelix.ipopo.constants as constants
-import pelix.framework
-
-# Python standard library
-import logging
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 
@@ -68,7 +68,7 @@ def boot_load(context, boot_config):
 
     if boot_config.composition:
         # Instantiate iPOPO components, if any
-        with use_ipopo(context) as ipopo:
+        with constants.use_ipopo(context) as ipopo:
             for component in boot_config.composition:
                 # If not indicated, tell iPOPO to restart this component after
                 # bundle update

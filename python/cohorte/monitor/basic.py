@@ -24,13 +24,14 @@ COHORTE Monitor: Monitor included in the F/M/N process
     limitations under the License.
 """
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
+# Standard library
+import logging
+import threading
+import uuid
 
-# Boot module version
-__version__ = "1.0.1"
-
-# ------------------------------------------------------------------------------
+# iPOPO Decorators
+from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
+    Invalidate, Requires, Property
 
 # Cohorte modules
 import cohorte
@@ -46,16 +47,17 @@ import cohorte.boot.loaders.utils as utils
 
 # Herald
 import herald
+import herald.exceptions
 from herald.beans import Message
 
-# iPOPO Decorators
-from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
-    Invalidate, Requires, Property
+# ------------------------------------------------------------------------------
 
-# Standard library
-import logging
-import threading
-import uuid
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 
@@ -308,9 +310,8 @@ class MonitorBasic(object):
 
         # Prepare a configuration
         # Node name and UID will be given by the forker
-        config = self._config.prepare_isolate(uid, name, kind,
-                                              level, sublevel,
-                                              custom_artifacts)
+        config = self._config.prepare_isolate(
+            uid, name, kind, level, sublevel, custom_artifacts)
 
         # Get the UID as a result of the configuration (support custom ones)
         uid = config['uid']
@@ -409,7 +410,7 @@ class MonitorBasic(object):
         try:
             self._herald.fire_group(
                 'monitors', Message(cohorte.monitor.SIGNAL_PLATFORM_STOPPING))
-        except:
+        except herald.exceptions.HeraldException:
             pass
 
         # Tell the forker to stop the running isolates

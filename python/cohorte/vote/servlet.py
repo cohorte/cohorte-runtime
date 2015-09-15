@@ -24,26 +24,26 @@ Voting system servlet: shows the charts made by the cartoonist
     limitations under the License.
 """
 
-# Module version
-__version_info__ = (1, 0, 1)
-__version__ = ".".join(str(x) for x in __version_info__)
-
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# ------------------------------------------------------------------------------
-
-# Voting system
-import cohorte.vote
+# Standard library
+import logging
+import os.path
 
 # iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Requires, \
     Instantiate, Property, Invalidate
 import pelix.http
 
-# Standard library
-import logging
-import os.path
+# Voting system
+import cohorte.vote
+
+# ------------------------------------------------------------------------------
+
+# Documentation strings format
+__docformat__ = "restructuredtext en"
+
+# Version
+__version_info__ = (1, 0, 1)
+__version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 
@@ -146,7 +146,7 @@ class VoteChartServlet(object):
         """
         Redirects the browser to the index
         """
-        response.set_response(404)
+        response.set_response(code)
         response.set_header("Location", self._path)
         response.end_headers()
         response.write("")
@@ -206,8 +206,8 @@ class VoteChartServlet(object):
 """.format(all_charts=all_charts)
 
         # Send the page
-        response.send_content(200, self.__make_page("Cohorte Vote System",
-                                                    body))
+        response.send_content(
+            200, self.__make_page("Cohorte Vote System", body))
 
     def send_static(self, response, filename):
         """
