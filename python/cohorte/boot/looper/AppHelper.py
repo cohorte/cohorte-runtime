@@ -180,7 +180,7 @@ def unexpectedErrorAlertPanel():
     ex_info = traceback.format_exception_only(*sys.exc_info()[:2])[0].strip()
     return NSRunAlertPanel(
         "An unexpected error has occurred %@",
-        "Continue", "Quit", None, "(%s)" % ex_info)
+        "Continue", "Quit", None, "({0})".format(ex_info))
 
 
 RAISETHESE = (SystemExit, MemoryError, KeyboardInterrupt)
