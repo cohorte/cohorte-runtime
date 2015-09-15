@@ -59,7 +59,8 @@ class ExeStarter(common.CommonStarter):
     """
     Isolate starter for simple executables
     """
-    def _prepare_arguments(self, configuration):
+    @staticmethod
+    def _prepare_arguments(configuration):
         """
         Prepares arguments to run an executable
 

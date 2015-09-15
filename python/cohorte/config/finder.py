@@ -230,10 +230,10 @@ class FileFinder(object):
                 base_path = root
 
             # Walk the directory
-            for root, _, filenames in os.walk(base_path, followlinks=True):
+            for sub_root, _, filenames in os.walk(base_path, followlinks=True):
                 for filename in fnmatch.filter(filenames, pattern):
                     # Return the real path of the matching file
-                    yield os.path.realpath(os.path.join(root, filename))
+                    yield os.path.realpath(os.path.join(sub_root, filename))
 
                 if not recursive:
                     # Stop on first directory

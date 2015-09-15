@@ -35,6 +35,7 @@ __docformat__ = "restructuredtext en"
 # ------------------------------------------------------------------------------
 
 # Composer
+import cohorte
 import cohorte.composer
 
 # iPOPO Decorators

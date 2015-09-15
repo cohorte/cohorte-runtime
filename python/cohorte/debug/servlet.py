@@ -186,7 +186,6 @@ class DebugServlet(object):
         table = self._utils.make_table(headers, lines)
         return '<h2>iPOPO Instances</h2><pre>' + table + '</pre>'
         
-
     def make_bundles(self, request):
         """
         Lists the bundles installed
@@ -258,7 +257,8 @@ class DebugServlet(object):
         return "<h2>Pelix services</h2>\n{table}\n" \
             .format(table='\n'.join(lines))
 
-    def make_threads(self, request):
+    @staticmethod
+    def make_threads(request):
         """
         Prepares the section about process threads
         """

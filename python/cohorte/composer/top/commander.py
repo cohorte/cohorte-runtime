@@ -173,7 +173,8 @@ class TopCommander(object):
                 _logger.exception("Error calling composer on node %s: %s",
                                   node_name, ex)
 
-    def __start(self, composer, components):
+    @staticmethod
+    def __start(composer, components):
         """
         Tells the given composer to start the given components
 
@@ -182,7 +183,8 @@ class TopCommander(object):
         """
         composer.instantiate(components)
 
-    def __stop(self, composer, components):
+    @staticmethod
+    def __stop(composer, components):
         """
         Tells the given composer to stop all of the given components
 

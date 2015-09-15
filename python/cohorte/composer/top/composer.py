@@ -39,6 +39,7 @@ import logging
 # #########
 
 # Composer
+import cohorte
 import cohorte.composer
 import cohorte.monitor
 
@@ -66,7 +67,7 @@ _logger = logging.getLogger(__name__)
 @Property('_autostart', 'autostart', "True")
 @Property('composition_filename', 'composition.filename', "composition.js")
 # #########
-#@Instantiate('cohorte-composer-top')
+# @Instantiate('cohorte-composer-top')
 class TopComposer(object):
     """
     The Top Composer entry point

@@ -120,7 +120,8 @@ class ShellAgentCommands(object):
         """
         self._context = None
 
-    def get_namespace(self):
+    @staticmethod
+    def get_namespace():
         """
         Retrieves the name space of this command handler
         """
@@ -218,7 +219,8 @@ class ShellAgentCommands(object):
 
         return group, peers
 
-    def __on_error(self, herald_svc, exception, failed_set, countdown):
+    @staticmethod
+    def __on_error(herald_svc, exception, failed_set, countdown):
         """
 
         :param herald_svc:

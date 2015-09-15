@@ -293,7 +293,8 @@ class NodeComposerInstrument(cohorte.instruments.CommonHttp):
                                  json_scenes=narrative_json)
         response.send_content(200, page)
 
-    def __extract_story_characters(self, history_items):
+    @staticmethod
+    def __extract_story_characters(history_items):
         """
         Makes a sorted list of the characters in the whole history
 
@@ -348,8 +349,8 @@ class NodeComposerInstrument(cohorte.instruments.CommonHttp):
 
         return tuple(scenes)
 
-    def __make_story_scene(self, idx, name, start,
-                           live_characters, all_characters):
+    @staticmethod
+    def __make_story_scene(idx, name, start, live_characters, all_characters):
         """
         Prepares the dictionary that represents the given scene
 

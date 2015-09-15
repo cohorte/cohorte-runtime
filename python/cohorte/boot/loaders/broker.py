@@ -103,7 +103,8 @@ class BrokerClientLoader(object):
         # Framework instance
         self._framework = None
 
-    def _grab_broker_configuration(self, access):
+    @staticmethod
+    def _grab_broker_configuration(access):
         """
         Retrieves the isolate configuration from the configuration broker, if
         any
@@ -141,7 +142,8 @@ class BrokerClientLoader(object):
             # Close the connection in any case
             conn.close()
 
-    def _parse_url(self, url):
+    @staticmethod
+    def _parse_url(url):
         """
         Extracts information from the given URL and returns a tuple to make
         requests for the given address

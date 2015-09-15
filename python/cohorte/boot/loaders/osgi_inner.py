@@ -172,13 +172,15 @@ class PyBridge(object):
             # No conversion
             return data
 
-    def debug(self, message, values):
+    @staticmethod
+    def debug(message, values):
         """
         Logs a debug message
         """
         _logger.debug(message.format(*values))
 
-    def error(self, message, values):
+    @staticmethod
+    def error(message, values):
         """
         Logs an error message
         """
@@ -204,7 +206,8 @@ class PyBridge(object):
         """
         return self._java_boot_config
 
-    def getPid(self):
+    @staticmethod
+    def getPid():
         """
         Retrieves the Process ID of this isolate
 
@@ -322,7 +325,8 @@ class JavaOsgiLoader(object):
         # Bridge service registration
         self._bridge_reg = None
 
-    def _setup_vm_properties(self, properties):
+    @staticmethod
+    def _setup_vm_properties(properties):
         """
         Sets up the JVM system properties dictionary (not the arguments)
 
@@ -432,16 +436,15 @@ class JavaOsgiLoader(object):
         :param java_configuration: The Java boot configuration
         """
         # Make a Java proxy of the bridge
-        bridge_java = self._java.make_proxy(PyBridge(self._context,
-                                                     self._java,
-                                                     java_configuration,
-                                                     self._config,
-                                                     self._bridge_callback))
+        bridge_java = self._java.make_proxy(
+            PyBridge(self._context, self._java, java_configuration,
+                     self._config, self._bridge_callback))
         # Register it to the framework
         self._bridge_reg = context.registerService(PyBridge.JAVA_INTERFACE,
                                                    bridge_java, None)
 
-    def _bridge_callback(self, success, message):
+    @staticmethod
+    def _bridge_callback(success, message):
         """
         Called back by the Python-Java bridge
 
@@ -451,7 +454,6 @@ class JavaOsgiLoader(object):
         """
         if success:
             _logger.debug("Bridge success: %s", message)
-
         else:
             _logger.warning("Bridge error: %s", message)
 

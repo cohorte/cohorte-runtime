@@ -67,14 +67,16 @@ class ConfigurationIsolateCriterion(object):
         """
         return "Configuration"
 
-    def handle_event(self, event):
+    @staticmethod
+    def handle_event(event):
         """
         Does nothing: this elector only cares about what is written in
         configuration files
         """
         pass
 
-    def vote(self, candidates, subject, ballot):
+    @staticmethod
+    def vote(candidates, subject, ballot):
         """
         Votes for the isolate(s) with the minimal compatibility distance
 

@@ -37,8 +37,9 @@ __docformat__ = "restructuredtext en"
 
 # Cohorte
 import cohorte
+import cohorte.monitor
 import herald
-
+import herald.exceptions
 import herald.beans as beans
 
 # Shell constants
@@ -72,7 +73,8 @@ class ForkerCommands(object):
         self._forker = None
         self._herald = None
 
-    def get_namespace(self):
+    @staticmethod
+    def get_namespace():
         """
         Retrieves the name space of this command handler
         """
@@ -94,7 +96,8 @@ class ForkerCommands(object):
         return [(command, method.__name__)
                 for command, method in self.get_methods()]
 
-    def __ping_to_str(self, ping_result):
+    @staticmethod
+    def __ping_to_str(ping_result):
         """
         Converts a ping() result (integer) into a string
 
@@ -143,12 +146,11 @@ class ForkerCommands(object):
         try:
             # send to other monitors
             self._herald.fire_group('monitors', msg)
-        except:
+        except herald.exceptions.HeraldException:
             pass
 
-        try:
-            # send to local peer
-            msg2 = beans.MessageReceived(msg.uid, msg.subject, msg.content, "local", "local", "local")
-            threading.Thread(target=self._herald.handle_message, args=[msg2]).start()
-        except:
-            pass
+        # send to local peer
+        msg2 = beans.MessageReceived(msg.uid, msg.subject, msg.content,
+                                     "local", "local", "local")
+        threading.Thread(
+            target=self._herald.handle_message, args=[msg2]).start()

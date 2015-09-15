@@ -160,8 +160,8 @@ class AstVisitor(ast.NodeVisitor):
         """
         Found a "from ... import ..."
         """
-        imp = self.resolve_relative_import_from(node)
-        self.imports.add(imp)
+        imported = self.resolve_relative_import_from(node)
+        self.imports.add(imported)
 
     def visit_Assign(self, node):
         """
@@ -353,7 +353,8 @@ class PythonModuleRepository(object):
         Class method testing whether a directory, given its name, contains a
         valid python package.
         :param dirname: The directory' name
-        :return: True if the directory contains a valid python package. False otherwise.
+        :return: True if the directory contains a valid python package.
+                 False otherwise.
         """
         init_file = os.path.join(dirname, "__init__.py")
         return os.path.exists(init_file)
@@ -366,16 +367,16 @@ class PythonModuleRepository(object):
         :param dirname: A path to a directory
         """
         for root, dirnames, filenames in os.walk(dirname, followlinks=True):
-            # Check if the current directory, ie. root, is either the base directory
-            # or a valid python package. Otherwise, do not walk through sub-directories.
-            if (not os.path.samefile(dirname, root)
-                and not self.__is_module(root)):
-                dirnames = [];
-                continue;
+            # Check if the current directory, ie. root, is either the base
+            # directory or a valid python package.
+            # Otherwise, do not walk through sub-directories.
+            if not os.path.samefile(dirname, root) \
+                    and not self.__is_module(root):
+                continue
             for filename in filenames:
                 if os.path.splitext(filename)[1] == '.py':
+                    fullname = os.path.join(root, filename)
                     try:
-                        fullname = os.path.join(root, filename)
                         self.add_file(dirname, fullname)
                     except ValueError as ex:
                         _logger.warning("Error analyzing %s: %s", fullname, ex)

@@ -65,10 +65,9 @@ BootConfiguration = collections.namedtuple('BootConfiguration',
                                             'boot_args'))
 
 # Boot configuration + Isolate basic description
-Isolate = collections.namedtuple('Isolate',
-                                 BootConfiguration._fields
-                                 + ('name', 'kind', 'node',
-                                    'level', 'sublevel'))
+Isolate = collections.namedtuple(
+    'Isolate', BootConfiguration._fields + ('name', 'kind', 'node',
+                                            'level', 'sublevel'))
 
 
 def _recursive_namedtuple_convert(data):
@@ -112,7 +111,8 @@ class BootConfigParser(object):
         # Loaded isolates configurations
         self._isolates = None
 
-    def _parse_bundle(self, json_object):
+    @staticmethod
+    def _parse_bundle(json_object):
         """
         Reads the given JSON object and returns its Bundle representation
 
@@ -146,7 +146,8 @@ class BootConfigParser(object):
 
         return [self._parse_bundle(bundle) for bundle in bundles]
 
-    def _parse_component(self, json_object):
+    @staticmethod
+    def _parse_component(json_object):
         """
         Reads the given JSON object and returns its Component representation
 
@@ -247,7 +248,8 @@ class BootConfigParser(object):
         # Return the configuration dictionary
         return configuration
 
-    def normalize_bundle(self, bundle):
+    @staticmethod
+    def normalize_bundle(bundle):
         """
         Make a Bundle object from the given Bundle-like object attributes,
         using default values when necessary.

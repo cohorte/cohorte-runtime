@@ -192,16 +192,16 @@ class IsolateDistributor(object):
 
         # ... assigned isolates values must be updated
         for j in range(max_isolates):
-            solver.Add(assigned_isolates[j]
-                       >= nb_isolate_components[j] / nb_components)
+            solver.Add(assigned_isolates[j] >=
+                       nb_isolate_components[j] / nb_components)
 
         # ... Avoid incompatible components on the same isolate
         for i in range(len(incompat_matrix)):
             for j in range(max_isolates):
                 # Pair on same isolate: sum = 2
-                solver.Add(iso[incompat_matrix[i][0], j]
-                           + iso[incompat_matrix[i][1], j]
-                           <= assigned_isolates[j])
+                solver.Add(iso[incompat_matrix[i][0], j] +
+                           iso[incompat_matrix[i][1], j] <=
+                           assigned_isolates[j])
 
         # Define the objective: minimize the number of isolates
         nb_assigned_isolates = solver.Sum(assigned_isolates)
@@ -235,7 +235,8 @@ class IsolateDistributor(object):
         added_isolates = [EligibleIsolate(None, language, components)]
         return updated_isolates, added_isolates
 
-    def __make_incompatibility_matrix(self, components_names):
+    @staticmethod
+    def __make_incompatibility_matrix(components_names):
         """
         Prepares the incompatibility matrix
 
@@ -263,7 +264,8 @@ class IsolateDistributor(object):
         # Return a sorted tuple or sorted tuples
         return tuple(sorted(incompat_matrix))
 
-    def handle_event(self, event):
+    @staticmethod
+    def handle_event(event):
         """
         Handles a component/composition event
 

@@ -193,7 +193,8 @@ class OSUtils(utils.BaseOSUtils):
         # Try in the path
         return utils.find_in_path("python.exe")
 
-    def is_process_running(self, pid):
+    @staticmethod
+    def is_process_running(pid):
         """
         Tests if the given process is running
 
@@ -255,7 +256,8 @@ class OSUtils(utils.BaseOSUtils):
             if handle is not None:
                 win32api.CloseHandle(handle)
 
-    def wait_pid(self, pid, timeout=None):
+    @staticmethod
+    def wait_pid(pid, timeout=None):
         """
         Waits for process with the given PID to terminate and return its
         exit status code as an integer.
@@ -312,7 +314,8 @@ class OSUtils(utils.BaseOSUtils):
             # Always clean up
             win32api.CloseHandle(handle)
 
-    def _test_java_path(self, java_home):
+    @staticmethod
+    def _test_java_path(java_home):
         """
         Tries to return the path to a Java interpreter
 

@@ -65,7 +65,8 @@ class CommonHttp(object):
         """
         self._path = '/' + self.normalize_path(path)
 
-    def normalize_path(self, path):
+    @staticmethod
+    def normalize_path(path):
         """
         Normalizes the given path, i.e. removes its double-slashes
 
@@ -105,8 +106,8 @@ class CommonHttp(object):
         :param sub_path: Servlet sub-path where to redirect the client
         :param code: Error code to use (404 by default)
         """
-        redirection = '/' + self.normalize_path("{0}/{1}".join(self._path,
-                                                               sub_path))
+        redirection = '/' + self.normalize_path(
+            "{0}/{1}".join((self._path, sub_path)))
         response.set_response(404)
         response.set_header("Location", redirection)
         response.end_headers()
@@ -123,7 +124,8 @@ class CommonHttp(object):
         target = self.normalize_path('/'.join(str(part) for part in parts))
         return '<a href="{0}/{1}">{2}</a>'.format(self._path, target, text)
 
-    def make_list(self, items, tag="ul"):
+    @staticmethod
+    def make_list(items, tag="ul"):
         """
         Prepare a list in HTML
 
@@ -135,7 +137,8 @@ class CommonHttp(object):
             .format(tag, "".join("\t<li>{0}</li>\n".format(str(item))
                                  for item in items))
 
-    def make_page(self, title, body, head=None):
+    @staticmethod
+    def make_page(title, body, head=None):
         """
         Makes an HTML page
 

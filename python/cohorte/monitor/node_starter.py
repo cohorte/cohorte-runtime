@@ -51,19 +51,22 @@ class NodeStarter(object):
     """
     Dummy node starter
     """
-    def start_nodes(self, names):
+    @staticmethod
+    def start_nodes(names):
         """
         Does nothing
         """
         pass
 
-    def start_node(self, name):
+    @staticmethod
+    def start_node(name):
         """
         Does nothing
         """
         pass
 
-    def stop_node(self, name):
+    @staticmethod
+    def stop_node(name):
         """
         Does nothing
         """

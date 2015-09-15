@@ -73,7 +73,8 @@ class ApprobationEngine(object):
         """
         return self._kind
 
-    def get_options(self):
+    @staticmethod
+    def get_options():
         """
         Returns the options available for this engine
 
@@ -87,7 +88,8 @@ class ApprobationEngine(object):
                 "exclusion": "Number of votes against a candidate before his "
                              "exclusion. Default: 0 (inactive)"}
 
-    def analyze(self, vote_round, ballots, candidates, parameters, vote_bean):
+    @staticmethod
+    def analyze(vote_round, ballots, candidates, parameters, vote_bean):
         """
         Analyzes the results of a vote
 

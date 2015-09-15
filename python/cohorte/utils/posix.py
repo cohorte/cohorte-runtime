@@ -119,7 +119,8 @@ class OSUtils(utils.BaseOSUtils):
         # Not found
         return None
 
-    def is_process_running(self, pid):
+    @staticmethod
+    def is_process_running(pid):
         """
         Tests if the given process is running
 
@@ -183,15 +184,17 @@ class OSUtils(utils.BaseOSUtils):
             return min(delay * 2, 0.04)
 
         if timeout is not None:
-            waitcall = lambda: os.waitpid(pid, os.WNOHANG)
+            def wait_call():
+                return os.waitpid(pid, os.WNOHANG)
             stop_at = time.time() + timeout
         else:
-            waitcall = lambda: os.waitpid(pid, 0)
+            def wait_call():
+                return os.waitpid(pid, 0)
 
         delay = 0.0001
         while 1:
             try:
-                retpid, status = waitcall()
+                retpid, status = wait_call()
             except OSError as err:
                 if err.errno == errno.EINTR:
                     delay = check_timeout(delay)
@@ -227,7 +230,8 @@ class OSUtils(utils.BaseOSUtils):
                     # should never happen
                     raise RuntimeError("Unknown process exit status")
 
-    def _test_java_path(self, java_home):
+    @staticmethod
+    def _test_java_path(java_home):
         """
         Tries to return the path to a Java interpreter
 

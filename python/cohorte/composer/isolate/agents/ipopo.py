@@ -126,7 +126,8 @@ class IPopoAgent(object):
         # Unregister from iPOPO events
         self._ipopo.remove_listener(self)
 
-    def _compute_properties(self, component):
+    @staticmethod
+    def _compute_properties(component):
         """
         Computes the configuration properties if the given component
         """

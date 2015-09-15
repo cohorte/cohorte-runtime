@@ -34,6 +34,7 @@ __docformat__ = "restructuredtext en"
 # ------------------------------------------------------------------------------
 
 # Composer
+import cohorte
 import cohorte.composer
 import cohorte.composer.node.beans as beans
 import cohorte.forker
@@ -165,7 +166,7 @@ class NodeComposer(object):
 
     def set_platform_stopping(self):
         self._controller = False
-        #self.invalidate(None)
+        # self.invalidate(None)
 
     def __start_timer(self, delay=None):
         """
@@ -219,7 +220,8 @@ class NodeComposer(object):
 
         return bundles
 
-    def _compute_kind(self, isolate):
+    @staticmethod
+    def _compute_kind(isolate):
         """
         Computes the kind of an isolate according to its language
 
@@ -305,7 +307,8 @@ class NodeComposer(object):
         with self._lock:
             # Stop the running timer, if any
             self.__stop_timer()
-            # wait already created isolates to get up. TODO: should enhance this solution!
+            # wait already created isolates to get up.
+            # TODO: should enhance this solution!
             time.sleep(5)
             try:
                 # Compute the implementation language of the components

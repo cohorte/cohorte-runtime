@@ -75,7 +75,8 @@ class PresidentielleFrEngine(object):
         """
         return self._kind
 
-    def get_options(self):
+    @staticmethod
+    def get_options():
         """
         Returns the options available for this engine
 
@@ -83,7 +84,8 @@ class PresidentielleFrEngine(object):
         """
         return {}
 
-    def analyze(self, vote_round, ballots, candidates, parameters, vote_bean):
+    @staticmethod
+    def analyze(vote_round, ballots, candidates, parameters, vote_bean):
         """
         Analyzes the results of a vote
 

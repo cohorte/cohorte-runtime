@@ -241,7 +241,8 @@ class BaseOSUtils(object):
         raise NotImplementedError(
             "This method must implemented by child class")
 
-    def read_framework_file(self, file_name):
+    @staticmethod
+    def read_framework_file(file_name):
         """
         Reads the first non-commented and non-empty line of a framework file.
         Framework files contains the file name of an OSGi framework JAR file

@@ -63,7 +63,8 @@ class LanguageCriterion(object):
         """
         self._repositories = []
 
-    def group(self, components, groups):
+    @staticmethod
+    def group(components, groups):
         """
         Groups components according to their implementation language
 

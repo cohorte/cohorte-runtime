@@ -35,6 +35,7 @@ __version__ = "1.0.1"
 # ------------------------------------------------------------------------------
 
 # COHORTE modules
+import cohorte
 import cohorte.forker
 import cohorte.forker.starters.common as common
 import cohorte.monitor

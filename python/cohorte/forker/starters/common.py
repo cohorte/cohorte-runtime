@@ -143,7 +143,8 @@ class CommonStarter(object):
             # Ignore errors
             pass
 
-    def normalize_environment(self, environment):
+    @staticmethod
+    def normalize_environment(environment):
         """
         Ensures that the environment dictionary only contains strings.
 

@@ -63,7 +63,8 @@ class RuleEngine(Intellect):
         # Dispatched methods (Name -> Method)
         self._dispatch = {}
 
-    def __check_name(self, name):
+    @staticmethod
+    def __check_name(name):
         """
         Checks if the given name is a valid Python identifier
 

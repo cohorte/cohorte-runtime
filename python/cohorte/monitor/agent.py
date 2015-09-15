@@ -34,7 +34,9 @@ __version__ = "1.0.1"
 # ------------------------------------------------------------------------------
 
 # Cohorte & Herald
+import cohorte
 import cohorte.monitor
+import herald
 import herald.exceptions
 import herald.beans as beans
 
@@ -57,7 +59,8 @@ _logger = logging.getLogger(__name__)
 @Requires('_sender', herald.SERVICE_HERALD)
 @Requires('_directory', herald.SERVICE_DIRECTORY)
 @Provides((herald.SERVICE_LISTENER, herald.SERVICE_DIRECTORY_LISTENER))
-@Property('_filters', herald.PROP_FILTERS, [cohorte.monitor.SIGNAL_STOP_ISOLATE])
+@Property('_filters', herald.PROP_FILTERS,
+          [cohorte.monitor.SIGNAL_STOP_ISOLATE])
 class IsolateAgent(object):
     """
     Isolate agent component
@@ -121,13 +124,15 @@ class IsolateAgent(object):
             else:
                 _logger.info("Monitors notified of isolate readiness")
 
-    def peer_updated(self, peer, access_id, data, previous):
+    @staticmethod
+    def peer_updated(peer, access_id, data, previous):
         """
         A peer has been updated: nothing to do
         """
         pass
 
-    def peer_unregistered(self, peer):
+    @staticmethod
+    def peer_unregistered(peer):
         """
         A peer has been unregistered: nothing to do
         """

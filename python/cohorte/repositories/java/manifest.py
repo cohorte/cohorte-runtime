@@ -157,7 +157,8 @@ class Manifest(object):
                     # Strip values
                     self.entries[key] = value.strip()
 
-    def _wrap_line(self, line):
+    @staticmethod
+    def _wrap_line(line):
         """
         Wraps a line, Manifest style
 

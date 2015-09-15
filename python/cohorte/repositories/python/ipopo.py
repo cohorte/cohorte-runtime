@@ -311,8 +311,8 @@ class IPopoRepository(object):
 
                 # Filter results
                 artifacts = [artifact for artifact in artifacts
-                             if artifact.name == artifact_name
-                             and version.matches(artifact.version)]
+                             if artifact.name == artifact_name and
+                             version.matches(artifact.version)]
 
                 if not artifacts:
                     # No match found

@@ -33,6 +33,8 @@ __version__ = "1.0.1"
 # ------------------------------------------------------------------------------
 
 # Cohorte modules
+import cohorte
+import cohorte.composer
 import cohorte.forker
 import cohorte.monitor
 import cohorte.monitor.fsm as fsm
@@ -78,7 +80,6 @@ _logger = logging.getLogger(__name__)
 @Property('_filters', herald.PROP_FILTERS,
           (cohorte.monitor.SIGNALS_ISOLATE_PATTERN,
            cohorte.monitor.SIGNALS_PLATFORM_PATTERN))
-
 class MonitorBasic(object):
     """
     Monitor core component: interface to the forker
@@ -465,7 +466,6 @@ class MonitorBasic(object):
         #    if name not in installed:
         #        self._context.install_bundle(name).start()
 
-
         # instantiates manually components declared on configuration files
         utils.boot_load(self._context, self._config.load_boot_dict(top_config))
         # #########
@@ -489,8 +489,9 @@ class MonitorBasic(object):
         # Start the Top Composer
         if context.get_property(cohorte.PROP_RUN_TOP_COMPOSER):
             # avoid deadlock when starting cohorte (cohorte-issue-#)
-            threading.Thread(target=self._load_top_composer,name="Top-Composer-Loader").start()
-            #self._load_top_composer()
+            threading.Thread(target=self._load_top_composer,
+                             name="Top-Composer-Loader").start()
+            # self._load_top_composer()
 
     @Invalidate
     def invalidate(self, context):

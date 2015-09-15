@@ -106,9 +106,10 @@ class JavaVM(object):
             class_loader.addURL(jar_url)
         except jpype.JavaException as ex:
             raise ValueError("Error loading the JAR file '{0}': {1}"
-                             .format(jar_file, ex))
+                             .format(jar_file_path, ex))
 
-    def get_package(self, name):
+    @staticmethod
+    def get_package(name):
         """
         Retrieves the wrapper for the given Java package.
 
@@ -127,7 +128,8 @@ class JavaVM(object):
         """
         return self._jvm_running
 
-    def load_class(self, name):
+    @staticmethod
+    def load_class(name):
         """
         Loads the given class from the JVM
 
@@ -140,7 +142,8 @@ class JavaVM(object):
         except jpype.JavaException as ex:
             raise ValueError(str(ex))
 
-    def make_proxy(self, instance, interface=None):
+    @staticmethod
+    def make_proxy(instance, interface=None):
         """
         Makes a proxy to be able to use the given instance in the Java world.
         Only the given interface methods will be visible in the Java world.
@@ -163,7 +166,8 @@ class JavaVM(object):
 
         return jpype.JProxy(interface, inst=instance)
 
-    def make_jvm_classpath(self, classpath):
+    @staticmethod
+    def make_jvm_classpath(classpath):
         """
         Prepares the arguments of the JVM
 
@@ -172,7 +176,8 @@ class JavaVM(object):
         """
         return "-Djava.class.path={0}".format(os.path.pathsep.join(classpath))
 
-    def make_jvm_property(self, key, value):
+    @staticmethod
+    def make_jvm_property(key, value):
         """
         Formats a JVM property definition (-Dkey=value)
 

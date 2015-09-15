@@ -54,7 +54,8 @@ class DummyVoteStore(object):
     """
     Mimics a vote store
     """
-    def store_vote(self, vote):
+    @staticmethod
+    def store_vote(vote):
         """
         We said dummy
         """

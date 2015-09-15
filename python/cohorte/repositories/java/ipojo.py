@@ -363,7 +363,8 @@ class IPojoRepository(object):
         """
         return sum((len(factories) for factories in self._factories.values()))
 
-    def _extract_bundle_factories(self, artifact):
+    @staticmethod
+    def _extract_bundle_factories(artifact):
         """
         Extracts the iPOJO factories definitions from the given artifact
 
@@ -491,8 +492,8 @@ class IPojoRepository(object):
 
                 # Filter results
                 artifacts = [artifact for artifact in artifacts
-                             if artifact.name == artifact_name
-                             and version.matches(artifact.version)]
+                             if artifact.name == artifact_name and
+                             version.matches(artifact.version)]
 
                 if not artifacts:
                     # No match found

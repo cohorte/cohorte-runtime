@@ -87,7 +87,8 @@ class IsolateDistributor(object):
         # Distribution loop index
         self._nb_distribution = 0
 
-    def _get_matching_isolates(self, component, isolates):
+    @staticmethod
+    def _get_matching_isolates(component, isolates):
         """
         Returns the isolates that match the given component.
 
@@ -99,7 +100,7 @@ class IsolateDistributor(object):
         language = component.language
 
         # FIXME: ugly trick due to python/python3 comparison problem
-        authorized_languages = set((None, language))
+        authorized_languages = {None, language}
         if language.startswith('python'):
             authorized_languages.update(('python', 'python3'))
 

@@ -179,13 +179,15 @@ class ForkerLoader(object):
             self._framework.add_property(cohorte.PROP_UID, uid)
         return uid
 
-    def prepare_state_updater(self, url):
+    @staticmethod
+    def prepare_state_updater(url):
         """
         Does nothing
         """
         pass
 
-    def update_state(self, new_state, extra=None):
+    @staticmethod
+    def update_state(new_state, extra=None):
         """
         Does nothing
         """

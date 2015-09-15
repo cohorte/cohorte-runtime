@@ -71,7 +71,8 @@ class CohorteMaker(object):
         # Name -> TemporaryFile
         self._templates = {}
 
-    def _get_file_content(self, url):
+    @staticmethod
+    def _get_file_content(url):
         """
         Returns the content of the given file
 

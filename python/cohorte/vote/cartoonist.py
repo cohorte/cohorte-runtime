@@ -179,7 +179,8 @@ class Cartoonist(object):
     """
     Draws charts according to VoteResults beans
     """
-    def make_chart_html(self, content):
+    @staticmethod
+    def make_chart_html(content):
         """
         Prepares the HTML code to draw a chart
 

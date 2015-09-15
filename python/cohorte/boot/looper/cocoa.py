@@ -70,7 +70,8 @@ class CocoaLoader(object):
         self._app = None
         self._argv = None
 
-    def __ui_runner(self, event, method, args, kwargs):
+    @staticmethod
+    def __ui_runner(event, method, args, kwargs):
         """
         Runs the given method and stores its result
 
@@ -125,7 +126,8 @@ class CocoaLoader(object):
         # Main loop
         AppHelper.runEventLoop(self._argv)
 
-    def stop(self):
+    @staticmethod
+    def stop():
         """
         Stops the loop
         """

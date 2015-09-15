@@ -35,6 +35,7 @@ __docformat__ = "restructuredtext en"
 # ------------------------------------------------------------------------------
 
 # Cohorte Composer
+import cohorte
 import cohorte.composer
 import cohorte.composer.beans as beans
 
@@ -128,7 +129,8 @@ class CompositionParser(object):
         if composite.components or composite.composites:
             return composite
 
-    def parse_component(self, component_dict):
+    @staticmethod
+    def parse_component(component_dict):
         """
         Parses a component description
 

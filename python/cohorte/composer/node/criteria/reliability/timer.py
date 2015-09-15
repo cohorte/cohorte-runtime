@@ -158,7 +158,8 @@ class TimerUpdater(object):
                 self._erroneous.update(component.factory
                                        for component in event.components)
 
-    def vote(self, candidates, subject, ballot):
+    @staticmethod
+    def vote(candidates, subject, ballot):
         """
         Does nothing
         """

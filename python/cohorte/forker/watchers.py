@@ -140,7 +140,8 @@ class IsolateWatcher(object):
         self._wait_thread = None
         self._io_threads.clear()
 
-    def _notify_listeners(self, listeners, uid, name):
+    @staticmethod
+    def _notify_listeners(listeners, uid, name):
         """
         Notifies listeners of the loss of an isolate
 
@@ -184,7 +185,8 @@ class IsolateWatcher(object):
                         self._pool.enqueue(self._notify_listeners,
                                            listeners, uid, name)
 
-    def __io_thread(self, uid, process, event):
+    @staticmethod
+    def __io_thread(uid, process, event):
         """
         Thread that looks for the I/O of the given process
 

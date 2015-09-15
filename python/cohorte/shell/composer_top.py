@@ -34,6 +34,7 @@ __docformat__ = "restructuredtext en"
 # ------------------------------------------------------------------------------
 
 # Composer
+import cohorte
 import cohorte.composer
 
 # Shell constants
@@ -80,7 +81,8 @@ class TopComposerCommands(object):
         self._status = None
         self.logger = logging.getLogger('shell-composer-top')
 
-    def get_namespace(self):
+    @staticmethod
+    def get_namespace():
         """
         Retrieves the name space of this command handler
         """

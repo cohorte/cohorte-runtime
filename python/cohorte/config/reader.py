@@ -91,7 +91,8 @@ class ConfigurationFileReader(object):
         # The file finder
         self._finder = None
 
-    def _compute_overridden_props(self, json_object, overriding_props):
+    @staticmethod
+    def _compute_overridden_props(json_object, overriding_props):
         """
         Parses the given properties object and overrides it with the given
         properties
@@ -238,7 +239,8 @@ class ConfigurationFileReader(object):
         # Nothing to do
         return json_data
 
-    def _find_equivalent(self, searched_dict, dicts_list):
+    @staticmethod
+    def _find_equivalent(searched_dict, dicts_list):
         """
         Finds the item in the given list which has the same ID than the given
         dictionary.
