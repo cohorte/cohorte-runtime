@@ -382,7 +382,7 @@ class ConfigurationFileReader(object):
 
                     if idx > -1:
                         # Valid index, remove the comment
-                        line = line[:idx]
+                        line = line[:idx-1]
 
                     # Store the treated line
                     if line:
