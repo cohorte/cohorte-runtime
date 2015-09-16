@@ -123,7 +123,7 @@
 				<artifactId>tycho-maven-plugin</artifactId>
 				<version>${tycho-version}</version>
 				<extensions>true</extensions>
-			</plugin>
+			</plugin>			
 		</plugins>
 
 		<pluginManagement>
@@ -137,7 +137,12 @@
 						<pomDependencies>consider</pomDependencies>
 					</configuration>
 				</plugin>
-
+				<!-- generate sources -->
+				<plugin>
+					<groupId>org.eclipse.tycho</groupId>
+					<artifactId>tycho-source-plugin</artifactId>
+					<version>${tycho-version}</version>					
+				</plugin>
 				<!-- Add iPOJO annotations to class path -->
 				<plugin>
 					<groupId>org.eclipse.tycho</groupId>
