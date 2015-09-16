@@ -71,6 +71,15 @@ public interface IPlatformProperties {
 	String PROP_ISOLATE_UID = "cohorte.isolate.uid";
 
 	/**
+	 * contains the path to the data directory.
+	 *
+	 * <pre>
+	 * -Dcohorte.node.data.dir=/opt/isandlatech/data
+	 * </pre>
+	 */
+	String PROP_NODE_DATA_DIR = "cohorte.node.data.dir";
+
+	/**
 	 * contains the node name of the current isolates.
 	 *
 	 * <pre>

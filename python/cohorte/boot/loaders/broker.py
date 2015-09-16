@@ -22,6 +22,12 @@ configuration using a HTTP request
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
+    
+    
+Modifications:
+    MOD_BD_20150916 retrieving Cohorte Data directory location from broker.
+    
+    
 """
 
 # Standard library
@@ -291,6 +297,9 @@ class BrokerClientLoader(object):
         node_name = json_data['node_name']
         framework.add_property(cohorte.PROP_NODE_NAME, node_name)
         framework.add_property(herald.FWPROP_NODE_NAME, node_name)
+
+        node_data_dir = json_data['node_data_dir']
+        framework.add_property(cohorte.PROP_NODE_DATA_DIR, node_data_dir)        
 
         framework.add_property(cohorte.PROP_KIND, kind)
         framework.add_property(herald.FWPROP_PEER_GROUPS,

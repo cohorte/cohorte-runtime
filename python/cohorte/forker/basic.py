@@ -22,6 +22,12 @@ Core of the COHORTE Forker, in the Forker/Monitor/NodeComposer process
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
+    
+    
+Modifications:
+    MOD_BD_20150916 Adding framework property 'cohorte.node.data.dir' to 
+                    isolate properties.
+        
 """
 
 # Standard library
@@ -99,6 +105,9 @@ class ForkerBasic(object):
         # Node name and UID
         self._node_name = None
         self._node_uid = None
+
+        # Node Data directory location 
+        self._node_data_dir = None
 
         # Isolate ID -> associated starter
         self._isolates = {}
@@ -181,7 +190,8 @@ class ForkerBasic(object):
         # Force node name and UID
         isolate_config['node_uid'] = self._node_uid
         isolate_config['node_name'] = self._node_name
-
+        isolate_config['node_data_dir'] = self._node_data_dir
+        
         # Tell the state directory to prepare an entry
         self._state_dir.prepare_isolate(uid)
 
@@ -424,6 +434,7 @@ class ForkerBasic(object):
             self._context = None
             self._node_name = None
             self._node_uid = None
+            self._node_data_dir = None
             _logger.info("Forker invalidated")
 
     @Validate
@@ -439,7 +450,8 @@ class ForkerBasic(object):
         # Get node information
         self._node_name = context.get_property(cohorte.PROP_NODE_NAME)
         self._node_uid = context.get_property(cohorte.PROP_NODE_UID)
-
+        self._node_data_dir = context.get_property(cohorte.PROP_NODE_DATA_DIR)
+        
         # Activate watchers
         self._sent_stopping = False
         self._watchers_running = True

@@ -24,6 +24,11 @@ COHORTE Java isolate loader, based on jPype
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
+    
+    
+Modifications:
+    MOD_BD_20150916 Inherits PROP_NODE_DATA_DIR from pelix.
+    
 """
 
 # Python standard library
@@ -356,6 +361,7 @@ class JavaOsgiLoader(object):
         for key in (cohorte.PROP_HOME, cohorte.PROP_BASE,
                     cohorte.PROP_UID, cohorte.PROP_NAME,
                     cohorte.PROP_NODE_UID, cohorte.PROP_NODE_NAME,
+                    cohorte.PROP_NODE_DATA_DIR,
                     cohorte.PROP_DUMPER_PORT,
                     herald.FWPROP_PEER_UID, herald.FWPROP_PEER_NAME,
                     herald.FWPROP_NODE_UID, herald.FWPROP_NODE_NAME,
@@ -363,7 +369,7 @@ class JavaOsgiLoader(object):
             value = self._context.get_property(key)
             if value is not None:
                 # Avoid empty values
-                osgi_properties.put(key, str(value))
+                osgi_properties.put(key, str(value))                
 
         # Special case: Herald groups (comma-separated list)
         value = self._context.get_property(herald.FWPROP_PEER_GROUPS)

@@ -94,6 +94,9 @@ PROP_NODE_UID = 'cohorte.node.uid'
 PROP_NODE_NAME = 'cohorte.node.name'
 """ COHORTE Node name framework property """
 
+PROP_NODE_DATA_DIR = 'cohorte.node.data.dir'
+""" COHORTE Node Data directory path framework property """
+
 PROP_RUN_TOP_COMPOSER = 'cohorte.composer.top.run'
 """ If present, the monitor must load the top composer """
 

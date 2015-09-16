@@ -220,14 +220,7 @@ class ForkerLoader(object):
 
         # Generate the forker UID if needed
         uid = self._update_uid()
-
-        _logger.info('''Loading a forker with the following properties:
-* Home.....: %s
-* Base.....: %s
-* Node UID.: %s
-* Node Name: %s
-* UID......: %s''', home, base, node_uid, node_name, uid)
-
+       
         # Update the file finder, as framework properties may have been
         # modified
         self._finder.update_roots()
@@ -248,6 +241,16 @@ class ForkerLoader(object):
 
         # Load the boot components
         boot_config = self._config.load_boot(LOADER_KIND)
+
+        # Get the node Data directory
+        node_data_dir = boot_config.properties['cohorte.node.data.dir']
+        _logger.info('''Loading a forker with the following properties:
+* Home.....: %s
+* Base.....: %s
+* Node UID.: %s
+* Node Name: %s
+* Node Data: %s
+* UID......: %s''', home, base, node_uid, node_name, node_data_dir, uid)        
 
         # Let the utility method do its job
         utils.boot_load(context, boot_config)

@@ -44,6 +44,7 @@ public interface IPlatformDirsSvc extends IPlatformProperties, IXDescriber {
 	 * MOD_OG_20150625 standards sub dirs
 	 */
 	String DIRNAME_CONF = "conf";
+	String DIRNAME_DATA = "data"; // MOD_BD_20150916
 	String DIRNAME_LOG = "log";
 	String DIRNAME_REPOSITORY = "repo";
 	String DIRNAME_STORAGE = "storage";
@@ -119,6 +120,17 @@ public interface IPlatformDirsSvc extends IPlatformProperties, IXDescriber {
 	 *
 	 */
 	File getIsolateUserDir();
+
+	/**
+	 * Retrieves the directory where components could write persistent data.
+	 *
+	 * <pre>
+	 * -Dcohorte.node.data.dir=/opt/isandlaTech/product/base
+	 * </pre>
+	 *
+	 * @return the data directory
+	 */
+	File getNodeDataDir();
 
 	/**
 	 * Retrieves the node name of the current isolate

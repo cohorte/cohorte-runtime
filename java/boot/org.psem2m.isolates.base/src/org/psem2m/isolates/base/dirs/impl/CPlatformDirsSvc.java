@@ -76,6 +76,20 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 	private final File pIsolateUserDir;
 
 	/**
+	 * Directory where component's persisted data is stored
+	 */
+	private File pNodeDataDir = null;
+
+	/**
+	 * Default location of Node Data directory.
+	 * 
+	 * <pre>
+	 * .../BASE/data
+	 * </pre>
+	 */
+	private File pNodeDataDirDefault = null;
+
+	/**
 	 * The node name of the isolate , given in "-Dcohorte.node.name" or
 	 * calculated
 	 */
@@ -116,11 +130,12 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 		pIsolateDir = initIsolateDir();
 		pIsolateLogDir = initIsolateLogDir();
 		pIsolateStorageDir = initIsolateStorageDir();
+		pNodeDataDirDefault = initNodeDataDirDefault();
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * org.psem2m.utilities.IXDescriber#addDescriptionInBuffer(java.lang.Appendable
 	 * )
@@ -194,7 +209,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateDir()
 	 */
 	@Override
@@ -205,7 +220,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.isolates.osgi.IPlatformDirs#getIsolateLogDir()
 	 */
 	@Override
@@ -216,7 +231,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateName()
 	 */
 	@Override
@@ -236,7 +251,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateStorageDir()
 	 */
@@ -248,7 +263,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateUID()
 	 */
 	@Override
@@ -266,7 +281,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateUserDir()
 	 */
@@ -279,6 +294,23 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 	/*
 	 * (non-Javadoc)
 	 *
+	 * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getNodeDataDir()
+	 */
+	@Override
+	public File getNodeDataDir() {
+		// init if null with Valid default directory
+		if (pNodeDataDir == null) {
+			// eg. -Dcohorte.data=${project_loc:/fr.agilium.ng.data}
+			final File wDataDir = new File(
+					pContext.getProperty(IPlatformProperties.PROP_NODE_DATA_DIR));
+			pNodeDataDir = validDirectory(wDataDir, pNodeDataDirDefault);
+		}
+		return pNodeDataDir;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateNode()
 	 */
 	@Override
@@ -298,7 +330,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getIsolateNode()
 	 */
 	@Override
@@ -315,7 +347,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.isolates.osgi.IPlatformDirs#getPlatformBaseDir()
 	 */
 	@Override
@@ -344,7 +376,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.isolates.base.IPlatformDirsSvc#getPlatformHomeDir()
 	 */
 	@Override
@@ -362,7 +394,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.isolates.base.dirs.IPlatformDirsSvc#getPlatformRootDirs()
 	 */
 	@Override
@@ -374,7 +406,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.isolates.base.IPlatformDirsSvc#getRepositories()
 	 */
 	@Override
@@ -443,6 +475,21 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 	}
 
 	/**
+	 * the default path of the platform DATA dir is a sub-directory of the BASE
+	 * dir. MOD_BD_20150916
+	 *
+	 * <pre>
+	 * 	...BASE/data
+	 * </pre>
+	 *
+	 * @return the default DATA dir
+	 */
+	private File initNodeDataDirDefault() {
+		// eg. ...base/data
+		return new CXFileDir(getPlatformBase(), DIRNAME_DATA);
+	}
+
+	/**
 	 * MOD_OG_20150625 add warning messages
 	 *
 	 * @param aFormat
@@ -474,7 +521,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.utilities.IXDescriber#toDescription()
 	 */
 	@Override
