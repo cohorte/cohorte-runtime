@@ -95,7 +95,8 @@ class ComponentFactoryVisitor(ast.NodeVisitor):
                     argument = None
                     if hasattr(decorator, 'kwargs'):
                         # Before Python 3.5
-                        argument = decorator.kwargs.get('name')
+                        if decorator.kwargs:
+                            argument = decorator.kwargs.get('name')
                     elif hasattr(decorator, 'keywords'):
                         # TODO: Python 3.5 (isandlaTech/cohorte-platforms#71)
                         pass
