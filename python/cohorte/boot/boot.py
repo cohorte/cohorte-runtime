@@ -32,6 +32,20 @@ import sys
 import threading
 import traceback
 
+# Ensure that the content of PYTHONPATH has priority over other paths
+# This is necessary on Windows, where packages installed in 'develop' mode
+# have priority over the PYTHONPATH.
+try:
+    for path in os.environ['PYTHONPATH'].split(os.pathsep):
+        try:
+            sys.path.remove(path)
+        except IndexError:
+            pass
+
+        sys.path.insert(0, path)
+except KeyError:
+    pass
+
 # COHORTE modules
 import cohorte
 import cohorte.boot.constants as constants
