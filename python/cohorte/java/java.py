@@ -203,6 +203,7 @@ class JavaVM(object):
             vm_library = jpype.getDefaultJVMPath()
 
         # Load the JVM
+        _logger.info("Starting JVM: %s", vm_library)
         jpype.startJVM(vm_library, *args)
         _logger.info("JVM started: %s", vm_library)
 
