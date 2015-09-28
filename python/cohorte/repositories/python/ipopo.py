@@ -91,12 +91,18 @@ class ComponentFactoryVisitor(ast.NodeVisitor):
                 if decorator.args:
                     # Name: First argument
                     argument = decorator.args[0]
-                elif decorator.kwargs and 'name' in decorator.kwargs:
-                    # Keyword argument
-                    argument = decorator.kwargs['name']
                 else:
-                    # Default name
-                    name = "{0}Factory".format(node.name)
+                    argument = None
+                    if hasattr(decorator, 'kwargs'):
+                        # Before Python 3.5
+                        argument = decorator.kwargs.get('name')
+                    elif hasattr(decorator, 'keywords'):
+                        # TODO: Python 3.5 (isandlaTech/cohorte-platforms#71)
+                        pass
+
+                    if not argument:
+                        # Default name
+                        name = "{0}Factory".format(node.name)
 
                 if name is None:
                     if hasattr(argument, 'id'):
