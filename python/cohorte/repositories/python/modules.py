@@ -198,7 +198,7 @@ def _extract_module_info(filename, module_name, is_package):
     visitor = AstVisitor(module_name, is_package)
     try:
         module = ast.parse(source, filename, 'exec')
-    except (ValueError, SyntaxError) as ex:
+    except (ValueError, SyntaxError, TypeError) as ex:
         raise ValueError("Error parsing {0}: {1}".format(filename, ex))
 
     visitor.visit(module)
