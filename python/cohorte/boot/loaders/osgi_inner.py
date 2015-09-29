@@ -42,7 +42,6 @@ import threading
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
     Invalidate, Property, Requires
 import pelix.framework
-from pelix.ipopo.handlers.constants import HandlerException
 import pelix.shell
 
 # COHORTE constants
@@ -90,8 +89,14 @@ PYTHON_BRIDGE_BUNDLE = "org.cohorte.pyboot"
 PYTHON_JAVA_BRIDGE_INTERFACE = "org.cohorte.pyboot.api.IPyBridge"
 """ Interface of the Python - Java bridge """
 
+HERALD_EVENT_BUNDLE_API = "org.cohorte.herald.eventapi"
+""" Name of the bundle and package which contain the Herald Event API """
 
-HERALD_EVENT_API = "org.cohorte.herald.pyapi"
+HERALD_EVENT_INTERFACE = "org.cohorte.herald.eventapi.IEvent"
+""" Interface of an Herald Event """
+
+HERALD_EVENT_FACTORY_INTERFACE = "org.cohorte.herald.eventapi.IEventFactory"
+""" Interface of the Herald EventFactory service """
 
 _logger = logging.getLogger(__name__)
 
@@ -308,7 +313,7 @@ class EventFactory(object):
     """
     Implementation of org.cohorte.herald.pyapi.IEventFactory
     """
-    JAVA_INTERFACE = "org.cohorte.herald.pyapi.IEventFactory"
+    JAVA_INTERFACE = HERALD_EVENT_FACTORY_INTERFACE
 
     def __init__(self, java_svc):
         self._java = java_svc
@@ -324,7 +329,7 @@ class EventProxy(object):
     """
     Implementation of org.cohorte.herald.pyapi.IEvent
     """
-    JAVA_INTERFACE = "org.cohorte.herald.pyapi.IEvent"
+    JAVA_INTERFACE = HERALD_EVENT_INTERFACE
 
     def __init__(self):
         self.__event = threading.Event()
@@ -423,11 +428,10 @@ class JavaOsgiLoader(object):
 
         if allow_bridge:
             # Prepare the "extra system package" framework property
-            osgi_properties.put(FRAMEWORK_SYSTEMPACKAGES_EXTRA,
-                                "{0}; version=1.0.0, {1}; version=1.0.0, "
-                                "{1}.impl; version=1.0.0"
-                                .format(PYTHON_BRIDGE_BUNDLE_API,
-                                        HERALD_EVENT_API))
+            osgi_properties.put(
+                FRAMEWORK_SYSTEMPACKAGES_EXTRA,
+                "{0}; version=1.0.0, {1}; version=1.0.0"
+                .format(PYTHON_BRIDGE_BUNDLE_API, HERALD_EVENT_BUNDLE_API))
         return osgi_properties
 
     def _start_jvm(self, vm_args, classpath, properties):
@@ -483,7 +487,8 @@ class JavaOsgiLoader(object):
 
     def _register_bridge(self, context, java_configuration):
         """
-        Instantiates and starts the iPOJO components instantiation handler
+        Instantiates and registers the iPOJO components instantiation handler
+        inside the OSGi framework
 
         :param context: An OSGi bundle context
         :param java_configuration: The Java boot configuration
@@ -492,15 +497,24 @@ class JavaOsgiLoader(object):
         bridge_java = self._java.make_proxy(
             PyBridge(self._context, self._java, java_configuration,
                      self._config, self._bridge_callback))
-        # Register it to the framework
-        self._bridge_reg = context.registerService(PyBridge.JAVA_INTERFACE,
-                                                   bridge_java, None)
 
+        # Register it to the framework
+        self._bridge_reg = context.registerService(
+            PyBridge.JAVA_INTERFACE, bridge_java, None)
+
+    def _register_herald_bridge(self, context):
+        """
+        Registers the Herald EventFactory service inside the OSGi framework
+
+        :param context: An OSGi bundle context
+        :param java_configuration: The Java boot configuration
+        """
         # Make a Java proxy of the Herald bridge
         herald_java = self._java.make_proxy(EventFactory(self._java))
+
         # Register it to the framework
-        self._bridge_reg = context.registerService(EventFactory.JAVA_INTERFACE,
-                                                   herald_java, None)
+        self._bridge_reg = context.registerService(
+            EventFactory.JAVA_INTERFACE, herald_java, None)
 
     @staticmethod
     def _bridge_callback(success, message):
@@ -575,15 +589,16 @@ class JavaOsgiLoader(object):
             # Add the bundle to the class path...
             classpath.append(api_jar.file)
         else:
-            _logger.warning("No Python bridge API bundle found")
+            raise Exception("Python bridge API bundle is missing")
 
         # Find the Herald API JAR file
-        herald_jar = self._repository.get_artifact(HERALD_EVENT_API)
-        if herald_jar:
+        herald_event_jar = self._repository.get_artifact(
+            HERALD_EVENT_BUNDLE_API)
+        if herald_event_jar:
             # Add the bundle to the class path...
-            classpath.append(herald_jar.file)
+            classpath.append(herald_event_jar.file)
         else:
-            _logger.warning("No Python Herald API bundle found")
+            raise Exception("Herald Event API bundle is missing")
 
         # Start the JVM
         _logger.debug("Starting JVM...")
@@ -609,6 +624,9 @@ class JavaOsgiLoader(object):
         self._osgi = factory.newFramework(osgi_properties)
         self._osgi.start()
         context = self._osgi.getBundleContext()
+
+        # Register the Herald Event API bridge
+        self._register_herald_bridge(context)
 
         # Install bundles
         java_bundles = []
@@ -655,6 +673,7 @@ class JavaOsgiLoader(object):
             raise
 
         # Start the component instantiation handler
+        # (once all bundles have been installed)
         self._register_bridge(context, java_config)
 
     def wait(self):
