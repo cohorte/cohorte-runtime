@@ -311,27 +311,45 @@ class PyBridge(object):
 
 class EventFactory(object):
     """
-    Implementation of org.cohorte.herald.pyapi.IEventFactory
+    Implementation of org.cohorte.herald.eventapi.IEventFactory
     """
     JAVA_INTERFACE = HERALD_EVENT_FACTORY_INTERFACE
 
     def __init__(self, java_svc):
+        """
+        Sets up members
+        """
         self._java = java_svc
 
     def createEvent(self):
+        """
+        Creates an event for the Java world
+        """
         return self._java.make_proxy(EventProxy())
 
     def sleep(self, milliseconds):
+        """
+        Sleeps the given number of milliseconds
+        """
         time.sleep(milliseconds / 1000.)
+
+    def toString(self):
+        """
+        Java toString() method
+        """
+        return "Python Event Factory for Herald"
 
 
 class EventProxy(object):
     """
-    Implementation of org.cohorte.herald.pyapi.IEvent
+    Implementation of org.cohorte.herald.eventapi.IEvent
     """
     JAVA_INTERFACE = HERALD_EVENT_INTERFACE
 
     def __init__(self):
+        """
+        Sets up members
+        """
         self.__event = threading.Event()
 
         # Common names
@@ -339,10 +357,19 @@ class EventProxy(object):
             setattr(self, method, getattr(self.__event, method))
 
     def waitEvent(self, timeout_ms=None):
+        """
+        Proxy to call the wait() method of the event
+        """
         if timeout_ms is None or timeout_ms < 0:
             return self.__event.wait()
         else:
             return self.__event.wait(timeout_ms / 1000.)
+
+    def toString(self):
+        """
+        Java toString() method
+        """
+        return "Python EventProxy for Herald"
 
 # ------------------------------------------------------------------------------
 
@@ -507,14 +534,15 @@ class JavaOsgiLoader(object):
         Registers the Herald EventFactory service inside the OSGi framework
 
         :param context: An OSGi bundle context
-        :param java_configuration: The Java boot configuration
         """
         # Make a Java proxy of the Herald bridge
         herald_java = self._java.make_proxy(EventFactory(self._java))
 
         # Register it to the framework
+        props = self._java.load_class("java.util.Hashtable")()
+        props.put("service.ranking", 1000)
         self._bridge_reg = context.registerService(
-            EventFactory.JAVA_INTERFACE, herald_java, None)
+            EventFactory.JAVA_INTERFACE, herald_java, props)
 
     @staticmethod
     def _bridge_callback(success, message):
