@@ -30,43 +30,45 @@ import org.osgi.framework.ServiceRegistration;
  */
 public class Activator implements BundleActivator {
 
-    /** The service registration */
-    private ServiceRegistration<OsgiCommands> pRegistration;
+	/** The service registration */
+	private ServiceRegistration<OsgiCommands> pRegistration;
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
-     * )
-     */
-    @Override
-    public void start(final BundleContext aContext) {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
+	 * )
+	 */
+	@Override
+	public void start(final BundleContext aContext) {
 
-        // Set up properties
-        final Dictionary<String, Object> properties = new Hashtable<String, Object>();
-        properties.put("osgi.command.scope", "cohorte");
-        properties.put("osgi.command.function", new String[] { "services",
-                "providers", "service" });
+		// Prepare the object
+		final OsgiCommands osgiCommands = new OsgiCommands(aContext);
 
-        // Register the service
-        pRegistration = aContext.registerService(OsgiCommands.class,
-                new OsgiCommands(aContext), properties);
-    }
+		// Set up properties
+		final Dictionary<String, Object> properties = new Hashtable<String, Object>();
+		properties.put("osgi.command.scope", "cohorte");
+		properties.put("osgi.command.function", osgiCommands.getCommands());
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see
-     * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
-     */
-    @Override
-    public void stop(final BundleContext aContext) {
+		// Register the service
+		pRegistration = aContext.registerService(OsgiCommands.class,
+				osgiCommands, properties);
+	}
 
-        // Unregister the service
-        if (pRegistration != null) {
-            pRegistration.unregister();
-            pRegistration = null;
-        }
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
+	 */
+	@Override
+	public void stop(final BundleContext aContext) {
+
+		// Unregister the service
+		if (pRegistration != null) {
+			pRegistration.unregister();
+			pRegistration = null;
+		}
+	}
 }

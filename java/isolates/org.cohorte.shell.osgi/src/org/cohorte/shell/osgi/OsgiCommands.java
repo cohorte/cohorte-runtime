@@ -33,248 +33,344 @@ import org.osgi.framework.ServiceReference;
  */
 public class OsgiCommands {
 
-    /** The bundle context */
-    private final BundleContext pContext;
+	/** The bundle context */
+	private final BundleContext pContext;
 
-    /**
-     * Sets up the members
-     *
-     * @param aContext
-     *            The bundle context
-     */
-    public OsgiCommands(final BundleContext aContext) {
+	/**
+	 * Sets up the members
+	 *
+	 * @param aContext
+	 *            The bundle context
+	 */
+	public OsgiCommands(final BundleContext aContext) {
 
-        pContext = aContext;
-    }
+		pContext = aContext;
+	}
 
-    /**
-     * Prints the details of the given service reference
-     *
-     * @param aServiceReference
-     *            A service reference
-     */
-    private void printReference(final ServiceReference<?> aServiceReference) {
+	/**
+	 * Returns the name of the commands this class provides
+	 */
+	public String[] getCommands() {
+		return new String[] { "services", "providers", "service", "references",
+				"getservice" };
+	}
 
-        // Extract main properties
-        final Long svcId = (Long) aServiceReference
-                .getProperty(Constants.SERVICE_ID);
-        final String[] specs = (String[]) aServiceReference
-                .getProperty(Constants.OBJECTCLASS);
-        final Bundle bundle = aServiceReference.getBundle();
+	/**
+	 * Gets and ungets the service with the given service ID
+	 *
+	 * @param aServiceID
+	 *            Service ID
+	 */
+	public void getservice(final int aServiceID) {
+		final ServiceReference<?>[] svcRefs;
+		try {
+			svcRefs = pContext.getServiceReferences((String) null, "("
+					+ Constants.SERVICE_ID + "=" + aServiceID + ")");
+		} catch (final InvalidSyntaxException ex) {
+			System.out.println("Invalid filter: " + ex);
+			return;
+		}
 
-        // Print'em
-        System.out.println("Service ID: " + svcId);
-        System.out.println("Bundle: " + bundle.getSymbolicName() + " ("
-                + bundle.getBundleId() + ")");
-        System.out.println("Specifications:");
-        for (final String spec : specs) {
-            System.out.println("\t* " + spec);
-        }
+		if (svcRefs == null) {
+			System.out.println("No service found");
+			return;
+		}
 
-        // Print other properties
-        System.out.println("Properties:");
-        for (final String key : aServiceReference.getPropertyKeys()) {
-            System.out.println("\t* " + key);
+		final ServiceReference<?> svcRef = svcRefs[0];
+		System.out.println("ServiceReference found");
+		printReference(svcRef);
 
-            // Convert value to a string
-            String strValue;
-            String strClass;
-            final Object rawValue = aServiceReference.getProperty(key);
-            if (rawValue == null) {
-                // No value
-                strClass = "(null)";
-                strValue = "null";
+		// Get it
+		final Object svc = pContext.getService(svcRef);
+		System.out.println("Service object: " + svc);
+		pContext.ungetService(svcRef);
+	}
 
-            } else {
-                // Keep class name
-                strClass = rawValue.getClass().getName();
-                if (rawValue.getClass().isArray()) {
-                    // Convert the array to an array of Object
-                    Object[] rawArray;
-                    if (rawValue.getClass().getComponentType().isPrimitive()) {
-                        // Primitive can't be cast to Object
-                        final int length = Array.getLength(rawValue);
-                        rawArray = new Object[length];
-                        for (int i = 0; i < length; i++) {
-                            rawArray[i] = Array.get(rawValue, i);
-                        }
+	/**
+	 * Gets and ungets the service with the given specification
+	 *
+	 * @param aSpecification
+	 *            Service specification
+	 */
+	public void getservice(final String aSpecification) {
+		final ServiceReference<?> svcRef = pContext
+				.getServiceReference(aSpecification);
+		if (svcRef == null) {
+			System.out.println("No service found");
+			return;
+		}
 
-                    } else {
-                        // Nothing to do
-                        rawArray = (Object[]) rawValue;
-                    }
+		System.out.println("ServiceReference found");
+		printReference(svcRef);
 
-                    // Convert the array to strings
-                    strValue = Arrays.deepToString(rawArray);
+		// Get it
+		final Object svc = pContext.getService(svcRef);
+		System.out.println("Service object: " + svc);
+		pContext.ungetService(svcRef);
+	}
 
-                } else {
-                    // Get the string value as is
-                    strValue = rawValue.toString();
-                }
-            }
+	/**
+	 * Prints the details of the given service reference
+	 *
+	 * @param aServiceReference
+	 *            A service reference
+	 */
+	private void printReference(final ServiceReference<?> aServiceReference) {
 
-            System.out.println("\t\t-> " + strValue + " (" + strClass + ")");
-        }
+		// Extract main properties
+		final Long svcId = (Long) aServiceReference
+				.getProperty(Constants.SERVICE_ID);
+		final String[] specs = (String[]) aServiceReference
+				.getProperty(Constants.OBJECTCLASS);
+		final Bundle bundle = aServiceReference.getBundle();
 
-        // Service usage
-        System.out.println("Service used by:");
-        for (final Bundle usingBundle : aServiceReference.getUsingBundles()) {
-            System.out.println("\t* " + usingBundle.getSymbolicName() + " ("
-                    + usingBundle.getBundleId() + ")");
-        }
-    }
+		// Print'em
+		System.out.println("Service ID: " + svcId);
+		System.out.println("Bundle: " + bundle.getSymbolicName() + " ("
+				+ bundle.getBundleId() + ")");
+		System.out.println("Specifications:");
+		for (final String spec : specs) {
+			System.out.println("\t* " + spec);
+		}
 
-    /**
-     * Prints the ID and the specifications of the given service references on
-     * the standard output
-     *
-     * @param aServiceReferences
-     *            Some service references
-     */
-    private void printReferences(final ServiceReference<?>[] aServiceReferences) {
+		// Print other properties
+		System.out.println("Properties:");
+		for (final String key : aServiceReference.getPropertyKeys()) {
+			System.out.println("\t* " + key);
 
-        // Sort the array
-        Arrays.sort(aServiceReferences, new Comparator<ServiceReference<?>>() {
+			// Convert value to a string
+			String strValue;
+			String strClass;
+			final Object rawValue = aServiceReference.getProperty(key);
+			if (rawValue == null) {
+				// No value
+				strClass = "(null)";
+				strValue = "null";
 
-            /*
-             * (non-Javadoc)
-             *
-             * @see java.util.Comparator#compare(java.lang.Object,
-             * java.lang.Object)
-             */
-            @Override
-            public int compare(final ServiceReference<?> aReference,
-                    final ServiceReference<?> aOther) {
+			} else {
+				// Keep class name
+				strClass = rawValue.getClass().getName();
+				if (rawValue.getClass().isArray()) {
+					// Convert the array to an array of Object
+					Object[] rawArray;
+					if (rawValue.getClass().getComponentType().isPrimitive()) {
+						// Primitive can't be cast to Object
+						final int length = Array.getLength(rawValue);
+						rawArray = new Object[length];
+						for (int i = 0; i < length; i++) {
+							rawArray[i] = Array.get(rawValue, i);
+						}
 
-                final Long svcId1 = (Long) aReference
-                        .getProperty(Constants.SERVICE_ID);
-                final Long svcId2 = (Long) aOther
-                        .getProperty(Constants.SERVICE_ID);
+					} else {
+						// Nothing to do
+						rawArray = (Object[]) rawValue;
+					}
 
-                return svcId1.compareTo(svcId2);
-            }
-        });
+					// Convert the array to strings
+					strValue = Arrays.deepToString(rawArray);
 
-        // Print details
-        for (final ServiceReference<?> reference : aServiceReferences) {
+				} else {
+					// Get the string value as is
+					strValue = rawValue.toString();
+				}
+			}
 
-            // Extract properties
-            final Long svcId = (Long) reference
-                    .getProperty(Constants.SERVICE_ID);
-            final String[] specs = (String[]) reference
-                    .getProperty(Constants.OBJECTCLASS);
-            final Bundle bundle = reference.getBundle();
+			System.out.println("\t\t-> " + strValue + " (" + strClass + ")");
+		}
 
-            // Print the result
-            System.out.println(String.format("- Service %4d from %s (%d) - %s",
-                    svcId, bundle.getSymbolicName(), bundle.getBundleId(),
-                    Arrays.asList(specs)));
-        }
-    }
+		// Service usage
+		System.out.println("Service used by:");
+		final Bundle[] usingBundles = aServiceReference.getUsingBundles();
+		if (usingBundles != null) {
+			for (final Bundle usingBundle : usingBundles) {
+				System.out.println("\t* " + usingBundle.getSymbolicName()
+						+ " (" + usingBundle.getBundleId() + ")");
+			}
+		}
+	}
 
-    /**
-     * Prints the references that matches the given specification
-     *
-     * @param aSpecification
-     *            A service specification
-     */
-    public void providers(final String aSpecification) {
+	/**
+	 * Prints the ID and the specifications of the given service references on
+	 * the standard output
+	 *
+	 * @param aServiceReferences
+	 *            Some service references
+	 */
+	private void printReferences(final ServiceReference<?>[] aServiceReferences) {
 
-        // Get the references
-        ServiceReference<?>[] serviceReferences;
-        try {
-            serviceReferences = pContext.getAllServiceReferences(
-                    aSpecification, null);
+		// Sort the array
+		Arrays.sort(aServiceReferences, new Comparator<ServiceReference<?>>() {
 
-        } catch (final InvalidSyntaxException ex) {
-            System.err.println("Error retrieving services: " + ex);
-            return;
-        }
+			/*
+			 * (non-Javadoc)
+			 *
+			 * @see java.util.Comparator#compare(java.lang.Object,
+			 * java.lang.Object)
+			 */
+			@Override
+			public int compare(final ServiceReference<?> aReference,
+					final ServiceReference<?> aOther) {
 
-        if (serviceReferences == null || serviceReferences.length == 0) {
-            System.out.println("No matching service found");
-            return;
-        }
+				final Long svcId1 = (Long) aReference
+						.getProperty(Constants.SERVICE_ID);
+				final Long svcId2 = (Long) aOther
+						.getProperty(Constants.SERVICE_ID);
 
-        // Print'em
-        printReferences(serviceReferences);
-    }
+				return svcId1.compareTo(svcId2);
+			}
+		});
 
-    /**
-     * Prints the details of the given service
-     */
-    public void service(final int aServiceId) {
+		// Print details
+		for (final ServiceReference<?> reference : aServiceReferences) {
 
-        // Get the matching references
-        ServiceReference<?>[] serviceReferences;
-        try {
-            serviceReferences = pContext.getServiceReferences((String) null,
-                    "(" + Constants.SERVICE_ID + "=" + aServiceId + ")");
+			// Extract properties
+			final Long svcId = (Long) reference
+					.getProperty(Constants.SERVICE_ID);
+			final String[] specs = (String[]) reference
+					.getProperty(Constants.OBJECTCLASS);
+			final Bundle bundle = reference.getBundle();
 
-        } catch (final InvalidSyntaxException ex) {
-            System.err.println("Error retrieving services: " + ex);
-            return;
-        }
+			// Print the result
+			System.out.println(String.format("- Service %4d from %s (%d) - %s",
+					svcId, bundle.getSymbolicName(), bundle.getBundleId(),
+					Arrays.asList(specs)));
+		}
+	}
 
-        // Check results
-        if (serviceReferences == null || serviceReferences.length == 0) {
-            System.out.println("Unknown service");
-            return;
+	/**
+	 * Prints the references that matches the given specification
+	 *
+	 * @param aSpecification
+	 *            A service specification
+	 */
+	public void providers(final String aSpecification) {
 
-        } else if (serviceReferences.length > 1) {
-            System.out.println("WARNING: too many references found, "
-                    + "only the first one will be printed");
-        }
+		// Get the references
+		ServiceReference<?>[] serviceReferences;
+		try {
+			serviceReferences = pContext.getAllServiceReferences(
+					aSpecification, null);
 
-        // Print details
-        printReference(serviceReferences[0]);
-    }
+		} catch (final InvalidSyntaxException ex) {
+			System.err.println("Error retrieving services: " + ex);
+			return;
+		}
 
-    /**
-     * Prints all registered services
-     */
-    public void services() {
+		if (serviceReferences == null || serviceReferences.length == 0) {
+			System.out.println("No matching service found");
+			return;
+		}
 
-        // Get the references
-        ServiceReference<?>[] serviceReferences;
-        try {
-            serviceReferences = pContext.getAllServiceReferences(null, null);
+		// Print'em
+		printReferences(serviceReferences);
+	}
 
-        } catch (final InvalidSyntaxException ex) {
-            System.err.println("Error retrieving services: " + ex);
-            return;
-        }
+	/**
+	 * Prints the result of getServiceReferences()
+	 *
+	 * @param aSpecification
+	 *            Service specification
+	 */
+	public void references(final String aSpecification) {
 
-        if (serviceReferences == null || serviceReferences.length == 0) {
-            System.out.println("No service registered");
-            return;
-        }
+		try {
+			final ServiceReference<?>[] serviceReferences = pContext
+					.getAllServiceReferences(aSpecification, null);
+			if (serviceReferences == null) {
+				System.out.println("No reference found.");
 
-        // Print'em
-        printReferences(serviceReferences);
-        System.out.println("Found " + serviceReferences.length + " services");
-    }
+			} else {
+				// Found some
+				for (final ServiceReference<?> svcRef : serviceReferences) {
+					System.out.println("- ID: "
+							+ svcRef.getProperty(Constants.SERVICE_ID)
+							+ " -- Ranking: "
+							+ svcRef.getProperty(Constants.SERVICE_RANKING)
+							+ " -- Specs: "
+							+ Arrays.toString((String[]) svcRef
+									.getProperty(Constants.OBJECTCLASS)));
+				}
+			}
+		} catch (final InvalidSyntaxException ex) {
+			System.out.println("Error listing references: " + ex);
+		}
+	}
 
-    /**
-     * Prints the services registered by the given bundle
-     *
-     * @param aBundle
-     *            A bundle
-     */
-    public void services(final Bundle aBundle) {
+	/**
+	 * Prints the details of the given service
+	 */
+	public void service(final int aServiceId) {
 
-        // Get the references
-        final ServiceReference<?>[] serviceReferences = aBundle
-                .getRegisteredServices();
-        if (serviceReferences == null || serviceReferences.length == 0) {
-            System.out.println("No service registered by "
-                    + aBundle.getSymbolicName());
-            return;
-        }
+		// Get the matching references
+		ServiceReference<?>[] serviceReferences;
+		try {
+			serviceReferences = pContext.getServiceReferences((String) null,
+					"(" + Constants.SERVICE_ID + "=" + aServiceId + ")");
 
-        // Print'em
-        printReferences(serviceReferences);
-        System.out.println(aBundle.getSymbolicName() + " registered "
-                + serviceReferences.length + " services");
-    }
+		} catch (final InvalidSyntaxException ex) {
+			System.err.println("Error retrieving services: " + ex);
+			return;
+		}
+
+		// Check results
+		if (serviceReferences == null || serviceReferences.length == 0) {
+			System.out.println("Unknown service");
+			return;
+
+		} else if (serviceReferences.length > 1) {
+			System.out.println("WARNING: too many references found, "
+					+ "only the first one will be printed");
+		}
+
+		// Print details
+		printReference(serviceReferences[0]);
+	}
+
+	/**
+	 * Prints all registered services
+	 */
+	public void services() {
+
+		// Get the references
+		ServiceReference<?>[] serviceReferences;
+		try {
+			serviceReferences = pContext.getAllServiceReferences(null, null);
+
+		} catch (final InvalidSyntaxException ex) {
+			System.err.println("Error retrieving services: " + ex);
+			return;
+		}
+
+		if (serviceReferences == null || serviceReferences.length == 0) {
+			System.out.println("No service registered");
+			return;
+		}
+
+		// Print'em
+		printReferences(serviceReferences);
+		System.out.println("Found " + serviceReferences.length + " services");
+	}
+
+	/**
+	 * Prints the services registered by the given bundle
+	 *
+	 * @param aBundle
+	 *            A bundle
+	 */
+	public void services(final Bundle aBundle) {
+
+		// Get the references
+		final ServiceReference<?>[] serviceReferences = aBundle
+				.getRegisteredServices();
+		if (serviceReferences == null || serviceReferences.length == 0) {
+			System.out.println("No service registered by "
+					+ aBundle.getSymbolicName());
+			return;
+		}
+
+		// Print'em
+		printReferences(serviceReferences);
+		System.out.println(aBundle.getSymbolicName() + " registered "
+				+ serviceReferences.length + " services");
+	}
 }
