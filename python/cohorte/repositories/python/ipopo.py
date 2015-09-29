@@ -98,8 +98,11 @@ class ComponentFactoryVisitor(ast.NodeVisitor):
                         if decorator.kwargs:
                             argument = decorator.kwargs.get('name')
                     elif hasattr(decorator, 'keywords'):
-                        # TODO: Python 3.5 (isandlaTech/cohorte-platforms#71)
-                        pass
+                        # Python 3.5: kwargs dictionary replaced by a list
+                        # of keywords
+                        for keyword in decorator.keywords:
+                            if keyword.arg == 'name':
+                                argument = keyword.value
 
                     if not argument:
                         # Default name
