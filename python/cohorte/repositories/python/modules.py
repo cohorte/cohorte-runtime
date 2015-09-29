@@ -333,11 +333,18 @@ class PythonModuleRepository(object):
         :param filename: A Python full-path file name
         :raise ValueError: Unreadable file
         """
-        # Compute the complete module name
-        name, is_package = self.__compute_name(root, filename)
-
         # Compute the real name of the Python file
         realfile = os.path.realpath(filename)
+        if realfile in self._files:
+            # Already read it: ignore
+            return
+
+        if os.path.basename(filename).startswith('.'):
+            # Hidden file: ignore
+            return
+
+        # Compute the complete module name
+        name, is_package = self.__compute_name(root, filename)
 
         # Parse the file
         version, imports = _extract_module_info(realfile, name, is_package)
