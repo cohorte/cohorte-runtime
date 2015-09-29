@@ -206,7 +206,7 @@ class IsolateWatcher(object):
             try:
                 # Try to decode the line
                 line = line.decode('UTF-8').rstrip()
-            except AttributeError:
+            except (AttributeError, UnicodeDecodeError):
                 # Not a string line
                 pass
 
