@@ -5,7 +5,7 @@ Bundle-Name: COHORTE :: Loggers
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-SymbolicName: org.psem2m.isolates.loggers
 Bundle-Vendor: isandlaTech.com
-Bundle-Version: 1.0.2.qualifier
+Bundle-Version: 1.0.2
 Created-By: iPOJO  1.8.0
 Export-Package: org.psem2m.isolates.loggers
 Import-Package: org.apache.felix.ipojo, org.apache.felix.ipojo.archite

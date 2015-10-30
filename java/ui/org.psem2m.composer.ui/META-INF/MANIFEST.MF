@@ -5,7 +5,7 @@ Bundle-Name: PSEM2M :: UI :: Composer
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.psem2m.composer.ui
 Bundle-Vendor: isandlaTech.com
-Bundle-Version: 1.0.2.qualifier
+Bundle-Version: 1.0.2
 Created-By: iPOJO  1.8.0
 Import-Package: javax.swing,
  javax.swing.event,

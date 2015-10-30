@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: PSEM2M - JMX Monitor
 Bundle-SymbolicName: org.psem2m.isolates.jmx.monitor
-Bundle-Version: 1.0.2.qualifier
+Bundle-Version: 1.0.2
 Bundle-Activator: org.psem2m.isolates.jmx.monitor.Activator
 Bundle-Vendor: isandlaTech.com
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6

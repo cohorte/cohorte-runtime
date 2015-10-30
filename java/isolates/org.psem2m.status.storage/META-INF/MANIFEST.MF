@@ -4,7 +4,7 @@ Bundle-Name: PSEM2M :: Status Storage Factory
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.psem2m.status.storage
 Bundle-Vendor: isandlaTech.com
-Bundle-Version: 1.0.2.qualifier
+Bundle-Version: 1.0.2
 Created-By: iPOJO  1.8.0
 Export-Package: org.psem2m.status.storage
 Import-Package: org.apache.felix.ipojo, org.apache.felix.ipojo.archite
