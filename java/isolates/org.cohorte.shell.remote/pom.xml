@@ -28,8 +28,7 @@
 		<!-- Gogo shell -->
 		<dependency>
 			<groupId>org.apache.felix</groupId>
-			<artifactId>org.apache.felix.gogo.runtime</artifactId>
-			<version>${ipojo-version}</version>
+			<artifactId>org.apache.felix.gogo.runtime</artifactId>			
 		</dependency>
 
 		<!-- Cohorte Utilities -->

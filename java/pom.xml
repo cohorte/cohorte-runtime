@@ -22,12 +22,13 @@
 	<packaging>pom</packaging>
 
 	<properties>
-		<tycho-version>0.21.0</tycho-version>
+		<tycho-version>0.22.0</tycho-version>
 		<osgi-version>5.0.0</osgi-version>
 		<ipojo-version>1.12.1</ipojo-version>
 		<herald-version>0.0.5</herald-version>
 		<remote-services-version>1.2.1</remote-services-version>
-		<cohorte-utilities-version>1.0.3</cohorte-utilities-version>
+		<cohorte-utilities-version>1.0.4</cohorte-utilities-version>
+		<felix-gogo-runtime-version>0.10.0</felix-gogo-runtime-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
@@ -90,10 +91,24 @@
 				<scope>provided</scope>
 			</dependency>
 
-			<!-- Herald API -->
+			<dependency>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>org.apache.felix.gogo.runtime</artifactId>
+				<version>${felix-gogo-runtime-version}</version>
+				<scope>provided</scope>
+			</dependency>
+
+			<!-- Herald -->
 			<dependency>
 				<groupId>org.cohorte.herald</groupId>
 				<artifactId>org.cohorte.herald.api</artifactId>
+				<version>${herald-version}</version>
+				<scope>provided</scope>
+			</dependency>
+			
+			<dependency>
+				<groupId>org.cohorte.herald</groupId>
+				<artifactId>org.cohorte.herald.eventapi</artifactId>
 				<version>${herald-version}</version>
 				<scope>provided</scope>
 			</dependency>
