@@ -711,7 +711,8 @@ class JavaOsgiLoader(object):
             # Start the bundles
             for bundle in java_bundles:
                 _logger.debug("Starting %s...", bundle.getSymbolicName())
-                bundle.start()
+                if not bundle.is_fragment():
+                    bundle.start()
         except jpype.JavaException as ex:
             # Log the bundle exception and its cause
             _logger.error("Error starting bundle: %s",

@@ -3,6 +3,7 @@
 
 ** Bug Fix
     * OSGi framework user-provided extra packages are not considered [isandlaTech/cohorte-runtime#36]
+    * Do not start Fragment bundles in OSGi [isandlaTech/cohorte-runtime#35]
 
 Changes form the 1.0.1 to 1.0.2
 -------------------------------
