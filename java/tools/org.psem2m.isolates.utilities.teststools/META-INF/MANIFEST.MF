@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: PSEM2M Utilities - Tests tools
 Bundle-SymbolicName: org.psem2m.isolates.utilities.teststools
-Bundle-Version: 1.0.2
+Bundle-Version: 1.0.3
 Bundle-Vendor: isandlaTech
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: org.psem2m.utilities.teststools

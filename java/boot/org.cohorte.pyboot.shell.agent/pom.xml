@@ -20,7 +20,7 @@
 	<parent>
 		<groupId>org.cohorte.runtime</groupId>
 		<artifactId>cohorte-java</artifactId>
-		<version>1.0.2</version>
+		<version>1.0.3</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
 	<artifactId>org.cohorte.pyboot.shell.agent</artifactId>

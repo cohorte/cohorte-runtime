@@ -388,6 +388,7 @@ class JavaOsgiLoader(object):
     Pelix isolate loader. Needs a configuration to be given as a parameter of
     the load() method.
     """
+
     def __init__(self):
         """
         Sets up members
@@ -418,7 +419,7 @@ class JavaOsgiLoader(object):
         # Prepare the dictionary
         return properties.copy() if properties else {}
 
-    def _setup_osgi_properties(self, properties, allow_bridge):
+    def _setup_osgi_properties(self, properties, allow_bridge, extra_packages=None):
         """
         Sets up the OSGi framework properties and converts them into a Java
         HashMap.
@@ -453,12 +454,27 @@ class JavaOsgiLoader(object):
             osgi_properties.put(herald.FWPROP_PEER_GROUPS,
                                 ','.join(str(group) for group in value))
 
+        new_extra_packages = None
         if allow_bridge:
             # Prepare the "extra system package" framework property
+            if extra_packages:
+                new_extra_packages = "{0}; version=1.0.0, {1}; version=1.0.0,{2}".format(
+                    PYTHON_BRIDGE_BUNDLE_API, HERALD_EVENT_BUNDLE_API, extra_packages)
+            else:
+                new_extra_packages = "{0}; version=1.0.0, {1}; version=1.0.0".format(
+                    PYTHON_BRIDGE_BUNDLE_API, HERALD_EVENT_BUNDLE_API)
+        else:
+            if extra_packages:
+                new_extra_packages = "{0}".format(extra_packages)
+
+        if new_extra_packages:
+            _logger.debug(
+                "Framework extra-packages={0}".format(new_extra_packages))
             osgi_properties.put(
-                FRAMEWORK_SYSTEMPACKAGES_EXTRA,
-                "{0}; version=1.0.0, {1}; version=1.0.0"
-                .format(PYTHON_BRIDGE_BUNDLE_API, HERALD_EVENT_BUNDLE_API))
+                FRAMEWORK_SYSTEMPACKAGES_EXTRA, new_extra_packages)
+        else:
+            _logger.debug("No extra-packages!")
+
         return osgi_properties
 
     def _start_jvm(self, vm_args, classpath, properties):
@@ -644,9 +660,17 @@ class JavaOsgiLoader(object):
         factory_class = self._java.load_class(factory_name)
         factory = factory_class()
 
+        # Retrieve extra packages
+        tmp = [vm_arg for vm_arg in configuration.get('vm_args')
+               if FRAMEWORK_SYSTEMPACKAGES_EXTRA in vm_arg]
+        extra_packages = ""
+        if len(tmp) > 0:
+            extra_packages = tmp[0].split("=")[1]
+
         # Framework properties
         osgi_properties = self._setup_osgi_properties(java_config.properties,
-                                                      api_jar is not None)
+                                                      api_jar is not None,
+                                                      extra_packages)
 
         # Start a framework, with the given properties
         self._osgi = factory.newFramework(osgi_properties)

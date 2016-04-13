@@ -1,5 +1,11 @@
-Changes form the 1.0.1 to 1.0.2-SNAPSHOT
-----------------------------------------
+1.0.3
+-----
+
+** Bug Fix
+    * OSGi framework user-provided extra packages are not considered [isandlaTech/cohorte-runtime#36]
+
+Changes form the 1.0.1 to 1.0.2
+-------------------------------
 
 ** Bug Fix
     * Cohorte cannot find required artifacts and stops starting the isolate [isandlaTech/cohorte-platforms#59]
