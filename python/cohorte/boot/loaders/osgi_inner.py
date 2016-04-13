@@ -704,15 +704,16 @@ class JavaOsgiLoader(object):
             elif bundle.file == osgi_jar_file:
                 _logger.debug("OSGi framework is already installed.")
             else:
-                _logger.debug("Installing Java bundle %s...", bundle.name)
-                java_bundles.append(context.installBundle(bundle.url))
+                _logger.debug("Installing Java bundle %s (is_fragment=%s)...", bundle.name, bundle.is_fragment())
+                b = context.installBundle(bundle.url)                
+                if not bundle.is_fragment():
+                    java_bundles.append(b)
 
         try:
             # Start the bundles
             for bundle in java_bundles:
-                _logger.debug("Starting %s...", bundle.getSymbolicName())
-                if not bundle.is_fragment():
-                    bundle.start()
+                _logger.debug("Starting %s...", bundle.getSymbolicName())                
+                bundle.start()
         except jpype.JavaException as ex:
             # Log the bundle exception and its cause
             _logger.error("Error starting bundle: %s",
