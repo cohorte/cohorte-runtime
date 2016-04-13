@@ -1,7 +1,5 @@
 #!/bin/bash
 
-mvn clean install
-
 cd boot/org.cohorte.pyboot
 mvn deploy
 sleep 6
