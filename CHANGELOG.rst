@@ -1,3 +1,9 @@
+1.0.4 (current)
+-----
+
+** Bug Fix
+    * Normalize paths coming from PYTHONPATH #34
+
 1.0.3
 -----
 
