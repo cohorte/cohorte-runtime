@@ -38,7 +38,8 @@ import traceback
 try:
     for path in os.environ['PYTHONPATH'].split(os.pathsep):
         try:
-            sys.path.remove(path)
+            p = os.path.normpath(path)
+            sys.path.remove(p)
         except IndexError:
             pass
 
