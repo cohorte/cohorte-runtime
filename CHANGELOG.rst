@@ -1,4 +1,4 @@
-1.0.4 (current)
+1.0.4 (current dev)
 -----
 
 ** Bug Fix
