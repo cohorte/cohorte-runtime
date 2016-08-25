@@ -513,6 +513,10 @@ def main(args=None):
                        help="URL to the state updater. Should be given if "
                        "--configuration-broker is.")
 
+    group.add_argument("--forker-http-port", action="store",
+                       dest="forker_http_port", default=None,
+                       help="Port of the Http service of the Forker.")   
+
     # Logging options
     group = parser.add_argument_group("Logging options")
     group.add_argument("--logfile", action="store",
@@ -596,6 +600,10 @@ def main(args=None):
     if args.install_shell_console:
         # The isolate must activate its shell console (text UI)
         framework_properties[cohorte.PROP_SHELL_CONSOLE] = True
+    
+    if args.forker_http_port:
+        # The forker Http port
+        framework_properties[cohorte.PROP_FORKER_HTTP_PORT] = args.forker_http_port
 
     # Run PDB on unhandled exceptions, in debug mode
     use_pdb = args.debug and sys.stdin.isatty()
