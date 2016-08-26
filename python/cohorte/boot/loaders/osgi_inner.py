@@ -661,8 +661,11 @@ class JavaOsgiLoader(object):
         factory = factory_class()
 
         # Retrieve extra packages
-        tmp = [vm_arg for vm_arg in configuration.get('vm_args')
-               if FRAMEWORK_SYSTEMPACKAGES_EXTRA in vm_arg]
+        vm_args = configuration.get('vm_args')
+        tmp = []
+        if vm_args:
+            tmp = [vm_arg for vm_arg in configuration.get('vm_args')
+                    if FRAMEWORK_SYSTEMPACKAGES_EXTRA in vm_arg]
         extra_packages = ""
         if len(tmp) > 0:
             extra_packages = tmp[0].split("=")[1]
