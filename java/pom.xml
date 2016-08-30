@@ -208,52 +208,44 @@
 				</plugin>
 			</plugins>
 		</pluginManagement>
-		<extensions>
-	      <!-- Enabling the use of FTP -->
-	      <extension>
-	        <groupId>org.apache.maven.wagon</groupId>
-	         <artifactId>wagon-ftp</artifactId>
-	         <version>1.0-beta-6</version>
-	      </extension>
-	    </extensions>
 	</build>
-	<repositories>
-		<repository>
-			<id>isandlatech.snapshots</id>
-			<name>isandlaTech Snapshot Repository</name>
-			<url>http://repo.isandlatech.com/maven/snapshots</url>
-			<releases>
+    <repositories>
+        <repository>
+            <id>cohorte.snapshots</id>
+            <name>Cohorte Snapshot Repository</name>
+            <url>http://forge.cohorte-technologies.com:6080/repository/cohorte-snapshots</url>
+            <releases>
                 <enabled>false</enabled>
             </releases>
-			<snapshots>
+            <snapshots>
                 <enabled>true</enabled>
             </snapshots>
-		</repository>
-		<repository>
-			<id>isandlatech.releases</id>
-			<name>isandlaTech Releases Repository</name>
-			<url>http://repo.isandlatech.com/maven/releases</url>
-			<releases>
+        </repository>
+        <repository>
+            <id>cohorte.releases</id>
+            <name>Cohorte Releases Repository</name>
+            <url>http://forge.cohorte-technologies.com:6080/repository/cohorte-releases</url>
+            <releases>
                 <enabled>true</enabled>
             </releases>
-			<snapshots>
+            <snapshots>
                 <enabled>false</enabled>
             </snapshots>
-		</repository>
-	</repositories>
-	<distributionManagement>
-		<repository>
-	      <id>isandlatech</id>
-	      <name>isandlaTech Releases Repository</name>
-	      <url>ftp://isandlatech.com/maven/releases</url>
-	      <layout>default</layout>
-	    </repository>
-	    <snapshotRepository>
-	      <id>isandlatech</id>
-	      <name>isandlaTech Snapshots Repository</name>
-	      <url>ftp://isandlatech.com/maven/snapshots</url>
-	      <uniqueVersion>true</uniqueVersion>
-	      <layout>default</layout>
-	    </snapshotRepository>
-	</distributionManagement>
+        </repository>
+    </repositories>
+    <distributionManagement>
+        <repository>
+            <id>cohorte-nexus</id>
+            <name>Cohorte Releases Repository</name>
+            <url>http://forge.cohorte-technologies.com:6080/repository/cohorte-releases/</url>
+            <layout>default</layout>
+        </repository>
+        <snapshotRepository>
+            <id>cohorte-nexus</id>
+            <name>Cohorte Snapshots Repository</name>
+            <url>http://forge.cohorte-technologies.com:6080/repository/cohorte-snapshots/</url>
+            <uniqueVersion>true</uniqueVersion>
+            <layout>default</layout>
+        </snapshotRepository>
+    </distributionManagement>
 </project>
