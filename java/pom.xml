@@ -27,7 +27,7 @@
 		<ipojo-version>1.12.1</ipojo-version>
 		<herald-version>0.0.5</herald-version>
 		<remote-services-version>1.2.1</remote-services-version>
-		<cohorte-utilities-version>1.0.4</cohorte-utilities-version>
+		<cohorte-utilities-version>1.0.6</cohorte-utilities-version>
 		<felix-gogo-runtime-version>0.10.0</felix-gogo-runtime-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
