@@ -29,6 +29,6 @@
 		<dependency>
 			<groupId>org.cohorte.utilities</groupId>
 			<artifactId>org.cohorte.utilities</artifactId>
-		</dependency>
+		</dependency>		
 	</dependencies>
 </project>

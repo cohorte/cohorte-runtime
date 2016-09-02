@@ -83,6 +83,13 @@
 			<artifactId>org.apache.felix.ipojo</artifactId>
 			<version>${ipojo-version}</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>org.cohorte.herald</groupId>
+			<artifactId>org.cohorte.herald.api</artifactId>
+			<version>${herald-version}</version>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 
 	<dependencyManagement>
