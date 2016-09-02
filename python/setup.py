@@ -4,9 +4,9 @@
 iPOPO installation script
 
 :author: Thomas Calmant
-:copyright: Copyright 2014, isandlaTech
+:copyright: Copyright 2014-2016, Cohorte Technologies (ex. isandlaTech)
 :license: Apache License 2.0
-:version: 1.0.3
+:version: 1.1.0
 :status: Beta
 
 ..
@@ -27,7 +27,7 @@ iPOPO installation script
 """
 
 # Module version
-__version_info__ = (1, 0, 3)
+__version_info__ = (1, 1, 0)
 __version__ = ".".join(str(x) for x in __version_info__)
 
 # Documentation strings format
@@ -82,6 +82,7 @@ setup(
         'cohorte.forker.starters',
         'cohorte.instruments',
         'cohorte.java',
+        'cohorte.local',
         'cohorte.monitor',
         'cohorte.repositories',
         'cohorte.repositories.java',
@@ -101,7 +102,7 @@ setup(
     ],
     install_requires=[
         'iPOPO >= 0.5.7',
-        'Cohorte-Herald >= 0.0.3'
+        'Cohorte-Herald >= 1.0.0'
     ],
     extras_require={
         'java': ['JPype1-py3']

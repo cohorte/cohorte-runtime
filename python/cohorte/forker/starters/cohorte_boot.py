@@ -5,7 +5,7 @@ Starts Cohorte isolates using the boot script
 
 :author: Thomas Calmant
 :license: Apache Software License 2.0
-:version: 1.0.1
+:version: 1.1.0
 
 ..
 
@@ -54,7 +54,7 @@ from herald.exceptions import HeraldException
 __docformat__ = "restructuredtext en"
 
 # Version
-__version_info__ = (1, 0, 1)
+__version_info__ = (1, 1, 0)
 __version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
