@@ -29,6 +29,7 @@
 		<remote-services-version>1.2.1</remote-services-version>
 		<cohorte-utilities-version>1.0.4</cohorte-utilities-version>
 		<felix-gogo-runtime-version>0.10.0</felix-gogo-runtime-version>
+		<cohorte-jabsorb-version>1.1.0</cohorte-jabsorb-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
@@ -48,7 +49,10 @@
 		<module>isolates/org.psem2m.isolates.loggers</module>
 		<module>isolates/org.psem2m.isolates.slave.agent</module>
 		<module>isolates/org.psem2m.status.storage</module>
-		<!--module>isolates/org.cohorte.isolates.debug</module-->		
+		<!--module>isolates/org.cohorte.isolates.debug</module-->
+		
+		<module>isolates/org.cohorte.isolates.discovery.local</module>
+
 		<!--
 		<module>ui/org.psem2m.isolates.ui</module>
 		<module>ui/org.psem2m.isolates.ui.admin</module>
@@ -83,14 +87,18 @@
 
 	<dependencyManagement>
 		<dependencies>
-			<!-- OSGi Compendium API -->
+			<!-- OSGi Compendium API -->		
+			<dependency>
+				<groupId>org.osgi</groupId>
+				<artifactId>org.osgi.core</artifactId>
+				<version>${osgi-version}</version>
+			</dependency>
 			<dependency>
 				<groupId>org.osgi</groupId>
 				<artifactId>org.osgi.compendium</artifactId>
 				<version>${osgi-version}</version>
 				<scope>provided</scope>
 			</dependency>
-
 			<dependency>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>org.apache.felix.gogo.runtime</artifactId>
@@ -105,10 +113,22 @@
 				<version>${herald-version}</version>
 				<scope>provided</scope>
 			</dependency>
-			
+			<dependency>
+				<groupId>org.cohorte.herald</groupId>
+				<artifactId>org.cohorte.herald.core</artifactId>
+				<version>${herald-version}</version>
+				<scope>provided</scope>
+			</dependency>
 			<dependency>
 				<groupId>org.cohorte.herald</groupId>
 				<artifactId>org.cohorte.herald.eventapi</artifactId>
+				<version>${herald-version}</version>
+				<scope>provided</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.cohorte.herald</groupId>
+				<artifactId>org.cohorte.herald.http</artifactId>
 				<version>${herald-version}</version>
 				<scope>provided</scope>
 			</dependency>
@@ -128,6 +148,15 @@
                 <version>${remote-services-version}</version>
                 <scope>provided</scope>
             </dependency>
+
+            <!-- Cohorte Jabsorb -->
+            <dependency>
+				<groupId>org.cohorte.jabsorb</groupId>
+				<artifactId>org.jabsorb.ng</artifactId>
+				<version>${cohorte-jabsorb-version}</version>
+				<scope>provided</scope>
+			</dependency>
+
 		</dependencies>
 	</dependencyManagement>
 

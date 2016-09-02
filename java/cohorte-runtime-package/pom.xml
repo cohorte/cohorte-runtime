@@ -79,7 +79,12 @@
 			<artifactId>org.psem2m.status.storage</artifactId>
 			<version>${project.version}</version>		
 		</dependency>
-
+		<dependency>
+			<groupId>org.cohorte.runtime</groupId>
+			<artifactId>org.cohorte.isolates.discovery.local</artifactId>
+			<version>${project.version}</version>		
+		</dependency>
+		
 	</dependencies>
 
 </project>
