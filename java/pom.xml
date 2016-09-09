@@ -28,7 +28,7 @@
 		<herald-version>1.0.0</herald-version>
 		<remote-services-version>1.2.1</remote-services-version>
 		<cohorte-utilities-version>1.0.6</cohorte-utilities-version>
-		<felix-gogo-runtime-version>0.10.0</felix-gogo-runtime-version>
+		<felix-gogo-runtime-version>0.16.2</felix-gogo-runtime-version>
 		<cohorte-jabsorb-version>1.1.0</cohorte-jabsorb-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
@@ -67,6 +67,14 @@
 			<artifactId>org.osgi.core</artifactId>
 			<version>${osgi-version}</version>
 			<scope>provided</scope>
+		</dependency>
+		
+		<!-- Felix API -->
+		<dependency>
+			<groupId>org.apache.felix</groupId>			
+    		<artifactId>org.apache.felix.gogo.runtime</artifactId>
+    		<version>${felix-gogo-runtime-version}</version>
+    		<scope>compile</scope>
 		</dependency>
 
 		<!-- iPOJO Annotations -->
