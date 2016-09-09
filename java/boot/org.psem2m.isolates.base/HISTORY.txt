@@ -1,5 +1,10 @@
 
-1.1.0 => 1.2.0
+1.0.3 => 1.1.0
+
+MOD_BD_20160909
+	- updating "felix gogo runtime" dependency version from 0.10.0 to 0.16.2 (used in Cohorte 1.2.0)
+	- correcting isolates.base bundle version and dependency to gogo runtime
+
 MOD_OG_20160906
 
 Adding IsolateLogger gogo command allowing the setting of the level of the isolate logger of the current isolate and those of the other java isolates
@@ -11,9 +16,11 @@ Adding IsolateLogger gogo command allowing the setting of the level of the isola
 Adding the OSGi service IIsolateLoggerAdmin to publish the capabilities of the Logger gogo command as a service
 Adding the OSGi service IIsolateBaseActivator to be able to retrieve that activator and the  access to the 
 
-
 MOD_BD_20160902 
 Adding Debug (admin) java implementation
+
+
+1.0.2 => 1.0.2
 
 MOD_OG_20150713 
 Enhancement of the initialization of the Isolate Logger 

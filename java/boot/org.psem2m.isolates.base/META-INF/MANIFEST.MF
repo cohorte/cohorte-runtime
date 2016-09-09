@@ -6,7 +6,7 @@ Bundle-Name: COHORTE :: Base Services
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-SymbolicName: org.psem2m.isolates.base
 Bundle-Vendor: isandlaTech.com
-Bundle-Version: 1.2.0
+Bundle-Version: 1.1.0
 Created-By: iPOJO  1.8.0
 Export-Package: org.psem2m.isolates.base; uses:="org.osgi.service.log,
    org.osgi.framework,  org.psem2m.utilities.logging,  org.psem2m.util
@@ -16,7 +16,7 @@ Export-Package: org.psem2m.isolates.base; uses:="org.osgi.service.log,
  lates.base.isolates.boot
 Import-Package: org.apache.felix.ipojo, org.apache.felix.ipojo.annotat
  ions;version=1.12.1, org.apache.felix.ipojo.architecture, org.apache.
- felix.service.command;version=0.10.0;status=provisional, org.cohorte.
+ felix.service.command;version=0.16.2;status=provisional, org.cohorte.
  herald, org.osgi.framework;version=1.3.0, org.osgi.service.cm;version
  =1.2, org.osgi.service.log;version=1.3.0, org.psem2m.isolates.base.is
  olates.boot, org.psem2m.isolates.constants, org.psem2m.isolates.servi
