@@ -95,7 +95,7 @@ import org.psem2m.utilities.logging.IActivityLoggerBase;
 @Instantiate(name = "cohorte-isolate-base-activator")
 @Provides(specifications = { IIsolateBaseActivator.class })
 public class CIsolateBaseActivator extends CXObjectBase implements
-		BundleActivator, IIsolateBaseActivator {
+BundleActivator, IIsolateBaseActivator {
 
 	/**
 	 * Service Infos bean
@@ -252,7 +252,7 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.psem2m.isolates.base.IIsolateBaseActivator#getIsolateLoggerChannel()
 	 */
@@ -366,7 +366,7 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.psem2m.isolates.base.IIsolateBaseActivator#hasIsolateLoggerChannel()
 	 */
@@ -500,20 +500,8 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 
 		// Logs the report, the java context and the environment context
 		pActivityLogger
-		.logInfo(this, "initLogger", "Initialized:%s %s %s", wReport,
-				CXJvmUtils.getJavaContext(), CXOSUtils.getEnvContext());
-	}
-
-	/**
-	 * @param aServiceInterface
-	 * @param aService
-	 * @param aState
-	 */
-	private void logServiceManipulation(final String aServiceName,
-			final String aState) {
-
-		getLogger().logDebug(this, "logServiceRegistering", "Service=",
-				aServiceName, aState + '=', true);
+				.logInfo(this, "initLogger", "Initialized:%s %s %s", wReport,
+						CXJvmUtils.getJavaContext(), CXOSUtils.getEnvContext());
 	}
 
 	/**
@@ -523,9 +511,13 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 	 * @param aService
 	 * @throws Exception
 	 */
-	private void logServiceRegistration(final String aServiceName) {
+	private void logServiceRegistration(final String aServiceName,
+			final Object aServiceImpl) {
 
-		logServiceManipulation(aServiceName, "Registered");
+		getLogger().logInfo(this, "logServiceRegistration",
+				"Service=[%s] Implem.=[%s] Registered", aServiceName,
+				aServiceImpl);
+
 	}
 
 	/**
@@ -537,7 +529,8 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 	 */
 	private void logServiceUnregistration(final String aServiceName) {
 
-		logServiceManipulation(aServiceName, "Unregistered");
+		getLogger().logInfo(this, "logServiceUnregistration",
+				"Service=[%s] Unregistered", aServiceName);
 	}
 
 	/**
@@ -574,13 +567,17 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 				// aBundleContext.ungetService(wServiceReference);
 
 				switch (aServiceEvent.getType()) {
-				case ServiceEvent.REGISTERED:
-					logServiceRegistration(wServiceClass);
+				case ServiceEvent.REGISTERED: {
+					Object wServiceImpl = aBundleContext
+							.getService(wServiceReference);
+					logServiceRegistration(wServiceClass, wServiceImpl);
 					break;
+				}
 
-				case ServiceEvent.UNREGISTERING:
+				case ServiceEvent.UNREGISTERING: {
 					logServiceUnregistration(wServiceClass);
 					break;
+				}
 
 				default:
 					break;
@@ -609,7 +606,8 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 					.registerService(aServiceInterface, aService, null);
 			pRegisteredServicesInfos.add(new CServiceInfos(registration,
 					aServiceInterface.getName()));
-			logServiceRegistration(aServiceInterface.getName());
+
+			logServiceRegistration(aServiceInterface.getName(), aService);
 
 		} catch (final Exception e) {
 
@@ -635,11 +633,11 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 							aServiceFactory, aProps);
 			pRegisteredServicesInfos.add(new CServiceInfos(registration,
 					aServiceInterface.getName()));
-			logServiceRegistration(aServiceInterface.getName());
+			logServiceRegistration(aServiceInterface.getName(), aServiceFactory);
 
 		} catch (final Exception e) {
 
-			getLogger().logSevere(this, "registerOneService",
+			getLogger().logSevere(this, "registerOneServiceFactory",
 					"Can't register the service [%s]. %s.", aServiceInterface,
 					e);
 		}
@@ -655,18 +653,18 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 				aBundleContext.removeServiceListener(pRegistrationListener);
 			} catch (final Exception e) {
 				getLogger()
-						.logSevere(
-								this,
-								"removeServiceLogger",
-								"Can't remove the listener of all the service registering and unregistering",
-								e);
+				.logSevere(
+						this,
+						"removeServiceLogger",
+						"Can't remove the listener of all the service registering and unregistering",
+						e);
 			}
 		}
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
 	 * )
@@ -706,7 +704,7 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 			 * <li>SERVICE_RANKING "service.ranking"
 			 * </ul>
 			 *
-			 * @see https
+			 * @see https 
 			 *      ://osgi.org/javadoc/r4v42/org/osgi/framework/Constants.html
 			 *      #SERVICE_RANKING
 			 */
@@ -720,11 +718,11 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 
 		} catch (final Exception e) {
 			getLogger()
-					.logSevere(
-							this,
-							"start",
-							"Can't get the LogServiceFactory and register it as 'LogService'",
-							e);
+			.logSevere(
+					this,
+					"start",
+					"Can't get the LogServiceFactory and register it as 'LogService'",
+					e);
 		}
 		try {
 			// register own LogReader service factory
@@ -737,16 +735,16 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 					getLogReaderServiceFactory(), wProps);
 		} catch (final Exception e) {
 			getLogger()
-					.logSevere(
-							this,
-							"start",
-							"Can't get the LogReaderServiceFactory and register it as 'LogReaderService'",
-							e);
+			.logSevere(
+					this,
+					"start",
+					"Can't get the LogReaderServiceFactory and register it as 'LogReaderService'",
+					e);
 		}
 		try {
 			/*
 			 * Register the service IIsolateLoggerSvc.
-			 *
+			 * 
 			 * Note: the CIsolateLoggerSvc instance wrapps the
 			 * IsolateLoggerChannel created during the first call to the method
 			 * "getLogger()" at the begining of the method start().
@@ -755,11 +753,11 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 					getIsolateLoggerSvc());
 		} catch (final Exception e) {
 			getLogger()
-					.logSevere(
-							this,
-							"start",
-							"Can't get the IsolateLoggerSvc and register it as 'IIsolateLoggerSvc'",
-							e);
+			.logSevere(
+					this,
+					"start",
+					"Can't get the IsolateLoggerSvc and register it as 'IIsolateLoggerSvc'",
+					e);
 		}
 
 		// Register the service file finder
@@ -777,7 +775,7 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
 	 */
@@ -811,6 +809,6 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 
 		System.out.printf("%50s | Bundle=[%50s] stopped\n",
 				"CBundleBaseActivator.stop()", aBundleContext.getBundle()
-						.getSymbolicName());
+				.getSymbolicName());
 	}
 }
