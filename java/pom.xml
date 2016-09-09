@@ -92,6 +92,14 @@
 			<version>${ipojo-version}</version>
 		</dependency>
 		
+		<!-- Cohorte Utilities -->
+		<dependency>
+			<groupId>org.cohorte.utilities</groupId>
+			<artifactId>org.cohorte.utilities</artifactId>
+			<version>${cohorte-utilities-version}</version>
+		</dependency>
+
+		<!-- Herald API -->
 		<dependency>
 			<groupId>org.cohorte.herald</groupId>
 			<artifactId>org.cohorte.herald.api</artifactId>
