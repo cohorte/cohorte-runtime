@@ -1,6 +1,7 @@
 package org.psem2m.isolates.base.internal;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -19,9 +20,12 @@ import org.cohorte.herald.Message;
 import org.cohorte.herald.MessageReceived;
 import org.cohorte.herald.NoTransport;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.log.LogService;
 import org.psem2m.isolates.base.IIsolateBaseActivator;
 import org.psem2m.isolates.base.IIsolateLoggerAdmin;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
+import org.psem2m.utilities.CXDateTime;
 import org.psem2m.utilities.CXException;
 import org.psem2m.utilities.CXStringUtils;
 import org.psem2m.utilities.json.JSONArray;
@@ -51,18 +55,20 @@ import org.psem2m.utilities.json.JSONObject;
 @Instantiate(name = "cohorte-isolate-base-logger-gogocommand")
 @Provides(specifications = { IIsolateLoggerAdmin.class, IMessageListener.class })
 public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
-		IMessageListener {
+IMessageListener {
 
+	private static final String COMMAND_INFOS = "infos";
 	/*
 	 * The Gogo commands name. ATTENTION : look at the name of the methods and
 	 * the declaration
 	 */
-	private static final String COMMAND_INFOS = "infos";
+	private static final String COMMAND_LSDUMP = "lsdump";
+	private static final String COMMAND_LSTEST = "lstest";
 	private static final String COMMAND_SETLEVEL = "setLevel";
 	private static final String COMMAND_SETLEVELALL = "setLevelAll";
 
-	private static final String[] COMMANDS = { COMMAND_INFOS, COMMAND_SETLEVEL,
-		COMMAND_SETLEVELALL };
+	private static final String[] COMMANDS = { COMMAND_INFOS, COMMAND_LSDUMP,
+		COMMAND_LSTEST, COMMAND_SETLEVEL, COMMAND_SETLEVELALL };
 
 	private static final String HERALD_GROUP_ALL = "all";
 
@@ -70,21 +76,42 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 	private static final String MEMBER_COMMANDARGS = "args";
 	private static final String MEMBER_COMMANDID = "commandeid";
 
+	private static final String SERVICE_DESCRIPTION = org.osgi.framework.Constants.SERVICE_DESCRIPTION;
+
+	private final BundleContext pBundleContext;
+
 	/* The Gogo commands declaration. ATTENTION : look at the constants */
-	@ServiceProperty(name = "osgi.command.function", value = "{infos,setLevel,setLevelAll}")
+	@ServiceProperty(name = "osgi.command.function", value = "{infos,lsdump,lstest,setLevel,setLevelAll}")
 	private String[] pCommands;
 
 	/** Herald message filters to only heard the logger messages */
 	@ServiceProperty(name = org.cohorte.herald.IConstants.PROP_FILTERS, value = "{"
 			+ IIsolateLoggerAdmin.ISOLATES_LOGGER_MESSAGE + "}")
 	private String[] pFilters;
-
 	/**
 	 * Cohorte herald servie to be able to send logger command to the other java
 	 * isolates
 	 */
 	@Requires
 	private IHerald pHerald;
+
+	/**
+	 * LogService injected by IPojo => OSGi Ranking policy => best Ranking =>
+	 * iPOJO get the service having the highest value in its SERVICE_RANKING
+	 * property.
+	 *
+	 * @see the registration of the LogService factory in CIsolateBaseActivator
+	 * @see https ://osgi.org/javadoc/r4v42/org/osgi/framework/Constants.html
+	 *      #SERVICE_RANKING
+	 */
+	@Requires
+	private LogService pInjectedLogService1;
+
+	/**
+	 * LogService injected by IPojo = according the filter
+	 */
+	@Requires(filter = "(" + SERVICE_DESCRIPTION + "=cohorte)")
+	private LogService pInjectedLogService2;
 
 	/**
 	 * Cohorte isolate activator to be able to retrieve the IsolateLoggerChannel
@@ -111,9 +138,22 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 	 */
 	public CIsolateLoggerGogoCommand(final BundleContext aBundleContext) {
 		super();
+		pBundleContext = aBundleContext;
 
 		// System.out.printf("isolate-base: %50s | instanciated \n", this
 		// .getClass().getName());
+	}
+
+	/**
+	 * @param aSB
+	 * @param aFormat
+	 * @param aArgs
+	 * @return
+	 */
+	private StringBuilder addLine(final StringBuilder aSB,
+			final String aFormat, final Object... aArgs) {
+		aSB.append('\n').append(String.format(aFormat, aArgs));
+		return aSB;
 	}
 
 	/**
@@ -331,12 +371,13 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 		try {
 			String wMimeType = (aArgs.length > 0 && "application/json"
 					.contains(aArgs[0].toLowerCase())) ? "application/json"
-							: "text/plain";
+					: "text/plain";
 
 			wOut.append(getLoggerInfos(wMimeType));
 
-			System.out.println(wOut.toString());
-			pLogger.logInfo(this, "infos", wOut.toString());
+			String wResult = wOut.toString();
+			System.out.println(wResult);
+			pLogger.logInfo(this, "infos", wResult);
 
 		} catch (Exception | Error e) {
 			pLogger.logSevere(this, "infos", "ERROR: %s", e);
@@ -353,6 +394,104 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 	}
 
 	/**
+	 * Gogo command "dumpls"
+	 */
+	@Descriptor("Dump the available LogService")
+	public void lsdump() {
+		pLogger.logInfo(this, "lsdump", "Dump the available LogService");
+
+		try {
+
+			printConsole("Dump LogService:");
+
+			StringBuilder wSB = new StringBuilder();
+
+			Collection<ServiceReference<LogService>> wLogserviceRefs = pBundleContext
+					.getServiceReferences(LogService.class, null);
+
+			LogService wLogService;
+			for (ServiceReference<LogService> wLogserviceRef : wLogserviceRefs) {
+				addLine(wSB, "- LogserviceRef: %s", wLogserviceRef);
+
+				wLogService = pBundleContext.getService(wLogserviceRef);
+
+				addLine(wSB, "  + LogService: %s", wLogService.toString());
+
+				addLine(wSB, "  + Properties: %s",
+						wLogserviceRef.getPropertyKeys().length);
+
+				for (String wKey : wLogserviceRef.getPropertyKeys()) {
+					Object wValue = wLogserviceRef.getProperty(wKey);
+
+					if (wValue != null && wValue.getClass().isArray()) {
+						addLine(wSB, "    - %s={", wKey);
+						for (Object wObj : (Object[]) wValue) {
+							addLine(wSB, "           [%s]",
+									String.valueOf(wObj));
+						}
+						addLine(wSB, "           }");
+					}
+					// not an array
+					else {
+						addLine(wSB, "    - %s=[%s]", wKey, wValue);
+					}
+				}
+			}
+			String wResult = wSB.toString();
+			printConsole(wResult);
+			pLogger.logInfo(this, "lsdump", wResult);
+
+		} catch (Exception | Error e) {
+			pLogger.logSevere(this, "lsdump", "ERROR: %s", e);
+		}
+	}
+
+	/**
+	 * Gogo command "testls"
+	 */
+	@Descriptor("Test LogService redirections")
+	public void lstest() {
+		pLogger.logInfo(this, "lstest", "Test LogService redirections");
+
+		try {
+			printConsole("Test LogServices:");
+
+			// --- A --- log in the 2 LogServices injected by iPOJO :
+
+			// 1) injection managed by the OSGi Ranking policy
+			testlogInLogService(pInjectedLogService1);
+
+			// 2) injection managed by the LDAP filter
+			testlogInLogService(pInjectedLogService2);
+
+			// --- B --- log in the 2 LogServices retreived in the registry
+
+			// get all the ServiceReferences of the "LogService" services
+			Collection<ServiceReference<LogService>> wLogserviceRefs = pBundleContext
+					.getServiceReferences(LogService.class, null);
+			// cycle
+			LogService wLogService;
+			for (ServiceReference<LogService> wLogserviceRef : wLogserviceRefs) {
+				wLogService = pBundleContext.getService(wLogserviceRef);
+
+				testlogInLogService(wLogService);
+			}
+			printConsole("Test LogServices OK");
+
+		} catch (Exception | Error e) {
+			pLogger.logSevere(this, "lstest", "ERROR: %s", e);
+		}
+	}
+
+	/**
+	 * @param aFormat
+	 * @param aArgs
+	 */
+	private void printConsole(final String aFormat, final Object... aArgs) {
+		System.out.println(String.format(aFormat, aArgs));
+	}
+
+	/**
 	 * Gogo command "setLevel"
 	 */
 	@Descriptor("Set the log level of the isolatelogger")
@@ -363,7 +502,6 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 		pLogger.logInfo(this, "setLevel", "set the level to [%s]", aLevelName);
 
 		try {
-
 			Level wLevelBefore = pLogger.getLevel();
 
 			pLogger.setLevel(aLevelName);
@@ -403,6 +541,22 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 		} catch (Exception | Error e) {
 			pLogger.logSevere(this, "setLevelAll", "ERROR: %s", e);
 		}
+	}
+
+	/**
+	 * @param aLogService
+	 */
+	private void testlogInLogService(final LogService aLogService) {
+
+		printConsole("Test LogService in : %s", aLogService);
+
+		String wLine = String.format("$$$ testlog in [%s] (%s)", aLogService,
+				CXDateTime.getIso8601TimeStamp());
+
+		aLogService.log(LogService.LOG_INFO, wLine);
+		aLogService.log(LogService.LOG_ERROR, wLine);
+		aLogService.log(LogService.LOG_ERROR, wLine);
+		aLogService.log(LogService.LOG_WARNING, wLine);
 	}
 
 	/**

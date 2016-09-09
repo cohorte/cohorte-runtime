@@ -6,6 +6,8 @@ Adding IsolateLogger gogo command allowing the setting of the level of the isola
  - infos [-, text, json]
  - setLevel [SEVERE,WARNING,INFO,FINE,FINER,FINEST,ALL]
  - setLevelAll [idem]
+ - lstest : test the redirection of the log services in the IIsolateLogger
+ - lsdump : dump the informations of all the available logservices
 Adding the OSGi service IIsolateLoggerAdmin to publish the capabilities of the Logger gogo command as a service
 Adding the OSGi service IIsolateBaseActivator to be able to retrieve that activator and the  access to the 
 
