@@ -16,8 +16,6 @@
 
 package org.psem2m.isolates.base.admin;
 
-
-import java.util.Collection;
 import java.util.List;
 
 import org.apache.felix.ipojo.ComponentInstance;
@@ -41,53 +39,47 @@ import org.psem2m.utilities.json.JSONObject;
 
 /**
  * Java implementation of the Admin Agent service.
- * 
- * 
+ *
+ *
  * @author bdebbabi
  *
  */
 @Component(name = IAdminAgent.FACTORY_ADMIN_AGENT)
-@Instantiate(name = "admin-agent-java")
+@Instantiate(name = "cohorte-isolate-base-admin-agent-java")
 public class CAdminAgent implements IAdminAgent, IMessageListener {
+
+	/** List of available Architecture service. */
+	@Requires(optional = true, specification = Architecture.class)
+	private List<Architecture> pArchs;
+
+	/** OSGi Bundle Context */
+	private BundleContext pBundleContext;
+
+	/** The Herald directory */
+	@Requires
+	private IDirectory pDirectory;
+
+	/** List of available Factories. */
+	@Requires(optional = true, specification = Factory.class)
+	private List<Factory> pFactories;
 
 	/** Herald API Service */
 	@Requires
 	private IHerald pHerald;
-	
-	/** The Herald directory */
-	@Requires
-	private IDirectory pDirectory;
-	
-	/** OSGi Bundle Context */
-	private BundleContext pBundleContext;
-	
-	/** List of available Factories. */
-	@Requires(optional = true, specification = Factory.class)
-	private List<Factory> pFactories;
-	
-	/** List of available Architecture service. */
-	@Requires(optional = true, specification = Architecture.class)
-	private List<Architecture> pArchs;
-	
+
 	public CAdminAgent(BundleContext aBundleContext) {
 		pBundleContext = aBundleContext;
 	}
-	
+
 	@Override
-	public String getIsolateDetail() {
-		JSONObject wResult = new JSONObject();
-		try {
-			wResult.append("cohorte.isolate.http.port", "NOT YET IMPLEMENTED!");
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return wResult.toString();
+	public String getBundleDetail(int aBundleNumber) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public String getBundles() {
-		JSONArray wResult = new JSONArray();				
+		JSONArray wResult = new JSONArray();
 		Bundle[] wBundles = pBundleContext.getBundles();
 		for (int i = -1; i < wBundles.length; i++) {
 			Bundle wBundle = null;
@@ -100,21 +92,62 @@ public class CAdminAgent implements IAdminAgent, IMessageListener {
 			try {
 				wBundleJson.put("id", wBundle.getBundleId());
 				wBundleJson.put("name", wBundle.getSymbolicName());
-				wBundleJson.put("state", getBundleStateAsString(wBundle.getState()));
+				wBundleJson.put("state",
+						getBundleStateAsString(wBundle.getState()));
 				wBundleJson.put("version", wBundle.getVersion());
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}		
+			}
 			wResult.put(wBundleJson);
 		}
 		return wResult.toString();
 	}
 
+	private String getBundleStateAsString(int aState) {
+		switch (aState) {
+		case Bundle.ACTIVE: {
+			return "ACTIVE";
+		}
+		case Bundle.INSTALLED: {
+			return "INSTALLED";
+		}
+		case Bundle.RESOLVED: {
+			return "RESOLVED";
+		}
+		case Bundle.STARTING: {
+			return "STARTING";
+		}
+		case Bundle.STOPPING: {
+			return "STOPPING";
+		}
+		case Bundle.UNINSTALLED: {
+			return "UNINSTALLED";
+		}
+		default:
+			return "UNKNOWN";
+		}
+	}
+
 	@Override
-	public String getBundleDetail(int aBundleNumber) {
+	public String getComponentInstanceDetail(String aInstanceName) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public String getComponentInstances() {
+		JSONArray wResult = new JSONArray();
+		for (Architecture arch : pArchs) {
+			JSONObject instance = new JSONObject();
+			instance.put("name", arch.getInstanceDescription().getName());
+			instance.put("factory", arch.getInstanceDescription()
+					.getComponentDescription().getName());
+			instance.put("state", getInstanceStateAsString(arch
+					.getInstanceDescription().getState()));
+			wResult.put(instance);
+		}
+		return wResult.toString();
 	}
 
 	@Override
@@ -125,8 +158,10 @@ public class CAdminAgent implements IAdminAgent, IMessageListener {
 				JSONObject factory = new JSONObject();
 				factory.put("name", wFactory.getName());
 				JSONObject bundle = new JSONObject();
-				bundle.put("id", wFactory.getBundleContext().getBundle().getBundleId());			
-				bundle.put("name", wFactory.getBundleContext().getBundle().getSymbolicName());
+				bundle.put("id", wFactory.getBundleContext().getBundle()
+						.getBundleId());
+				bundle.put("name", wFactory.getBundleContext().getBundle()
+						.getSymbolicName());
 				factory.put("bundle", bundle);
 				wResult.put(factory);
 			}
@@ -143,21 +178,61 @@ public class CAdminAgent implements IAdminAgent, IMessageListener {
 		return null;
 	}
 
+	private String getInstanceStateAsString(int aState) {
+		switch (aState) {
+		case ComponentInstance.VALID:
+			return "valid";
+		case ComponentInstance.INVALID:
+			return "invalid";
+		case ComponentInstance.DISPOSED:
+			return "disposed";
+		case ComponentInstance.STOPPED:
+			return "stopped";
+		default:
+			return "unknown";
+		}
+	}
+
 	@Override
-	public String getComponentInstances() {
-		JSONArray wResult = new JSONArray();
-		for (Architecture arch : pArchs) {
-			JSONObject instance = new JSONObject();
-			instance.put("name", arch.getInstanceDescription().getName());
-			instance.put("factory", arch.getInstanceDescription().getComponentDescription().getName());
-			instance.put("state", getInstanceStateAsString(arch.getInstanceDescription().getState()));
-			wResult.put(instance);
-		}		
+	public String getIsolateAccesses() {
+		JSONObject wResult = new JSONObject();
+		for (String wAccess : pDirectory.getLocalPeer().getAccesses()) {
+			try {
+				wResult.put(wAccess,
+						pDirectory.getLocalPeer().getAccess(wAccess).dump());
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
 		return wResult.toString();
 	}
 
 	@Override
-	public String getComponentInstanceDetail(String aInstanceName) {
+	public String getIsolateDetail() {
+		JSONObject wResult = new JSONObject();
+		try {
+			wResult.append("cohorte.isolate.http.port", "NOT YET IMPLEMENTED!");
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return wResult.toString();
+	}
+
+	@Override
+	public String getIsolateDirectory() {
+		JSONObject wResult = new JSONObject(pDirectory.dump());
+		return wResult.toString();
+	}
+
+	@Override
+	public String getIsolateLog(String aLogId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getIsolateLogs() {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -175,43 +250,12 @@ public class CAdminAgent implements IAdminAgent, IMessageListener {
 	}
 
 	@Override
-	public String getIsolateLogs() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String getIsolateLog(String aLogId) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public String getIsolateDirectory() {
-		JSONObject wResult = new JSONObject(pDirectory.dump());		
-		return wResult.toString();
-	}
-
-	@Override
-	public String getIsolateAccesses() {
-		JSONObject wResult = new JSONObject();
-		for (String wAccess : pDirectory.getLocalPeer().getAccesses()) {
-			try {
-				wResult.put(wAccess, pDirectory.getLocalPeer().getAccess(wAccess).dump());
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
-		}
-		return wResult.toString();
-	}
-
-	@Override
 	public void heraldMessage(IHerald aHerald, MessageReceived aMessage)
 			throws HeraldException {
 		// get message subject
-		String wMessageSubject = aMessage.getSubject();		
+		String wMessageSubject = aMessage.getSubject();
 		String wReply = null;
-		
+
 		if (wMessageSubject.equalsIgnoreCase(SUBJECT_GET_ISOLATE_DETAIL)) {
 			wReply = getIsolateDetail();
 		} else if (wMessageSubject.equalsIgnoreCase(SUBJECT_GET_BUNDLES)) {
@@ -226,7 +270,8 @@ public class CAdminAgent implements IAdminAgent, IMessageListener {
 			wReply = getFactoryDetail(wFactoryName.toString());
 		} else if (wMessageSubject.equalsIgnoreCase(SUBJECT_GET_INSTANCES)) {
 			wReply = getComponentInstances();
-		} else if (wMessageSubject.equalsIgnoreCase(SUBJECT_GET_INSTANCE_DETAIL)) {
+		} else if (wMessageSubject
+				.equalsIgnoreCase(SUBJECT_GET_INSTANCE_DETAIL)) {
 			Object wInstanceName = aMessage.getContent();
 			wReply = getComponentInstanceDetail(wInstanceName.toString());
 		} else if (wMessageSubject.equalsIgnoreCase(SUBJECT_GET_SERVICES)) {
@@ -238,31 +283,21 @@ public class CAdminAgent implements IAdminAgent, IMessageListener {
 		} else if (wMessageSubject.equalsIgnoreCase(SUBJECT_GET_ISOLATE_LOG)) {
 			Object wLogId = aMessage.getContent();
 			wReply = getIsolateLog(wLogId.toString());
-		} else if (wMessageSubject.equalsIgnoreCase(SUBJECT_GET_ISOLATE_DIRECTORY)) {
+		} else if (wMessageSubject
+				.equalsIgnoreCase(SUBJECT_GET_ISOLATE_DIRECTORY)) {
 			wReply = getIsolateDirectory();
-		} else if (wMessageSubject.equalsIgnoreCase(SUBJECT_GET_ISOLATE_ACCESSES)) {
+		} else if (wMessageSubject
+				.equalsIgnoreCase(SUBJECT_GET_ISOLATE_ACCESSES)) {
 			wReply = getIsolateAccesses();
-		} 
-		
+		}
+
 		if (wReply != null) {
 			aHerald.reply(aMessage, wReply);
 		} else {
 			aHerald.reply(aMessage, "No value!");
 		}
 	}
-	
-	/**
-	 * Component validated
-	 */
-	@Validate
-	public void validate() {
-		
-		// register herald listener
-		String[] wFilters = { SUBJECT_MATCH_ALL };
-		pHerald.addMessageListener(this, wFilters);
-		
-	}
-	
+
 	/**
 	 * Component invalidated
 	 */
@@ -272,45 +307,17 @@ public class CAdminAgent implements IAdminAgent, IMessageListener {
 			pHerald.removeMessageListener(this);
 		}
 	}
-	
-	private String getBundleStateAsString(int aState) {
-		switch (aState) {
-		case Bundle.ACTIVE: {
-			return "ACTIVE"; 			
-		}
-		case Bundle.INSTALLED: {
-			return "INSTALLED";
-		}
-		case Bundle.RESOLVED: {
-			return "RESOLVED";			
-		}
-		case Bundle.STARTING: {
-			return "STARTING";			
-		}
-		case Bundle.STOPPING: {
-			return "STOPPING";
-		}
-		case Bundle.UNINSTALLED: {
-			return "UNINSTALLED";
-		}
-		default:
-			return "UNKNOWN";
-		}
+
+	/**
+	 * Component validated
+	 */
+	@Validate
+	public void validate() {
+
+		// register herald listener
+		String[] wFilters = { SUBJECT_MATCH_ALL };
+		pHerald.addMessageListener(this, wFilters);
+
 	}
-	
-	private String getInstanceStateAsString(int aState) {
-		switch(aState) {
-			case ComponentInstance.VALID :
-				return "valid";
-			case ComponentInstance.INVALID :
-				return "invalid";
-			case ComponentInstance.DISPOSED :
-				return "disposed";
-			case ComponentInstance.STOPPED :
-				return "stopped";
-			default :
-				return "unknown";
-		}
-	}
-	
+
 }

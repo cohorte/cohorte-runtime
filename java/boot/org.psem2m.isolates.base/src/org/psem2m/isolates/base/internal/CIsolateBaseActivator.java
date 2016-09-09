@@ -21,6 +21,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.felix.ipojo.annotations.Component;
+import org.apache.felix.ipojo.annotations.Instantiate;
+import org.apache.felix.ipojo.annotations.Provides;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -33,6 +36,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.log.LogReaderService;
 import org.osgi.service.log.LogService;
+import org.psem2m.isolates.base.IIsolateBaseActivator;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
 import org.psem2m.isolates.base.bundles.IBundleFinderSvc;
 import org.psem2m.isolates.base.bundles.impl.CBundleFinderSvc;
@@ -85,9 +89,11 @@ import org.psem2m.utilities.logging.IActivityLoggerBase;
  * @author isandlatech (www.isandlatech.com) - ogattaz
  * @author Thomas Calmant
  */
-// TODO rename to CIsolateBaseActivator
-public class CBundleBaseActivator extends CXObjectBase implements
-		BundleActivator {
+@Component(name = "cohorte-isolate-base-activator-factory", factoryMethod = "getSingleton")
+@Instantiate(name = "cohorte-isolate-base-activator")
+@Provides(specifications = { IIsolateBaseActivator.class })
+public class CIsolateBaseActivator extends CXObjectBase implements
+BundleActivator, IIsolateBaseActivator {
 
 	/**
 	 * Service Infos bean
@@ -128,10 +134,19 @@ public class CBundleBaseActivator extends CXObjectBase implements
 	}
 
 	/** Maximum log files for the LogService */
-	public static final int LOG_FILES_COUNT = 5;
+	public static final int LOG_FILES_COUNT = 10;
 
-	/** Maximum log file size (100 Mo) */
-	public static final int LOG_FILES_SIZE = 100 * 1024 * 1024;
+	/** Maximum log file size (10 Mo) */
+	public static final int LOG_FILES_SIZE = 10 * 1024 * 1024;
+
+	private static CIsolateBaseActivator sMe;
+
+	/**
+	 * @return
+	 */
+	public static CIsolateBaseActivator getSingleton() {
+		return sMe;
+	}
 
 	/** Log instance underlying logger */
 	private IActivityLogger pActivityLogger;
@@ -172,9 +187,10 @@ public class CBundleBaseActivator extends CXObjectBase implements
 	 * do nothing ! This Activator is instanciated by the Osgi framework, the
 	 * first metod to be called is the method "start()"
 	 */
-	public CBundleBaseActivator() {
+	public CIsolateBaseActivator() {
 
 		super();
+		sMe = this;
 	}
 
 	/**
@@ -228,6 +244,19 @@ public class CBundleBaseActivator extends CXObjectBase implements
 		return pFileFinderSvc;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see
+	 * org.psem2m.isolates.base.IIsolateBaseActivator#getIsolateLoggerChannel()
+	 */
+	@Override
+	public CIsolateLoggerChannel getIsolateLoggerChannel() {
+
+		return hasIsolateLoggerChannel() ? (CIsolateLoggerChannel) pActivityLogger
+				: null;
+	}
+
 	/**
 	 * Retrieves the log service instance, creates it if needed
 	 *
@@ -255,7 +284,7 @@ public class CBundleBaseActivator extends CXObjectBase implements
 
 		// if no logger already created
 		if (pActivityLogger == null) {
-			initLogger(pBundleContext);
+			initIsolateLoggerChannel(pBundleContext);
 		}
 
 		return pActivityLogger;
@@ -329,9 +358,21 @@ public class CBundleBaseActivator extends CXObjectBase implements
 		return pPlatformDirsSvc;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see
+	 * org.psem2m.isolates.base.IIsolateBaseActivator#hasIsolateLoggerChannel()
+	 */
+	@Override
+	public boolean hasIsolateLoggerChannel() {
+		return (pActivityLogger instanceof CIsolateLoggerChannel);
+	}
+
 	/**
 	 * @return true if the IsolateLoggerSvc is available
 	 */
+	@Override
 	public boolean hasIsolateLoggerSvc() {
 
 		return pIsolateLoggerSvc != null;
@@ -340,7 +381,7 @@ public class CBundleBaseActivator extends CXObjectBase implements
 	/**
 	 * @param aBundleContext
 	 */
-	private void initLogger(final BundleContext aBundleContext) {
+	private void initIsolateLoggerChannel(final BundleContext aBundleContext) {
 
 		final StringBuilder wReport = new StringBuilder();
 
@@ -513,31 +554,31 @@ public class CBundleBaseActivator extends CXObjectBase implements
 				final String wServiceClass = types != null ? Arrays
 						.toString(types) : "<null>";
 
-				// FIXME class loader dead lock
-				// see:
-				// http://underlap.blogspot.fr/2006/11/experimental-fix-for-sunbug-4670071.html
-				// // Get the service with OUR bundle context
-				// final Object wService = aBundleContext
-				// .getService(wServiceReference);
-				//
-				// // Get the class name
-				// final String wServiceClass = wService.getClass().getName();
-				//
-				// // Release the service
-				// aBundleContext.ungetService(wServiceReference);
+						// FIXME class loader dead lock
+						// see:
+						// http://underlap.blogspot.fr/2006/11/experimental-fix-for-sunbug-4670071.html
+						// // Get the service with OUR bundle context
+						// final Object wService = aBundleContext
+						// .getService(wServiceReference);
+						//
+						// // Get the class name
+						// final String wServiceClass = wService.getClass().getName();
+						//
+						// // Release the service
+						// aBundleContext.ungetService(wServiceReference);
 
-				switch (aServiceEvent.getType()) {
-				case ServiceEvent.REGISTERED:
-					logServiceRegistration(wServiceClass);
-					break;
+						switch (aServiceEvent.getType()) {
+						case ServiceEvent.REGISTERED:
+							logServiceRegistration(wServiceClass);
+							break;
 
-				case ServiceEvent.UNREGISTERING:
-					logServiceUnregistration(wServiceClass);
-					break;
+						case ServiceEvent.UNREGISTERING:
+							logServiceUnregistration(wServiceClass);
+							break;
 
-				default:
-					break;
-				}
+						default:
+							break;
+						}
 			}
 		};
 
@@ -607,18 +648,18 @@ public class CBundleBaseActivator extends CXObjectBase implements
 				aBundleContext.removeServiceListener(pRegistrationListener);
 			} catch (final Exception e) {
 				getLogger()
-						.logSevere(
-								this,
-								"removeServiceLogger",
-								"Can't remove the listener of all the service registering and unregistering",
-								e);
+				.logSevere(
+						this,
+						"removeServiceLogger",
+						"Can't remove the listener of all the service registering and unregistering",
+						e);
 			}
 		}
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
 	 * )
@@ -634,7 +675,8 @@ public class CBundleBaseActivator extends CXObjectBase implements
 		// Store the bundle context
 		pBundleContext = aBundleContext;
 
-		// first call to the activity logger : the logger will be created
+		// first call to the activity logger : the IsolateLoggerChannel will be
+		// created
 		getLogger().logInfo(this, "start", "START", toDescription(),
 				((CPlatformDirsSvc) getPlatformDirs()).toDescription());
 
@@ -648,11 +690,11 @@ public class CBundleBaseActivator extends CXObjectBase implements
 					getLogServiceFactory());
 		} catch (final Exception e) {
 			getLogger()
-					.logSevere(
-							this,
-							"start",
-							"Can't get the LogServiceFactory and register it as 'LogService'",
-							e);
+			.logSevere(
+					this,
+					"start",
+					"Can't get the LogServiceFactory and register it as 'LogService'",
+					e);
 		}
 		try {
 			// LogReader service interface
@@ -660,31 +702,36 @@ public class CBundleBaseActivator extends CXObjectBase implements
 					getLogReaderServiceFactory());
 		} catch (final Exception e) {
 			getLogger()
-					.logSevere(
-							this,
-							"start",
-							"Can't get the LogReaderServiceFactory and register it as 'LogReaderService'",
-							e);
+			.logSevere(
+					this,
+					"start",
+					"Can't get the LogReaderServiceFactory and register it as 'LogReaderService'",
+					e);
 		}
 		try {
-			// Register the IIsolateLoggerSvc of the bundle. the first call to
-			// the method "getIsolateLoggerSvc()" creates the service if needed
+			/*
+			 * Register the service IIsolateLoggerSvc.
+			 * 
+			 * Note: the CIsolateLoggerSvc instance wrapps the
+			 * IsolateLoggerChannel created during the first call to the method
+			 * "getLogger()" at the begining of the method start().
+			 */
 			registerOneService(aBundleContext, IIsolateLoggerSvc.class,
 					getIsolateLoggerSvc());
 		} catch (final Exception e) {
 			getLogger()
-					.logSevere(
-							this,
-							"start",
-							"Can't get the IsolateLoggerSvc and register it as 'IIsolateLoggerSvc'",
-							e);
+			.logSevere(
+					this,
+					"start",
+					"Can't get the IsolateLoggerSvc and register it as 'IIsolateLoggerSvc'",
+					e);
 		}
 
-		// Register the file finder
+		// Register the service file finder
 		registerOneService(aBundleContext, IFileFinderSvc.class,
 				getFileFinder());
 
-		// Register the bundle finder
+		// Register the service bundle finder
 		registerOneService(aBundleContext, IBundleFinderSvc.class,
 				getBundleFinder());
 
@@ -695,7 +742,7 @@ public class CBundleBaseActivator extends CXObjectBase implements
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
 	 */
@@ -729,6 +776,6 @@ public class CBundleBaseActivator extends CXObjectBase implements
 
 		System.out.printf("%50s | Bundle=[%50s] stopped\n",
 				"CBundleBaseActivator.stop()", aBundleContext.getBundle()
-						.getSymbolicName());
+				.getSymbolicName());
 	}
 }

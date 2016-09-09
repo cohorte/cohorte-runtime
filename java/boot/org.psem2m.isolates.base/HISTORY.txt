@@ -1,3 +1,15 @@
+
+1.1.0 => 1.2.0
+MOD_OG_20160906
+
+Adding IsolateLogger gogo command allowing the setting of the level of the isolate logger of the current isolate and those of the other java isolates
+ - infos [-, text, json]
+ - setLevel [SEVERE,WARNING,INFO,FINE,FINER,FINEST,ALL]
+ - setLevelAll [idem]
+Adding the OSGi service IIsolateLoggerAdmin to publish the capabilities of the Logger gogo command as a service
+Adding the OSGi service IIsolateBaseActivator to be able to retrieve that activator and the  access to the 
+
+
 MOD_BD_20160902 
 Adding Debug (admin) java implementation
 
