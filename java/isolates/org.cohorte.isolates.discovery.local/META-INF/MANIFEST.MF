@@ -1,0 +1,52 @@
+Manifest-Version: 1.0
+Bundle-ActivationPolicy: lazy
+Bundle-Activator: org.cohorte.isolates.discovery.local.CLocalDiscovery
+ Activator
+Bundle-ManifestVersion: 2
+Bundle-Name: COHORTE :: Local Discovery
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-SymbolicName: org.cohorte.isolates.discovery.local
+Bundle-Version: 1.1.0
+Created-By: iPOJO 1.12.1
+Import-Package: org.apache.felix.ipojo, org.apache.felix.ipojo.annotat
+ ions, org.apache.felix.ipojo.architecture, org.cohorte.herald, org.co
+ horte.herald.http;version=0.0.5, org.cohorte.herald.http.impl;version
+ =0.0.5, org.cohorte.herald.transport;version=0.0.5, org.osgi.framewor
+ k;version=1.3.0, org.osgi.service.cm;version=1.2, org.osgi.service.lo
+ g;version=1.3.0, org.psem2m.isolates.constants
+iPOJO-Components: instance { $name="cohorte-local-discovery" $componen
+ t="cohorte-local-discovery-factory" }component { $name="cohorte-local
+ -discovery-factory" $classname="org.cohorte.isolates.discovery.local.
+ impl.CLocalDiscovery" requires { $field="pDirectory" }requires { $fie
+ ld="pHttpTransport" $filter="(herald.access.id=http)" }requires { $fi
+ eld="pHerald" }requires { $field="pLogger" $optional="true" }requires
+  { $field="pReceiver" }callback { $transition="invalidate" $method="i
+ nvalidate" }callback { $transition="validate" $method="validate" }man
+ ipulation { $classname="org.cohorte.isolates.discovery.local.impl.CLo
+ calDiscovery" interface { $name="org.cohorte.herald.IMessageListener"
+  }interface { $name="org.cohorte.herald.IDirectoryListener" }field { 
+ $name="pBundleContext" $type="org.osgi.framework.BundleContext" }fiel
+ d { $name="pDirectory" $type="org.cohorte.herald.IDirectory" }field {
+  $name="pDiscoverForkerThread" $type="java.lang.Thread" }field { $nam
+ e="pDiscoverNeighborsThread" $type="java.lang.Thread" }field { $name=
+ "pForkerHost" $type="java.lang.String" }field { $name="pForkerPath" $
+ type="java.lang.String" }field { $name="pForkerPeer" $type="org.cohor
+ te.herald.Peer" }field { $name="pForkerPort" $type="int" }field { $na
+ me="pHerald" $type="org.cohorte.herald.IHerald" }field { $name="pHttp
+ Transport" $type="org.cohorte.herald.ITransport" }field { $name="pLoc
+ alPeer" $type="org.cohorte.herald.Peer" }field { $name="pLogger" $typ
+ e="org.osgi.service.log.LogService" }field { $name="pReceiver" $type=
+ "org.cohorte.herald.http.impl.IHttpReceiver" }method { $name="discove
+ rPeer" $arguments="{java.lang.String,int,java.lang.String}" $names="{
+ aHostAddress,aPort,aPath}" }method { $name="invalidate" }method { $na
+ me="validate" }method { $name="heraldMessage" $arguments="{org.cohort
+ e.herald.IHerald,org.cohorte.herald.MessageReceived}" $names="{aHeral
+ d,aMessage}" }method { $name="peerRegistered" $arguments="{org.cohort
+ e.herald.Peer}" $names="{aPeer}" }method { $name="peerUnregistered" $
+ arguments="{org.cohorte.herald.Peer}" $names="{aPeer}" }method { $nam
+ e="peerUpdated" $arguments="{org.cohorte.herald.Peer,java.lang.String
+ ,org.cohorte.herald.Access,org.cohorte.herald.Access}" $names="{aPeer
+ ,aAccessId,aData,aPrevious}" }inner { $name="1" method { $name="run" 
+ }}inner { $name="2" method { $name="run" }method { $name="discoverNei
+ ghbors" }}}}
+
