@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.psem2m.isolates.base.internal;
+
+import static org.osgi.framework.Constants.SERVICE_DESCRIPTION;
+import static org.osgi.framework.Constants.SERVICE_RANKING;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -95,7 +97,7 @@ import org.psem2m.utilities.logging.IActivityLoggerBase;
 @Instantiate(name = "cohorte-isolate-base-activator")
 @Provides(specifications = { IIsolateBaseActivator.class })
 public class CIsolateBaseActivator extends CXObjectBase implements
-BundleActivator, IIsolateBaseActivator {
+		BundleActivator, IIsolateBaseActivator {
 
 	/**
 	 * Service Infos bean
@@ -141,9 +143,8 @@ BundleActivator, IIsolateBaseActivator {
 	/** Maximum log file size (10 Mo) */
 	public static final int LOG_FILES_SIZE = 10 * 1024 * 1024;
 
-	private static final String SERVICE_DESCRIPTION = org.osgi.framework.Constants.SERVICE_DESCRIPTION;
-
-	private static final String SERVICE_RANKING = org.osgi.framework.Constants.SERVICE_RANKING;
+	private static final String SERVICE_SCOPE = "service.scope";
+	private static final String SINGLETON = "singleton";
 
 	private static CIsolateBaseActivator sMe;
 
@@ -252,7 +253,7 @@ BundleActivator, IIsolateBaseActivator {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * org.psem2m.isolates.base.IIsolateBaseActivator#getIsolateLoggerChannel()
 	 */
@@ -366,7 +367,7 @@ BundleActivator, IIsolateBaseActivator {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * org.psem2m.isolates.base.IIsolateBaseActivator#hasIsolateLoggerChannel()
 	 */
@@ -599,11 +600,12 @@ BundleActivator, IIsolateBaseActivator {
 	 * @param aService
 	 */
 	private <S> void registerOneService(final BundleContext aBundleContext,
-			final Class<S> aServiceInterface, final S aService) {
+			final Class<S> aServiceInterface, final S aService,
+			final Dictionary<String, ?> aProps) {
 
 		try {
 			final ServiceRegistration<S> registration = aBundleContext
-					.registerService(aServiceInterface, aService, null);
+					.registerService(aServiceInterface, aService, aProps);
 			pRegisteredServicesInfos.add(new CServiceInfos(registration,
 					aServiceInterface.getName()));
 
@@ -653,18 +655,18 @@ BundleActivator, IIsolateBaseActivator {
 				aBundleContext.removeServiceListener(pRegistrationListener);
 			} catch (final Exception e) {
 				getLogger()
-				.logSevere(
-						this,
-						"removeServiceLogger",
-						"Can't remove the listener of all the service registering and unregistering",
-						e);
+						.logSevere(
+								this,
+								"removeServiceLogger",
+								"Can't remove the listener of all the service registering and unregistering",
+								e);
 			}
 		}
 	}
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
 	 * )
@@ -685,88 +687,85 @@ BundleActivator, IIsolateBaseActivator {
 		getLogger().logInfo(this, "start", "START", toDescription(),
 				((CPlatformDirsSvc) getPlatformDirs()).toDescription());
 
-		// Register platform directories service
+		/**
+		 * OSGi Ranking policy : The best way of prioritizing OSGi services to
+		 * use SERVICE_RANKING service property.
+		 *
+		 * A service with a ranking of Integer.MAX_VALUE is very likely to be
+		 * returned as the default service
+		 *
+		 * <ul>
+		 * <li>SERVICE_DESCRIPTION "service.description"
+		 * <li>SERVICE_RANKING "service.ranking"
+		 * </ul>
+		 *
+		 * @see https
+		 *      ://osgi.org/javadoc/r4v42/org/osgi/framework/Constants.html
+		 *      #SERVICE_RANKING
+		 */
+
+		Dictionary<String, Object> wProps = new Hashtable<String, Object>();
+		wProps.put(SERVICE_DESCRIPTION, "cohorte");
+		// the default service
+		wProps.put(SERVICE_RANKING, Integer.MAX_VALUE);
+		// service.scope = singleton – single instance used by all bundles
+		wProps.put(SERVICE_SCOPE, SINGLETON);
+
+		// Register THE platform directories service
 		registerOneService(aBundleContext, IPlatformDirsSvc.class,
-				getPlatformDirs());
+				getPlatformDirs(), wProps);
 
 		try {
-			// register own LogService service factory
-
-			/**
-			 * OSGi Ranking policy : The best way of prioritizing OSGi services
-			 * to use SERVICE_RANKING service property.
-			 *
-			 * A service with a ranking of Integer.MAX_VALUE is very likely to
-			 * be returned as the default service
-			 *
-			 * <ul>
-			 * <li>SERVICE_DESCRIPTION "service.description"
-			 * <li>SERVICE_RANKING "service.ranking"
-			 * </ul>
-			 *
-			 * @see https 
-			 *      ://osgi.org/javadoc/r4v42/org/osgi/framework/Constants.html
-			 *      #SERVICE_RANKING
-			 */
-
-			Dictionary<String, Object> wProps = new Hashtable<String, Object>();
-			wProps.put(SERVICE_DESCRIPTION, "cohorte");
-			wProps.put(SERVICE_RANKING, Integer.MAX_VALUE);
-
+			// Register our own LogService service factory
 			registerOneServiceFactory(aBundleContext, LogService.class,
 					getLogServiceFactory(), wProps);
 
 		} catch (final Exception e) {
 			getLogger()
-			.logSevere(
-					this,
-					"start",
-					"Can't get the LogServiceFactory and register it as 'LogService'",
-					e);
+					.logSevere(
+							this,
+							"start",
+							"Can't get the LogServiceFactory and register it as 'LogService'",
+							e);
 		}
 		try {
-			// register own LogReader service factory
-
-			Dictionary<String, Object> wProps = new Hashtable<String, Object>();
-			wProps.put(SERVICE_DESCRIPTION, "cohorte");
-			wProps.put(SERVICE_RANKING, Integer.MAX_VALUE);
-
+			// Register our own LogReader service factory
 			registerOneServiceFactory(aBundleContext, LogReaderService.class,
 					getLogReaderServiceFactory(), wProps);
 		} catch (final Exception e) {
 			getLogger()
-			.logSevere(
-					this,
-					"start",
-					"Can't get the LogReaderServiceFactory and register it as 'LogReaderService'",
-					e);
+					.logSevere(
+							this,
+							"start",
+							"Can't get the LogReaderServiceFactory and register it as 'LogReaderService'",
+							e);
 		}
 		try {
 			/*
-			 * Register the service IIsolateLoggerSvc.
-			 * 
+			 * Register THE service IIsolateLoggerSvc.
+			 *
 			 * Note: the CIsolateLoggerSvc instance wrapps the
 			 * IsolateLoggerChannel created during the first call to the method
 			 * "getLogger()" at the begining of the method start().
 			 */
 			registerOneService(aBundleContext, IIsolateLoggerSvc.class,
-					getIsolateLoggerSvc());
+					getIsolateLoggerSvc(), wProps);
 		} catch (final Exception e) {
 			getLogger()
-			.logSevere(
-					this,
-					"start",
-					"Can't get the IsolateLoggerSvc and register it as 'IIsolateLoggerSvc'",
-					e);
+					.logSevere(
+							this,
+							"start",
+							"Can't get the IsolateLoggerSvc and register it as 'IIsolateLoggerSvc'",
+							e);
 		}
 
-		// Register the service file finder
+		// Register THE service file finder
 		registerOneService(aBundleContext, IFileFinderSvc.class,
-				getFileFinder());
+				getFileFinder(), wProps);
 
-		// Register the service bundle finder
+		// Register THE service bundle finder
 		registerOneService(aBundleContext, IBundleFinderSvc.class,
-				getBundleFinder());
+				getBundleFinder(), wProps);
 
 		// put in place a listner witch logs each service registration and
 		// unregistration
@@ -775,7 +774,7 @@ BundleActivator, IIsolateBaseActivator {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
 	 */
@@ -809,6 +808,6 @@ BundleActivator, IIsolateBaseActivator {
 
 		System.out.printf("%50s | Bundle=[%50s] stopped\n",
 				"CBundleBaseActivator.stop()", aBundleContext.getBundle()
-				.getSymbolicName());
+						.getSymbolicName());
 	}
 }
