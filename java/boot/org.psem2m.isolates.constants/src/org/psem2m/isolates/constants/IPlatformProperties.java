@@ -37,6 +37,13 @@ public interface IPlatformProperties {
 	String PROP_BROKER_URL = "cohorte.configuration.broker.url";
 
 	/**
+	 * MOD_BD_20160826
+	 * 
+	 * HTTP Port of the Forker
+	 */
+	String PROP_FORKER_HTTP_PORT = "cohorte.forker.http.port";
+	
+	/**
 	 * MOD_0G_20150821
 	 *
 	 * Path to localize a directory where the isolate log file are stored

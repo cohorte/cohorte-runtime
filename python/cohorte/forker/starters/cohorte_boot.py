@@ -5,7 +5,7 @@ Starts Cohorte isolates using the boot script
 
 :author: Thomas Calmant
 :license: Apache Software License 2.0
-:version: 1.0.1
+:version: 1.1.0
 
 ..
 
@@ -34,6 +34,7 @@ import sys
 # Pelix framework
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
     Property, Instantiate
+import pelix.http as http
 
 # COHORTE modules
 import cohorte
@@ -53,7 +54,7 @@ from herald.exceptions import HeraldException
 __docformat__ = "restructuredtext en"
 
 # Version
-__version_info__ = (1, 0, 1)
+__version_info__ = (1, 1, 0)
 __version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
@@ -69,6 +70,7 @@ _logger = logging.getLogger(__name__)
           ('pelix', 'pelix-py3', 'osgi', 'cohorte-compat'))
 @Requires('_broker', cohorte.SERVICE_CONFIGURATION_BROKER)
 @Requires('_sender', herald.SERVICE_HERALD)
+@Requires('_http', http.HTTP_SERVICE)
 @Instantiate('cohorte-starter-boot')
 class CohorteBoot(common.CommonStarter):
     """
@@ -79,6 +81,9 @@ class CohorteBoot(common.CommonStarter):
         Sets up members
         """
         super(CohorteBoot, self).__init__()
+
+        # Pelix Http Service
+        self._http = None
 
         # Configuration broker
         self._broker = None
@@ -91,7 +96,7 @@ class CohorteBoot(common.CommonStarter):
 
     def _run_boot_script(self, working_directory, configuration,
                          config_broker_url, state_updater_url,
-                         looper_name=None):
+                         looper_name=None, forker_http_port=None):
         """
         Runs the boot script in a new process
 
@@ -100,6 +105,7 @@ class CohorteBoot(common.CommonStarter):
         :param config_broker_url: URL to the configuration in the broker
         :param state_updater_url: URL to the isolate state updater
         :param looper_name: Name of the main thread loop handler, if any
+        :param forker_http_port: Http port of the forker
         :return: A POpen object
         """
         # Process environment
@@ -129,11 +135,15 @@ class CohorteBoot(common.CommonStarter):
 
         # State updater URL
         if state_updater_url:
-            args.append('--state-updater={0}'.format(state_updater_url))
+            args.append('--state-updater={0}'.format(state_updater_url))    
 
         # Main thread loop handler
         if looper_name:
             args.append('--looper={0}'.format(looper_name))
+
+        # Forker Http port
+        if forker_http_port:
+            args.append('--forker-http-port={0}'.format(forker_http_port))
 
         # Log file
         logname = 'log_{0}.log'.format(configuration['name'])
@@ -186,11 +196,15 @@ class CohorteBoot(common.CommonStarter):
         # Store the configuration in the broker
         config_url = self._broker.store_configuration(uid, configuration)
 
+        # forker Http port
+        host, port = self._http.get_access()
+        forker_http_port = port        
+
         try:
             # Start the boot script
             process = self._run_boot_script(
                 working_dir, configuration, config_url, state_updater_url,
-                looper)
+                looper, forker_http_port)
         except:
             # Delete the configuration in case of error
             self._broker.delete_configuration(uid)

@@ -18,16 +18,45 @@
 	<parent>
 		<groupId>org.cohorte.runtime</groupId>
 		<artifactId>cohorte-java</artifactId>
-		<version>1.0.2</version>
+		<version>1.1.0</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
-	<artifactId>org.cohorte.isolates.debug</artifactId>
+	<artifactId>org.cohorte.isolates.discovery.local</artifactId>
 	<packaging>eclipse-plugin</packaging>
 
 	<dependencies>
 		<dependency>
 			<groupId>org.cohorte.herald</groupId>
-			<artifactId>org.cohorte.herald.api</artifactId>
+			<artifactId>org.cohorte.herald.http</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.cohorte.herald</groupId>
+			<artifactId>org.cohorte.herald.api</artifactId>			
+		</dependency>
+		<dependency>
+			<groupId>org.cohorte.herald</groupId>
+			<artifactId>org.cohorte.herald.core</artifactId>
+		</dependency>
+		<dependency>
+            <groupId>org.cohorte.herald</groupId>
+            <artifactId>org.cohorte.herald.eventapi</artifactId>
+        </dependency>
+		<dependency>
+			<groupId>org.cohorte.jabsorb</groupId>
+			<artifactId>org.jabsorb.ng</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.compendium</artifactId>
 		</dependency>
 	</dependencies>
 
@@ -39,4 +68,13 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<repositories>
+		<repository>
+        	<id>indigo</id>
+        	<url>http://download.eclipse.org/releases/indigo</url>
+        	<layout>p2</layout>
+        </repository>		
+	</repositories>
+
 </project>

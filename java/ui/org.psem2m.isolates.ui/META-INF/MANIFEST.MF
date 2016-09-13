@@ -5,7 +5,7 @@ Bundle-Name: PSEM2M :: UI :: Commons
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.psem2m.isolates.ui
 Bundle-Vendor: isandlaTech.com
-Bundle-Version: 1.0.2
+Bundle-Version: 1.1.0
 Created-By: iPOJO  1.8.0
 Import-Package: javax.swing, javax.swing.event, javax.swing.tree, org.
  apache.felix.ipojo, org.apache.felix.ipojo.architecture, org.cohorte.

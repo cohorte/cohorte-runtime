@@ -106,6 +106,9 @@ PROP_SHELL_CONSOLE = 'cohorte.shell.console'
 PROP_STATE_UPDATER = 'cohorte.state.updater.url'
 """ URL to the state updater, use during boot only """
 
+PROP_FORKER_HTTP_PORT = 'cohorte.forker.http.port'
+""" HTTP port of the forker """
+
 PROP_DUMPER_PORT = 'psem2m.directory.dumper.port'
 """
 Port to the signal directory dumper

@@ -17,7 +17,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.cohorte.runtime</groupId>
 	<artifactId>cohorte-java</artifactId>
-	<version>1.0.2</version>
+	<version>1.1.0</version>
 
 	<packaging>pom</packaging>
 
@@ -25,10 +25,11 @@
 		<tycho-version>0.22.0</tycho-version>
 		<osgi-version>5.0.0</osgi-version>
 		<ipojo-version>1.12.1</ipojo-version>
-		<herald-version>0.0.5</herald-version>
+		<herald-version>1.0.0</herald-version>
 		<remote-services-version>1.2.1</remote-services-version>
-		<cohorte-utilities-version>1.0.4</cohorte-utilities-version>
-		<felix-gogo-runtime-version>0.10.0</felix-gogo-runtime-version>
+		<cohorte-utilities-version>1.0.6</cohorte-utilities-version>
+		<felix-gogo-runtime-version>0.16.2</felix-gogo-runtime-version>
+		<cohorte-jabsorb-version>1.1.0</cohorte-jabsorb-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
@@ -48,7 +49,10 @@
 		<module>isolates/org.psem2m.isolates.loggers</module>
 		<module>isolates/org.psem2m.isolates.slave.agent</module>
 		<module>isolates/org.psem2m.status.storage</module>
-		<!--module>isolates/org.cohorte.isolates.debug</module-->		
+		<!--module>isolates/org.cohorte.isolates.debug</module-->
+		
+		<module>isolates/org.cohorte.isolates.discovery.local</module>
+
 		<!--
 		<module>ui/org.psem2m.isolates.ui</module>
 		<module>ui/org.psem2m.isolates.ui.admin</module>
@@ -63,6 +67,14 @@
 			<artifactId>org.osgi.core</artifactId>
 			<version>${osgi-version}</version>
 			<scope>provided</scope>
+		</dependency>
+		
+		<!-- Felix API -->
+		<dependency>
+			<groupId>org.apache.felix</groupId>			
+    		<artifactId>org.apache.felix.gogo.runtime</artifactId>
+    		<version>${felix-gogo-runtime-version}</version>
+    		<scope>compile</scope>
 		</dependency>
 
 		<!-- iPOJO Annotations -->
@@ -79,18 +91,37 @@
 			<artifactId>org.apache.felix.ipojo</artifactId>
 			<version>${ipojo-version}</version>
 		</dependency>
+		
+		<!-- Cohorte Utilities -->
+		<dependency>
+			<groupId>org.cohorte.utilities</groupId>
+			<artifactId>org.cohorte.utilities</artifactId>
+			<version>${cohorte-utilities-version}</version>
+		</dependency>
+
+		<!-- Herald API -->
+		<dependency>
+			<groupId>org.cohorte.herald</groupId>
+			<artifactId>org.cohorte.herald.api</artifactId>
+			<version>${herald-version}</version>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 
 	<dependencyManagement>
 		<dependencies>
-			<!-- OSGi Compendium API -->
+			<!-- OSGi Compendium API -->		
+			<dependency>
+				<groupId>org.osgi</groupId>
+				<artifactId>org.osgi.core</artifactId>
+				<version>${osgi-version}</version>
+			</dependency>
 			<dependency>
 				<groupId>org.osgi</groupId>
 				<artifactId>org.osgi.compendium</artifactId>
 				<version>${osgi-version}</version>
 				<scope>provided</scope>
 			</dependency>
-
 			<dependency>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>org.apache.felix.gogo.runtime</artifactId>
@@ -105,10 +136,22 @@
 				<version>${herald-version}</version>
 				<scope>provided</scope>
 			</dependency>
-			
+			<dependency>
+				<groupId>org.cohorte.herald</groupId>
+				<artifactId>org.cohorte.herald.core</artifactId>
+				<version>${herald-version}</version>
+				<scope>provided</scope>
+			</dependency>
 			<dependency>
 				<groupId>org.cohorte.herald</groupId>
 				<artifactId>org.cohorte.herald.eventapi</artifactId>
+				<version>${herald-version}</version>
+				<scope>provided</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.cohorte.herald</groupId>
+				<artifactId>org.cohorte.herald.http</artifactId>
 				<version>${herald-version}</version>
 				<scope>provided</scope>
 			</dependency>
@@ -128,6 +171,15 @@
                 <version>${remote-services-version}</version>
                 <scope>provided</scope>
             </dependency>
+
+            <!-- Cohorte Jabsorb -->
+            <dependency>
+				<groupId>org.cohorte.jabsorb</groupId>
+				<artifactId>org.jabsorb.ng</artifactId>
+				<version>${cohorte-jabsorb-version}</version>
+				<scope>provided</scope>
+			</dependency>
+
 		</dependencies>
 	</dependencyManagement>
 
@@ -208,52 +260,44 @@
 				</plugin>
 			</plugins>
 		</pluginManagement>
-		<extensions>
-	      <!-- Enabling the use of FTP -->
-	      <extension>
-	        <groupId>org.apache.maven.wagon</groupId>
-	         <artifactId>wagon-ftp</artifactId>
-	         <version>1.0-beta-6</version>
-	      </extension>
-	    </extensions>
 	</build>
-	<repositories>
-		<repository>
-			<id>isandlatech.snapshots</id>
-			<name>isandlaTech Snapshot Repository</name>
-			<url>http://repo.isandlatech.com/maven/snapshots</url>
-			<releases>
+    <repositories>
+        <repository>
+            <id>cohorte.snapshots</id>
+            <name>Cohorte Snapshot Repository</name>
+            <url>http://forge.cohorte-technologies.com:6080/repository/cohorte-snapshots</url>
+            <releases>
                 <enabled>false</enabled>
             </releases>
-			<snapshots>
+            <snapshots>
                 <enabled>true</enabled>
             </snapshots>
-		</repository>
-		<repository>
-			<id>isandlatech.releases</id>
-			<name>isandlaTech Releases Repository</name>
-			<url>http://repo.isandlatech.com/maven/releases</url>
-			<releases>
+        </repository>
+        <repository>
+            <id>cohorte.releases</id>
+            <name>Cohorte Releases Repository</name>
+            <url>http://forge.cohorte-technologies.com:6080/repository/cohorte-releases</url>
+            <releases>
                 <enabled>true</enabled>
             </releases>
-			<snapshots>
+            <snapshots>
                 <enabled>false</enabled>
             </snapshots>
-		</repository>
-	</repositories>
-	<distributionManagement>
-		<repository>
-	      <id>isandlatech</id>
-	      <name>isandlaTech Releases Repository</name>
-	      <url>ftp://isandlatech.com/maven/releases</url>
-	      <layout>default</layout>
-	    </repository>
-	    <snapshotRepository>
-	      <id>isandlatech</id>
-	      <name>isandlaTech Snapshots Repository</name>
-	      <url>ftp://isandlatech.com/maven/snapshots</url>
-	      <uniqueVersion>true</uniqueVersion>
-	      <layout>default</layout>
-	    </snapshotRepository>
-	</distributionManagement>
+        </repository>
+    </repositories>
+    <distributionManagement>
+        <repository>
+            <id>cohorte-nexus</id>
+            <name>Cohorte Releases Repository</name>
+            <url>http://forge.cohorte-technologies.com:6080/repository/cohorte-releases/</url>
+            <layout>default</layout>
+        </repository>
+        <snapshotRepository>
+            <id>cohorte-nexus</id>
+            <name>Cohorte Snapshots Repository</name>
+            <url>http://forge.cohorte-technologies.com:6080/repository/cohorte-snapshots/</url>
+            <uniqueVersion>true</uniqueVersion>
+            <layout>default</layout>
+        </snapshotRepository>
+    </distributionManagement>
 </project>

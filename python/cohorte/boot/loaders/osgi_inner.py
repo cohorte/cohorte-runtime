@@ -60,7 +60,7 @@ import jpype
 __docformat__ = "restructuredtext en"
 
 # Version
-__version_info__ = (1, 0, 1)
+__version_info__ = (1, 1, 0)
 __version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
@@ -388,6 +388,7 @@ class JavaOsgiLoader(object):
     Pelix isolate loader. Needs a configuration to be given as a parameter of
     the load() method.
     """
+
     def __init__(self):
         """
         Sets up members
@@ -418,7 +419,7 @@ class JavaOsgiLoader(object):
         # Prepare the dictionary
         return properties.copy() if properties else {}
 
-    def _setup_osgi_properties(self, properties, allow_bridge):
+    def _setup_osgi_properties(self, properties, allow_bridge, extra_packages=None):
         """
         Sets up the OSGi framework properties and converts them into a Java
         HashMap.
@@ -439,6 +440,7 @@ class JavaOsgiLoader(object):
                     cohorte.PROP_NODE_UID, cohorte.PROP_NODE_NAME,
                     cohorte.PROP_NODE_DATA_DIR,
                     cohorte.PROP_DUMPER_PORT,
+                    cohorte.PROP_FORKER_HTTP_PORT,
                     herald.FWPROP_PEER_UID, herald.FWPROP_PEER_NAME,
                     herald.FWPROP_NODE_UID, herald.FWPROP_NODE_NAME,
                     herald.FWPROP_APPLICATION_ID):
@@ -453,12 +455,27 @@ class JavaOsgiLoader(object):
             osgi_properties.put(herald.FWPROP_PEER_GROUPS,
                                 ','.join(str(group) for group in value))
 
+        new_extra_packages = None
         if allow_bridge:
             # Prepare the "extra system package" framework property
+            if extra_packages:
+                new_extra_packages = "{0}; version=1.0.0, {1}; version=1.0.0,{2}".format(
+                    PYTHON_BRIDGE_BUNDLE_API, HERALD_EVENT_BUNDLE_API, extra_packages)
+            else:
+                new_extra_packages = "{0}; version=1.0.0, {1}; version=1.0.0".format(
+                    PYTHON_BRIDGE_BUNDLE_API, HERALD_EVENT_BUNDLE_API)
+        else:
+            if extra_packages:
+                new_extra_packages = "{0}".format(extra_packages)
+
+        if new_extra_packages:
+            _logger.debug(
+                "Framework extra-packages={0}".format(new_extra_packages))
             osgi_properties.put(
-                FRAMEWORK_SYSTEMPACKAGES_EXTRA,
-                "{0}; version=1.0.0, {1}; version=1.0.0"
-                .format(PYTHON_BRIDGE_BUNDLE_API, HERALD_EVENT_BUNDLE_API))
+                FRAMEWORK_SYSTEMPACKAGES_EXTRA, new_extra_packages)
+        else:
+            _logger.debug("No extra-packages!")
+
         return osgi_properties
 
     def _start_jvm(self, vm_args, classpath, properties):
@@ -644,9 +661,20 @@ class JavaOsgiLoader(object):
         factory_class = self._java.load_class(factory_name)
         factory = factory_class()
 
+        # Retrieve extra packages
+        vm_args = configuration.get('vm_args')
+        tmp = []
+        if vm_args:
+            tmp = [vm_arg for vm_arg in configuration.get('vm_args')
+                    if FRAMEWORK_SYSTEMPACKAGES_EXTRA in vm_arg]
+        extra_packages = ""
+        if len(tmp) > 0:
+            extra_packages = tmp[0].split("=")[1]
+
         # Framework properties
         osgi_properties = self._setup_osgi_properties(java_config.properties,
-                                                      api_jar is not None)
+                                                      api_jar is not None,
+                                                      extra_packages)
 
         # Start a framework, with the given properties
         self._osgi = factory.newFramework(osgi_properties)
@@ -680,13 +708,15 @@ class JavaOsgiLoader(object):
             elif bundle.file == osgi_jar_file:
                 _logger.debug("OSGi framework is already installed.")
             else:
-                _logger.debug("Installing Java bundle %s...", bundle.name)
-                java_bundles.append(context.installBundle(bundle.url))
+                _logger.debug("Installing Java bundle %s (is_fragment=%s)...", bundle.name, bundle.is_fragment())
+                b = context.installBundle(bundle.url)                
+                if not bundle.is_fragment():
+                    java_bundles.append(b)
 
         try:
             # Start the bundles
             for bundle in java_bundles:
-                _logger.debug("Starting %s...", bundle.getSymbolicName())
+                _logger.debug("Starting %s...", bundle.getSymbolicName())                
                 bundle.start()
         except jpype.JavaException as ex:
             # Log the bundle exception and its cause

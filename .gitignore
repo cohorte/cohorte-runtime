@@ -22,12 +22,12 @@ felix-cache/
 # Eclipse 
 .metadata
 RemoteSystemsTempFiles/
-.project
-.classpath
+#.project
+#.classpath
 .settings
 
 # Eclipse iPOJO Nature
-META-INF/
+#META-INF/
 
 # Binaries
 *.tar.gz
