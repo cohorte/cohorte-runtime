@@ -301,8 +301,12 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 		// init if null with Valid default directory
 		if (pNodeDataDir == null) {
 			// eg. -Dcohorte.data=${project_loc:/fr.agilium.ng.data}
-			final File wDataDir = new File(
-					pContext.getProperty(IPlatformProperties.PROP_NODE_DATA_DIR));
+			String wPath =
+				pContext.getProperty(IPlatformProperties.PROP_NODE_DATA_DIR);
+			if (wPath == null) {
+				return pNodeDataDirDefault;
+			}
+			final File wDataDir = new File(wPath);
 			pNodeDataDir = validDirectory(wDataDir, pNodeDataDirDefault);
 		}
 		return pNodeDataDir;
