@@ -16,6 +16,7 @@
 
 package org.psem2m.isolates.base.admin;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.apache.felix.ipojo.ComponentInstance;
@@ -31,8 +32,13 @@ import org.cohorte.herald.IDirectory;
 import org.cohorte.herald.IHerald;
 import org.cohorte.herald.IMessageListener;
 import org.cohorte.herald.MessageReceived;
+//import org.cohorte.herald.http.IHttpServiceAvailabilityChecker;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.psem2m.isolates.base.IIsolateLoggerAdmin;
+import org.psem2m.isolates.base.IIsolateLoggerSvc;
+import org.psem2m.utilities.files.CXFile;
+import org.psem2m.utilities.files.CXFileText;
 import org.psem2m.utilities.json.JSONArray;
 import org.psem2m.utilities.json.JSONException;
 import org.psem2m.utilities.json.JSONObject;
@@ -53,7 +59,7 @@ public class CAdminAgent implements IAdminAgent, IMessageListener {
 	private List<Architecture> pArchs;
 
 	/** OSGi Bundle Context */
-	private BundleContext pBundleContext;
+	private final BundleContext pBundleContext;
 
 	/** The Herald directory */
 	@Requires
@@ -67,14 +73,27 @@ public class CAdminAgent implements IAdminAgent, IMessageListener {
 	@Requires
 	private IHerald pHerald;
 
-	public CAdminAgent(BundleContext aBundleContext) {
+	/** Cohorte Isolate Logger */
+	@Requires
+	private IIsolateLoggerSvc pLogger;
+
+	/** Cohorte Isolate Logger Admin */
+	@Requires
+	private IIsolateLoggerAdmin pLoggerAdmin;
+
+	/** HttpService Availability Checker service */
+	// @Requires
+	// private IHttpServiceAvailabilityChecker pHttpServiceAvailabilityChecker;
+
+	public CAdminAgent(final BundleContext aBundleContext) {
 		pBundleContext = aBundleContext;
 	}
 
 	@Override
-	public String getBundleDetail(int aBundleNumber) {
+	public String getBundleDetail(final int aBundleNumber) {
 		// TODO Auto-generated method stub
-		return null;
+		JSONObject wResult = new JSONObject();
+		return wResult.toString();
 	}
 
 	@Override
@@ -104,7 +123,7 @@ public class CAdminAgent implements IAdminAgent, IMessageListener {
 		return wResult.toString();
 	}
 
-	private String getBundleStateAsString(int aState) {
+	private String getBundleStateAsString(final int aState) {
 		switch (aState) {
 		case Bundle.ACTIVE: {
 			return "ACTIVE";
@@ -130,9 +149,26 @@ public class CAdminAgent implements IAdminAgent, IMessageListener {
 	}
 
 	@Override
-	public String getComponentInstanceDetail(String aInstanceName) {
-		// TODO Auto-generated method stub
-		return null;
+	public String getComponentInstanceDetail(final String aInstanceName) {
+		JSONObject wResult = new JSONObject();
+		wResult.put("kind", "Java");
+		for (Architecture arch : pArchs) {
+			if (arch.getInstanceDescription().getName()
+					.equalsIgnoreCase(aInstanceName)) {
+				wResult.put("name", arch.getInstanceDescription().getName());
+				wResult.put("factory", arch.getInstanceDescription()
+						.getInstance().getFactory().getName());
+				wResult.put("state", getInstanceStateAsString(arch
+						.getInstanceDescription().getState()));
+				wResult.put("bundle-id", new Long(arch.getInstanceDescription()
+						.getBundleId()).toString());
+				wResult.put("properties", "");
+				wResult.put("dependencies", "");
+				wResult.put("error-trace", "");
+				break;
+			}
+		}
+		return wResult.toString();
 	}
 
 	@Override
@@ -173,23 +209,44 @@ public class CAdminAgent implements IAdminAgent, IMessageListener {
 	}
 
 	@Override
-	public String getFactoryDetail(String aFactoryName) {
-		// TODO Auto-generated method stub
-		return null;
+	public String getFactoryDetail(final String aFactoryName) {
+		JSONObject wResult = new JSONObject();
+		try {
+			for (Factory wFactory : pFactories) {
+				if (wFactory.getName().equalsIgnoreCase(aFactoryName)) {
+					wResult.put("name", wFactory.getName());
+					JSONObject wBundle = new JSONObject();
+					wBundle.put("id", wFactory.getBundleContext().getBundle()
+							.getBundleId());
+					wBundle.put("name", wFactory.getBundleContext().getBundle()
+							.getSymbolicName());
+					wResult.put("bundle", wBundle);
+					wResult.put("properties", "");
+					wResult.put("handlers", "");
+					wResult.put("requirements", "");
+					wResult.put("provided-services", "");
+					break;
+				}
+			}
+
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return wResult.toString();
 	}
 
-	private String getInstanceStateAsString(int aState) {
+	private String getInstanceStateAsString(final int aState) {
 		switch (aState) {
 		case ComponentInstance.VALID:
-			return "valid";
+			return "VALID";
 		case ComponentInstance.INVALID:
-			return "invalid";
+			return "INVALID";
 		case ComponentInstance.DISPOSED:
-			return "disposed";
+			return "DISPOSED";
 		case ComponentInstance.STOPPED:
-			return "stopped";
+			return "STOPPED";
 		default:
-			return "unknown";
+			return "UNKNOWN";
 		}
 	}
 
@@ -211,7 +268,13 @@ public class CAdminAgent implements IAdminAgent, IMessageListener {
 	public String getIsolateDetail() {
 		JSONObject wResult = new JSONObject();
 		try {
-			wResult.append("cohorte.isolate.http.port", "NOT YET IMPLEMENTED!");
+			wResult.append("cohorte.isolate.uid", pDirectory.getLocalPeer()
+					.getUid());
+			wResult.append("cohorte.isolate.name", pDirectory.getLocalPeer()
+					.getName());
+			wResult.append("cohorte.isolate.http.port", ((Object[]) pDirectory
+					.getLocalPeer().getAccess("http").dump())[1].toString());
+			wResult.append("cohorte.isolate.kind", "Java");
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -220,41 +283,103 @@ public class CAdminAgent implements IAdminAgent, IMessageListener {
 	}
 
 	@Override
-	public String getIsolateDirectory() {
-		JSONObject wResult = new JSONObject(pDirectory.dump());
-		return wResult.toString();
+	public Object getIsolateDirectory() {
+		return pDirectory.dump();
+		// JSONObject wResult = new JSONObject(pDirectory.dump());
+		// return wResult.toString();
 	}
 
 	@Override
-	public String getIsolateLog(String aLogId) {
-		// TODO Auto-generated method stub
-		return null;
+	public String getIsolateLog(final String aLogId) {
+		JSONObject wResult = new JSONObject();
+
+		String wLoggerInfos = pLoggerAdmin.getLoggerInfos("application/json");
+
+		try {
+			JSONObject wLoggerInfosJson = new JSONObject(wLoggerInfos);
+			JSONArray wFiles = (JSONArray) wLoggerInfosJson.get("files");
+			for (int i = 0; i < wFiles.length(); i++) {
+				JSONObject wFileMeta = (JSONObject) wFiles.get(i);
+				Object wLogId = wFileMeta.get("path");
+				JSONObject wFile = new JSONObject();
+				if (wLogId != null) {
+					CXFile file = new CXFile(wLogId.toString());
+					if (file != null) {
+						if (aLogId.equalsIgnoreCase(file
+								.getNameWithoutExtension())) {
+							CXFileText wFileResult = new CXFileText(file);
+							try {
+								wResult.put("content", wFileResult.readAll());
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+						}
+
+					}
+				}
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return wResult.toString();
+
 	}
 
 	@Override
 	public String getIsolateLogs() {
-		// TODO Auto-generated method stub
-		return null;
+		JSONObject wResult = new JSONObject();
+
+		JSONArray wLogsJson = new JSONArray();
+		try {
+			String wLoggerInfos = pLoggerAdmin
+					.getLoggerInfos("application/json");
+			JSONObject wLoggerInfosJson = new JSONObject(wLoggerInfos);
+			wResult.put("level", wLoggerInfosJson.get("level"));
+			JSONArray wFiles = (JSONArray) wLoggerInfosJson.get("files");
+			for (int i = 0; i < wFiles.length(); i++) {
+				JSONObject wFileMeta = (JSONObject) wFiles.get(i);
+				Object wLogId = wFileMeta.get("path");
+				Object wLastModified = wFileMeta.get("lastmodified");
+				JSONObject wFile = new JSONObject();
+				if (wLogId != null) {
+					CXFile file = new CXFile(wLogId.toString());
+					if (file != null) {
+						wFile.put(file.getNameWithoutExtension(),
+								wLastModified.toString());
+						wLogsJson.put(wFile);
+					}
+				}
+			}
+			wResult.put("log-files", wLogsJson);
+		} catch (Throwable e) {
+			// e.printStackTrace();
+			pLogger.logSevere(this, "getIsolateLogs", "Error! %s",
+					e.getMessage());
+		}
+
+		return wResult.toString();
 	}
 
 	@Override
 	public String getServices() {
 		// TODO Auto-generated method stub
-		return null;
+		JSONObject wResult = new JSONObject();
+		return wResult.toString();
 	}
 
 	@Override
 	public String getThreads() {
 		// TODO Auto-generated method stub
-		return null;
+		JSONObject wResult = new JSONObject();
+		return wResult.toString();
 	}
 
 	@Override
-	public void heraldMessage(IHerald aHerald, MessageReceived aMessage)
-			throws HeraldException {
+	public void heraldMessage(final IHerald aHerald,
+			final MessageReceived aMessage) throws HeraldException {
 		// get message subject
 		String wMessageSubject = aMessage.getSubject();
-		String wReply = null;
+		Object wReply = null;
 
 		if (wMessageSubject.equalsIgnoreCase(SUBJECT_GET_ISOLATE_DETAIL)) {
 			wReply = getIsolateDetail();

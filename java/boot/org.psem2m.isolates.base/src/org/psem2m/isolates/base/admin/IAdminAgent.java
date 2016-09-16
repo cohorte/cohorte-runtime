@@ -197,7 +197,7 @@ public interface IAdminAgent {
 
 	String getIsolateDetail();
 
-	String getIsolateDirectory();
+	Object getIsolateDirectory();
 
 	String getIsolateLog(String aLogId);
 
