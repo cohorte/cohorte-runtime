@@ -25,7 +25,10 @@ public interface IConstants {
 	
 	/** Name of the Local discovery component factory */
     String FACTORY_DISCOVERY_LOCAL = "cohorte-local-discovery-factory";
- 
+        
+    /** Name of the Local discovery component instance */
+    String INSTANCE_DISCOVERY_LOCAL = "cohorte-local-discovery";
+     
     /** Herald message subject used to retrieve the list of neighbor peers */ 
     String SUBJECT_GET_NEIGHBORS_LIST = "cohorte/local/discovery/get_neighbors_list";
 }
