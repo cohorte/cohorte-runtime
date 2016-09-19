@@ -73,7 +73,7 @@ _logger = logging.getLogger(__name__)
 @Requires('_parser', cohorte.composer.SERVICE_PARSER,
           optional=False)
 @Property('_autostart', 'autostart', "True")
-@Property('composition_filename', 'composition.filename', "composition.js")
+@Property('_composition_filename', 'composition.filename', "composition.js")
 # #########
 # @Instantiate('cohorte-composer-top')
 class TopComposer(object):
@@ -92,7 +92,7 @@ class TopComposer(object):
         # ######### added by: Bassem D.
         self._parser = None
         self._autostart = None
-        self.composition_filename = None
+        self._composition_filename = None
         self._composition_json = None 
         # #########
 
@@ -131,7 +131,7 @@ class TopComposer(object):
             # Load the composition
             try:
                 composition = self._parser.load(
-                    self.composition_filename, "conf")
+                    self._composition_filename, "conf")
                 if composition:
                     _logger.info("Loading composition...")
                     uid = self.start(composition)
@@ -139,10 +139,10 @@ class TopComposer(object):
                                  composition.name, uid)
                 else:
                     _logger.warning("No composition found in %s",
-                                    self.composition_filename)
+                                    self._composition_filename)
             except OSError:
                 _logger.error("Error reading the composition file %s",
-                              self.composition_filename)
+                              self._composition_filename)
 
         else:
             _logger.info("composition should be started manually!")
