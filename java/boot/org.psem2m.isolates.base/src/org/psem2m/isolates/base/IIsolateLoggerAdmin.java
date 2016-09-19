@@ -15,6 +15,14 @@ public interface IIsolateLoggerAdmin {
 	String ISOLATES_LOGGER_MESSAGE = "cohorte/runtime/isolates/logger";
 
 	/**
+	 * Gets the current log level of the isolatelogger
+	 *
+	 * @return Log Level (OFF, SEVERE,WARNING, INFO, CONFIG, FINE, FINER,
+	 *         FINEST, ALL)
+	 */
+	String getLevel();
+
+	/**
 	 * <pre>
 	 * LoggerName=[cohorte.isolate.iotagregator.IOTA-GREG-ATOR-ISOL-1+4]
 	 * CurrentLevel=[ALL]
@@ -52,8 +60,9 @@ public interface IIsolateLoggerAdmin {
 	 * Set the log level of the isolatelogger
 	 *
 	 * @param aLevelName
+	 * @return old Logger level
 	 */
-	void setLevel(String aLevelName);
+	String setLevel(String aLevelName);
 
 	/**
 	 * Set the log level of the all the isolateloggers

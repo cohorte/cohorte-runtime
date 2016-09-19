@@ -414,6 +414,10 @@ public class CAdminAgent implements IAdminAgent, IMessageListener {
 		} else if (wMessageSubject
 				.equalsIgnoreCase(SUBJECT_GET_ISOLATE_ACCESSES)) {
 			wReply = getIsolateAccesses();
+		} else if (wMessageSubject
+				.equalsIgnoreCase(SUBJECT_SET_ISOLATE_LOGS_LEVEL)) {
+			Object wLogLevel = aMessage.getContent();
+			wReply = setIsolateLogsLevel(wLogLevel.toString());
 		}
 
 		if (wReply != null) {
@@ -431,6 +435,22 @@ public class CAdminAgent implements IAdminAgent, IMessageListener {
 		if (pHerald != null) {
 			pHerald.removeMessageListener(this);
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.isolates.base.admin.IAdminAgent#setIsolateLogsLevel(java.lang
+	 * .String)
+	 */
+	@Override
+	public String setIsolateLogsLevel(final String aLogLevel) {
+		JSONObject wResult = new JSONObject();
+		String wOldLevel = pLoggerAdmin.setLevel(aLogLevel);
+		wResult.put("old_log_level", wOldLevel);
+		wResult.put("new_log_level", aLogLevel);
+		return wResult.toString();
 	}
 
 	/**

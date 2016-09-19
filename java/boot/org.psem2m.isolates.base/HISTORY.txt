@@ -1,6 +1,11 @@
 
 1.0.3 => 1.1.0
 
+MOD_BD_20160919
+IIsolateLoggerAdmin service
+	- adding getLevel() method 
+	- setLevel(..) method now returns string containing the name of the old log level 
+
 MOD_BD_20160909
 	- updating "felix gogo runtime" dependency version from 0.10.0 to 0.16.2 (used in Cohorte 1.2.0)
 	- correcting isolates.base bundle version and dependency to gogo runtime

@@ -55,7 +55,7 @@ import org.psem2m.utilities.json.JSONObject;
 @Instantiate(name = "cohorte-isolate-base-logger-gogocommand")
 @Provides(specifications = { IIsolateLoggerAdmin.class, IMessageListener.class })
 public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
-IMessageListener {
+		IMessageListener {
 
 	private static final String COMMAND_INFOS = "infos";
 	/*
@@ -68,7 +68,7 @@ IMessageListener {
 	private static final String COMMAND_SETLEVELALL = "setLevelAll";
 
 	private static final String[] COMMANDS = { COMMAND_INFOS, COMMAND_LSDUMP,
-		COMMAND_LSTEST, COMMAND_SETLEVEL, COMMAND_SETLEVELALL };
+			COMMAND_LSTEST, COMMAND_SETLEVEL, COMMAND_SETLEVELALL };
 
 	private static final String HERALD_GROUP_ALL = "all";
 
@@ -207,6 +207,17 @@ IMessageListener {
 	 */
 	private CIsolateLoggerChannel getIsolateLoggerChannel() {
 		return pIsolateBaseActivator.getIsolateLoggerChannel();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see org.psem2m.isolates.base.IIsolateLoggerAdmin#getLevel()
+	 */
+	@Override
+	public String getLevel() {
+		// MOD_BD_20160919
+		return pLogger.getLevel().getName();
 	}
 
 	/**
@@ -496,10 +507,12 @@ IMessageListener {
 	 */
 	@Descriptor("Set the log level of the isolatelogger")
 	@Override
-	public void setLevel(
-			@Descriptor("the name of the level to set") String aLevelName) {
-
-		pLogger.logInfo(this, "setLevel", "set the level to [%s]", aLevelName);
+	public String setLevel(
+			@Descriptor("the name of the level to set") final String aLevelName) {
+		// MOD_BD_20160919 return old log level
+		String wOldLevel = getLevel();
+		pLogger.logInfo(this, "setLevel",
+				"set the level to [%s], old level [%s]", aLevelName, wOldLevel);
 
 		try {
 			Level wLevelBefore = pLogger.getLevel();
@@ -515,6 +528,7 @@ IMessageListener {
 		} catch (Exception | Error e) {
 			pLogger.logSevere(this, "setLevel", "ERROR: %s", e);
 		}
+		return wOldLevel;
 	}
 
 	/**
@@ -523,7 +537,7 @@ IMessageListener {
 	@Descriptor("Set the log level of the all the isolateloggers")
 	@Override
 	public void setLevelAll(
-			@Descriptor("the name of the level to set") String aLevelName) {
+			@Descriptor("the name of the level to set") final String aLevelName) {
 
 		pLogger.logInfo(this, "setLevelAll",
 				"set the level of all the isolateloggers to [%s]", aLevelName);

@@ -86,6 +86,10 @@ public interface IAdminAgent {
 	/** Filter to match agent signals */
 	String SUBJECT_MATCH_ALL = String.format("%s/*", PREFIX_SUBJECT);
 
+	/** Signal to change the isolate logs level */
+	String SUBJECT_SET_ISOLATE_LOGS_LEVEL = String.format(
+			"%s/set_isolate_logs_level", PREFIX_SUBJECT);
+
 	/**
 	 * <pre>
 	 * 	{
@@ -206,5 +210,7 @@ public interface IAdminAgent {
 	String getServices();
 
 	String getThreads();
+
+	String setIsolateLogsLevel(String aLogLevel);
 
 }
