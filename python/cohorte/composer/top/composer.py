@@ -22,11 +22,17 @@ Top Composer entry point service
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
+
+:updates:
+    MOD_BD_20160919 adding get_composition_json method
+
 """
 
 # ######### added by: Bassem D.
 # Standard Library
 import logging
+import json
+import os
 # #########
 
 # iPOPO Decorators
@@ -87,6 +93,7 @@ class TopComposer(object):
         self._parser = None
         self._autostart = None
         self.composition_filename = None
+        self._composition_json = None 
         # #########
 
     def _set_default_node(self, distribution):
@@ -217,3 +224,15 @@ class TopComposer(object):
 
         # Tell all node composers to stop their components
         self._commander.stop(distribution)
+
+    def get_composition_json(self):
+        """
+        Gets composition JSON file raw content
+        """
+        if not self._composition_json:
+            # parse the composition file
+            conf_dir = os.path.join(self._context.get_property("cohorte.base"), "conf")
+            file_name = os.path.join(conf_dir, self._composition_filename)
+            with open(file_name, "r") as comp_json_file:
+                self._composition_json = json.load(comp_json_file)
+        return self._composition_json
