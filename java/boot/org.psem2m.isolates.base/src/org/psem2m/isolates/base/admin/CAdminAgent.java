@@ -211,6 +211,7 @@ public class CAdminAgent implements IAdminAgent, IMessageListener {
 	@Override
 	public String getFactoryDetail(final String aFactoryName) {
 		JSONObject wResult = new JSONObject();
+		wResult.put("kind", "Java");
 		try {
 			for (Factory wFactory : pFactories) {
 				if (wFactory.getName().equalsIgnoreCase(aFactoryName)) {
@@ -439,7 +440,7 @@ public class CAdminAgent implements IAdminAgent, IMessageListener {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.psem2m.isolates.base.admin.IAdminAgent#setIsolateLogsLevel(java.lang
 	 * .String)
