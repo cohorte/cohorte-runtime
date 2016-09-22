@@ -253,7 +253,7 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.psem2m.isolates.base.IIsolateBaseActivator#getIsolateLoggerChannel()
 	 */
@@ -367,7 +367,7 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.psem2m.isolates.base.IIsolateBaseActivator#hasIsolateLoggerChannel()
 	 */
@@ -666,7 +666,7 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
 	 * )
@@ -702,6 +702,9 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 		 * @see https
 		 *      ://osgi.org/javadoc/r4v42/org/osgi/framework/Constants.html
 		 *      #SERVICE_RANKING
+		 * 
+		 * @note The four services provided by this component are not remotelly
+		 *       exported! (not managed by the Cohorte Composer)
 		 */
 
 		Dictionary<String, Object> wProps = new Hashtable<String, Object>();
@@ -743,7 +746,7 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 		try {
 			/*
 			 * Register THE service IIsolateLoggerSvc.
-			 *
+			 * 
 			 * Note: the CIsolateLoggerSvc instance wrapps the
 			 * IsolateLoggerChannel created during the first call to the method
 			 * "getLogger()" at the begining of the method start().
@@ -774,7 +777,7 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
 	 */
