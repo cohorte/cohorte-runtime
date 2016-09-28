@@ -125,8 +125,11 @@ public interface IPlatformDirsSvc extends IPlatformProperties, IXDescriber {
 	 * Retrieves the directory where components could write persistent data.
 	 *
 	 * <pre>
-	 * -Dcohorte.node.data.dir=/opt/isandlaTech/product/base
+	 * -Dcohorte.node.data.dir=/opt/cohorte/myproduct/data
 	 * </pre>
+	 *
+	 * If the "cohorte.node.data.dir" isn't defined, use the default node data
+	 * dir : .../BASE/data
 	 *
 	 * @return the data directory
 	 */

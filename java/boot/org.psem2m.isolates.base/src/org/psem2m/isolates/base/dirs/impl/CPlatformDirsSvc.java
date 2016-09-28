@@ -82,7 +82,11 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/**
 	 * Default location of Node Data directory.
-	 * 
+	 *
+	 * Initialized using the "cohorte.data" system property
+	 *
+	 * eg. -Dcohorte.base=${project_loc:/cohorte-base}
+	 *
 	 * <pre>
 	 * .../BASE/data
 	 * </pre>
@@ -300,13 +304,16 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 	public File getNodeDataDir() {
 		// init if null with Valid default directory
 		if (pNodeDataDir == null) {
-			// eg. -Dcohorte.data=${project_loc:/fr.agilium.ng.data}
-			String wPath =
-				pContext.getProperty(IPlatformProperties.PROP_NODE_DATA_DIR);
+			// eg. -Dcohorte.node.data.dir=${project_loc:/cohorte-data}
+			final String wPath = pContext
+					.getProperty(IPlatformProperties.PROP_NODE_DATA_DIR);
+			// if "cohorte.node.data.dir" not defined
 			if (wPath == null) {
+				// eg. -Dcohorte.data=${project_loc:/cohorte-base}
 				return pNodeDataDirDefault;
 			}
 			final File wDataDir = new File(wPath);
+			// if the path isn't valid, use the default node Data dir
 			pNodeDataDir = validDirectory(wDataDir, pNodeDataDirDefault);
 		}
 		return pNodeDataDir;
