@@ -70,8 +70,8 @@ _logger = logging.getLogger(__name__)
 @Requires('_monitor', cohorte.monitor.SERVICE_MONITOR)
 @Requires('_node_starter', cohorte.SERVICE_NODE_STARTER)
 # ######### added by: Bassem D.
-@Requires('_parser', cohorte.composer.SERVICE_PARSER,
-          optional=False)
+@Requires('_parser', cohorte.composer.SERVICE_PARSER, optional=False)
+@Requires('_reader', cohorte.SERVICE_FILE_READER, optional=False)
 @Property('_autostart', 'autostart', "True")
 @Property('_composition_filename', 'composition.filename', "composition.js")
 # #########
@@ -91,6 +91,7 @@ class TopComposer(object):
         self._node_starter = None
         # ######### added by: Bassem D.
         self._parser = None
+        self._reader = None
         self._autostart = None
         self._composition_filename = None
         self._composition_json = None 
@@ -130,8 +131,10 @@ class TopComposer(object):
         if str(self._autostart).lower() in ("true", "yes"):
             # Load the composition
             try:
-                composition = self._parser.load(
-                    self._composition_filename, "conf")
+                self._composition_json = self._reader.load_file(
+                        self._composition_filename, "conf")                
+                composition = self._parser.parse_composition(
+                    self._composition_filename, self._composition_json)
                 if composition:
                     _logger.info("Loading composition...")
                     uid = self.start(composition)
@@ -228,11 +231,5 @@ class TopComposer(object):
     def get_composition_json(self):
         """
         Gets composition JSON file raw content
-        """
-        if not self._composition_json:
-            # parse the composition file
-            conf_dir = os.path.join(self._context.get_property("cohorte.base"), "conf")
-            file_name = os.path.join(conf_dir, self._composition_filename)
-            with open(file_name, "r") as comp_json_file:
-                self._composition_json = json.load(comp_json_file)
+        """        
         return self._composition_json
