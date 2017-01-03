@@ -1,0 +1,7 @@
+
+version 3.3.0
+
+MOD_OG 20170102
+ - creation of the PDE project of the bundle : org.cohorte.libs.com.sun.jna
+ - embeding of the "com.sun.jna" library vesion 3.3.0
+

@@ -1,0 +1,7 @@
+
+version 1.2.0
+
+MOD_OG 20170102
+ - creation of the PDE project of the bundle : org.cohorte.libs.org.javatuples
+ - embeding of the "org.javatuples" library vesion 1.2.0
+
