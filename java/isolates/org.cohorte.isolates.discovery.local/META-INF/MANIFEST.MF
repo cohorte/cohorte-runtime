@@ -6,7 +6,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: COHORTE :: Local Discovery
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-SymbolicName: org.cohorte.isolates.discovery.local
-Bundle-Version: 1.1.0
+Bundle-Version: 1.2.0.qualifier
 Created-By: iPOJO 1.12.1
 Import-Package: org.apache.felix.ipojo, org.apache.felix.ipojo.annotat
  ions, org.apache.felix.ipojo.architecture, org.cohorte.herald, org.co

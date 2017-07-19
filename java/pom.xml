@@ -17,7 +17,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.cohorte.runtime</groupId>
 	<artifactId>cohorte-java</artifactId>
-	<version>1.1.0</version>
+	<version>1.2.0-SNAPSHOT</version>
 
 	<packaging>pom</packaging>
 
@@ -190,7 +190,21 @@
 				<artifactId>tycho-maven-plugin</artifactId>
 				<version>${tycho-version}</version>
 				<extensions>true</extensions>
-			</plugin>			
+			</plugin>
+            <!-- Generates sources jar -->
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-source-plugin</artifactId>
+                <version>${tycho-version}</version>
+                <executions>
+                    <execution>
+                        <id>plugin-source</id>
+                        <goals>
+                            <goal>plugin-source</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 		</plugins>
 
 		<pluginManagement>
@@ -261,11 +275,12 @@
 			</plugins>
 		</pluginManagement>
 	</build>
+    
     <repositories>
         <repository>
             <id>cohorte.snapshots</id>
             <name>Cohorte Snapshot Repository</name>
-            <url>http://forge.cohorte-technologies.com:6080/repository/cohorte-snapshots</url>
+            <url>https://nrm.cohorte.tech/repository/cohorte-snapshots</url>
             <releases>
                 <enabled>false</enabled>
             </releases>
@@ -276,7 +291,7 @@
         <repository>
             <id>cohorte.releases</id>
             <name>Cohorte Releases Repository</name>
-            <url>http://forge.cohorte-technologies.com:6080/repository/cohorte-releases</url>
+            <url>https://nrm.cohorte.tech/repository/cohorte-releases</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -285,6 +300,7 @@
             </snapshots>
         </repository>
     </repositories>
+    
     <distributionManagement>
         <repository>
             <id>cohorte-nexus</id>
