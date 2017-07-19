@@ -33,7 +33,7 @@ public interface ILogChannelsSvc {
 	int LOGCHANNEL_FILE_SIZE = 1024 * 1024 * 10;
 
 	/**
-	 * Close the channel and clean all the files. .
+	 * Deletes all the files, closes the channel and remove it from the map.
 	 *
 	 * @param aChannelId
 	 *            the channel id of the logger
@@ -103,7 +103,7 @@ public interface ILogChannelsSvc {
 			throws CLogChannelException;
 
 	/**
-	 * Closes and deletes the channel but leaves the files in place.
+	 * Closes the channel, remove it from the map but leaves the files in place.
 	 *
 	 *
 	 * @param aChannelId

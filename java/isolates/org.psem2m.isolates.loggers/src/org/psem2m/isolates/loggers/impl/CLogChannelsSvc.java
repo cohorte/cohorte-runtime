@@ -105,10 +105,10 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 			final String wFilePath = pFilePatternPath.replace("%g",
 					String.valueOf(aFileIdx));
 			final File wFile = new File(wFilePath);
-			if (wFile.isFile()) {
+			if (!wFile.isFile()) {
 				throw new IOException(String.format(
 						"LogChannel File idx [%s] doesn't exist. path=[%s]",
-						wFile.getAbsolutePath()));
+						aFileIdx, wFile.getAbsolutePath()));
 			}
 			return wFile;
 		}
@@ -118,7 +118,9 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 		 * @throws IOException
 		 */
 		List<File> getChannelFiles() throws IOException {
-			return getLogChannelDir().getMySortedFiles(null,
+
+			return getLogChannelDir().getMySortedFiles(
+					CXFileDir.getFilterExtension(LOG_FILE_EXTENSION),
 					!CXFileDir.WITH_DIR, CXFileDir.WITH_TEXTFILE);
 		}
 
@@ -131,7 +133,10 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 
 	}
 
-	private final String LOG_FILE_SUFFIX = "_%g.log";
+	private final String LOG_FILE_EXTENSION = "txt";
+
+	private final String LOG_FILE_SUFFIX = "_%g." + LOG_FILE_EXTENSION;
+
 	private final String LOG_FOLDER_PREFIX = "channel_";
 
 	/**
@@ -157,7 +162,7 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * org.psem2m.isolates.loggers.ILogChannelsSvc#cleanLogChannelFiles(java
 	 * .lang.String)
@@ -172,6 +177,8 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 				throw new CLogChannelException(
 						"The channel [%s], doesn't exist", aChannelId);
 			}
+			// closes the channel and removes it from the map
+			removeLogChannel(aChannelId);
 
 			return wLogChannelLogger.cleanChannelFiles();
 
@@ -184,7 +191,7 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.utilities.CXObjectBase#destroy()
 	 */
 	@Override
@@ -248,7 +255,7 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.isolates.loggers.ILogChannelsSvc#getChannels()
 	 */
 	@Override
@@ -265,7 +272,7 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.isolates.loggers.ILogChannelsSvc#getChannelsIds()
 	 */
 	@Override
@@ -281,7 +288,7 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * org.psem2m.isolates.loggers.ILogChannelsSvc#getLogChannel(java.lang.String
 	 * )
@@ -301,7 +308,7 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * org.psem2m.isolates.loggers.ILogChannelsSvc#getLogChannel(java.lang.String
 	 * , int, int, boolean)
@@ -321,7 +328,7 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.psem2m.isolates.loggers.ILogChannelsSvc#getLogChannelFile(java.lang
 	 * .String, int)
@@ -334,21 +341,21 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 		try {
 			if (wLogChannelLogger == null) {
 				throw new CLogChannelException(
-						"The channel [%s], doesn't exist", aChannelId);
+						"The channel [%s] doesn't exist", aChannelId);
 			}
 
 			return wLogChannelLogger.getChannelFile(aFileIdx);
 
 		} catch (final IOException e) {
 			throw new CLogChannelException(
-					"Unable to get the files idx [%s] of the channel [%s] : ",
+					"Unable to get the files idx [%s] of the channel [%s] : %s",
 					aFileIdx, aChannelId, CXException.eUserMessagesInString(e));
 		}
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.psem2m.isolates.loggers.ILogChannelsSvc#getLogChannelFiles(java.lang
 	 * .String)
@@ -360,14 +367,14 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 		try {
 			if (wLogChannelLogger == null) {
 				throw new CLogChannelException(
-						"The channel [%s], doesn't exist", aChannelId);
+						"The channel [%s] doesn't exist", aChannelId);
 			}
 
 			return wLogChannelLogger.getChannelFiles();
 
 		} catch (final IOException e) {
 			throw new CLogChannelException(
-					"Unable to get the list of the files of the channel [%s] : ",
+					"Unable to get the list of the files of the channel [%s] : %s",
 					aChannelId, CXException.eUserMessagesInString(e));
 		}
 	}
@@ -400,7 +407,7 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.isolates.base.CPojoBase#invalidatePojo()
 	 */
 	@Override
@@ -420,13 +427,14 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 	 * @return
 	 * @throws CLogChannelException
 	 */
-	public ILogChannelSvc newLogChannel(final String aChannelId,
+	private ILogChannelSvc newLogChannel(final String aChannelId,
 			final int aFileSize, final int aFileCount, final boolean aMultiline)
 			throws CLogChannelException {
 
+		final File wLogDir = pPlatformDirsSvc.getIsolateLogDir();
+
 		final ILogChannelSvc wLogger = instanciateLogChannel(aChannelId,
-				pPlatformDirsSvc.getIsolateLogDir(), aFileSize, aFileCount,
-				aMultiline);
+				wLogDir, aFileSize, aFileCount, aMultiline);
 
 		pLoggers.put(aChannelId, wLogger);
 
@@ -435,7 +443,7 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * org.psem2m.isolates.loggers.ILogChannelsSvc#removeLogChannel(java.lang
 	 * .String)
@@ -458,7 +466,7 @@ public class CLogChannelsSvc extends CPojoBase implements ILogChannelsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.isolates.base.CPojoBase#validatePojo()
 	 */
 	@Override
