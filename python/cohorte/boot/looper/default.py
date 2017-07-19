@@ -100,7 +100,8 @@ class DefaultLooper(object):
         self._queue.put((method, args, kwargs, event))
 
         # Wait for it...
-        return event.wait()
+        event.wait()
+        return event.data
 
     def loop(self):
         """

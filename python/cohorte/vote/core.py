@@ -154,8 +154,8 @@ class VoteCore(object):
                                         parameters, vote_bean)
                 break
             except beans.CoupdEtat as ex:
-                # Coup d'État !
-                _logger.debug("Coup d'état by %s", ex.claimant)
+                # Putch = Coup d'etat !
+                _logger.debug("A putch is perpetrated by [%s]", ex.claimant)
                 vote_bean.coup_d_etat = True
                 result = ex.claimant
                 break
