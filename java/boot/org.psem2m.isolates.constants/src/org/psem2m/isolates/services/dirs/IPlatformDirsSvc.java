@@ -24,6 +24,8 @@ import org.psem2m.utilities.IXDescriber;
 /**
  * MOD_OG_20150415, MOD_OG_20150625 Enhancement of the comments
  *
+ * MOD_OG_20170718 Enhancement of the mangment of the explicit dataDir and
+ * logDir
  *
  * ATTENTION :
  *
@@ -195,4 +197,22 @@ public interface IPlatformDirsSvc extends IPlatformProperties, IXDescriber {
 	 * @return An array with at least one element
 	 */
 	File[] getRepositories();
+
+	/**
+	 * @return true id the datadir of the node is defined usig the system
+	 *         properties "IPlatformProperties.PROP_NODE_DATA_DIR".
+	 *
+	 *         eg. -Dcohorte.node.data.dir=${project_loc:/cohorte-data}
+	 */
+	boolean hasExplicitDataDir();
+
+	/**
+	 * @return true id the datadir of the node is defined usig the system
+	 *         properties "IPlatformProperties.PROP_ISOLATE_LOG_STORAGE".
+	 *
+	 *         eg. -Dcohorte.isolate.log.storage=${workspace_loc:/cohorte-data}/
+	 *         log
+	 */
+	boolean hasExplicitLogDir();
+
 }

@@ -1,6 +1,14 @@
 
+1.1.0 => 1.2.0
+
+- MOD_OG_2017071
+  - Enhancement of the mangment of the explicit dataDir and logDir in IPlatformDirsSvc 
+
+
+==> 1.1.0
+
 - MOD_OG_20150821
-  - decalre the property "cohorte.isolate.log.storage" used to to localize the directory where the log of the isolate will be stored
+  - definition of the the property "cohorte.isolate.log.storage" used to to localize the directory where the log of the isolate will be stored
 
 
 - MOD_OG_20150415

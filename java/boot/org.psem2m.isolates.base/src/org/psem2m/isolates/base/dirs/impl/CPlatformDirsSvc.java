@@ -83,7 +83,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 	/**
 	 * Default location of Node Data directory.
 	 *
-	 * Initialized using the "cohorte.data" system property
+	 * Initialized using the "cohorte.base" system property
 	 *
 	 * eg. -Dcohorte.base=${project_loc:/cohorte-base}
 	 *
@@ -211,6 +211,30 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 				getIsolateUID());
 	}
 
+	/**
+	 * MOD_OG_20170718
+	 *
+	 * @return the content of the system property
+	 *         "IPlatformProperties.PROP_NODE_DATA_DIR"
+	 */
+	private String getExplicitDataDirPath() {
+
+		// eg. -Dcohorte.node.data.dir=${project_loc:/cohorte-data}
+		return pContext.getProperty(IPlatformProperties.PROP_NODE_DATA_DIR);
+	}
+
+	/**
+	 * MOD_OG_20170718
+	 *
+	 * @return the content of the system property
+	 *         "IPlatformProperties.PROP_ISOLATE_LOG_STORAGE"
+	 */
+	private String getExplicitLogDirPath() {
+		// eg. -Dcohorte.isolate.log.storage=${workspace_loc:/cohorte-data}/log
+		return pContext
+				.getProperty(IPlatformProperties.PROP_ISOLATE_LOG_STORAGE);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -297,7 +321,7 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.isolates.services.dirs.IPlatformDirsSvc#getNodeDataDir()
 	 */
 	@Override
@@ -305,10 +329,9 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 		// init if null with Valid default directory
 		if (pNodeDataDir == null) {
 			// eg. -Dcohorte.node.data.dir=${project_loc:/cohorte-data}
-			final String wPath = pContext
-					.getProperty(IPlatformProperties.PROP_NODE_DATA_DIR);
+			final String wPath = getExplicitDataDirPath();
 			// if "cohorte.node.data.dir" not defined
-			if (wPath == null) {
+			if (wPath == null || wPath.isEmpty()) {
 				// eg. -Dcohorte.data=${project_loc:/cohorte-base}
 				return pNodeDataDirDefault;
 			}
@@ -442,6 +465,29 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 		return repositories.toArray(new File[0]);
 	}
 
+	/*
+	 * MOD_OG_20170718
+	 * 
+	 * @see
+	 * org.psem2m.isolates.services.dirs.IPlatformDirsSvc#hasExplicitDataDir()
+	 */
+	@Override
+	public boolean hasExplicitDataDir() {
+		return (getExplicitDataDirPath() != null);
+	}
+
+	/*
+	 * MOD_OG_20170718
+	 * 
+	 * @see
+	 * org.psem2m.isolates.services.dirs.IPlatformDirsSvc#hasExplicitLogDir()
+	 */
+	@Override
+	public boolean hasExplicitLogDir() {
+		return (getExplicitLogDirPath() != null);
+
+	}
+
 	/**
 	 * The isolateDir path is fixed by the launcher of the isolate : look at
 	 * "user.dir"
@@ -457,18 +503,31 @@ public class CPlatformDirsSvc implements IPlatformDirsSvc {
 	}
 
 	/**
+	 * MOD_OG_20170718
+	 *
 	 * create the directory if doesn't exist
 	 *
 	 * @return the subdir "log" of the isolate dir ( eg.
-	 *         ...BASE/var/myIsolate/OIUE-HGD8-JUSC-8VS7/log )
+	 *         ...BASE/var/myIsolate/OIUE-HGD8-JUSC-8VS7/log or DATA/log )
 	 *
 	 * @see the pIsolateDir initialisation
 	 */
 	public File initIsolateLogDir() {
 
 		// Valid log directory of the isolate
-		return tryCreateDirectory(new File(pIsolateDir, DIRNAME_LOG),
-				pIsolateUserDir);
+		final File wDefaultLogDir = tryCreateDirectory(new File(pIsolateDir,
+				DIRNAME_LOG), pIsolateUserDir);
+
+		// eg. -Dcohorte.isolate.log.storage=${workspace_loc:/cohorte-data}/log
+		final String wPath = getExplicitLogDirPath();
+		// if "cohorte.isolate.log.storage" is defined
+		if (wPath == null || wPath.isEmpty()) {
+			return wDefaultLogDir;
+		}
+
+		final File wLogDir = new File(wPath);
+
+		return validDirectory(wLogDir, wDefaultLogDir);
 	}
 
 	/**
