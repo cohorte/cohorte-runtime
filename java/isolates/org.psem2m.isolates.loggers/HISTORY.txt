@@ -1,6 +1,11 @@
 
 version 1.1.0 => 1.2.0
 
+
+MOD_OG_20170725
+Addition of the service ILoggingConditions to control the logging of sub-systems.
+
+
 MOD_OG_20170718
 Addition of an explict exception CLogChannelException
 New methods in ILogChannelsSvc to manage the files and the removing of the log channels.
