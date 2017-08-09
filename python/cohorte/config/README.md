@@ -11,6 +11,9 @@ This package contains the modules which can parse JSON files or the description 
 The services provided by the ``finder`` and ``reader`` modules can be used by any component of the Cohorte application.
 The ``parser`` module should be used by the Cohorte Runtime components only.
 
+### Includer
+TODO
+
 ### Finder
 
 The finder is accessible through the ``cohorte.SERVICE_FILE_FINDER`` service, and provides the following methods:

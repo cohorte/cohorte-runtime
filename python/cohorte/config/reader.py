@@ -427,6 +427,7 @@ class ConfigurationFileReader(object):
         :raise IOError: Error reading the configuration file
         """
         # Parse the first matching file
+        # TODO change retrieve file by using the cinluder 
         finder = self._finder.find_rel(filename, base_file)
         try:
             conffile = next(finder)

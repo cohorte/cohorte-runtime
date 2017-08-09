@@ -1,0 +1,6 @@
+/**
+ * test include file with comment
+ */
+{// test include file with comment
+	"$include":"file://subsubdir/includeFile2.json?testVal=maReplaceVar"
+}
