@@ -28,10 +28,15 @@ this allow to split a composition file in severals file and get a full resolved 
 
 # COHORTE constants
 import cohorte
-import re
-import os
+import glob
 import json
 import logging
+import os
+from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
+    Validate, Invalidate
+import re
+
+
 try:
     # Python 3
     # pylint: disable=F0401,E0611
@@ -42,8 +47,6 @@ except ImportError:
     import urlparse
 
 # iPOPO Decorators
-from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
-    Validate, Invalidate
 # ------------------------------------------------------------------------------
 
 # Documentation strings format
@@ -61,22 +64,28 @@ _logger = logging.getLogger(__name__)
 
 regexp_replaceVar = re.compile("\\$\\{(.+?)\\}", re.MULTILINE)
 
-def replaceVars(params,content):
+def replaceVars(params, contents):
     """
     @param params : a dictionnary 
     @param content : content with variable to be replace 
     @return a string with variable identified by k from the query string by the value 
     """
-    replaceContent = content
+    if isinstance(contents, str):
+        contents = [contents]
+    replaceContents = []
 
     if params != None:
-        for match in regexp_replaceVar.findall(content):
-            if match in params:
-                replaceContent = replaceContent.replace("${"+match+"}",params[match][0])   
-            else:
-                replaceContent = replaceContent.replace("${"+match+"}","")   
-    return replaceContent
-    
+        for content in contents:
+            replaceContent = content
+            for match in regexp_replaceVar.findall(content):
+                if match in params:
+                    replaceContent = replaceContent.replace("${" + match + "}", params[match][0])
+                else:
+                    replaceContent = replaceContent.replace("${" + match + "}", "") 
+            replaceContents.append(replaceContent)
+    return replaceContents
+
+
 
 class CBadResourceException(Exception):
     
@@ -86,9 +95,46 @@ class CBadResourceException(Exception):
     def __str__(self):
         return self._message
 
-    
 
 class CResource(object):
+    
+    
+    
+    def getTag(self):
+        return self.tag
+    
+    def getParams(self):
+        return self.parms
+    
+    def getPath(self):
+        return self.path
+    
+    def getDirPath(self):
+        return self.dirpath
+    
+    def getContents(self):
+        return self.contents
+    
+    def setContents(self, contents):
+        self.contents = contents
+        
+  
+
+    def readAll(self):
+        """
+        return the merge content of all files that correspond to the resource
+        """
+        list = []
+        if self.contents != None:
+            for content in self.contents:
+                if self.tag != None:
+                    list.append(json.dumps(json.loads(content)[self.tag], indent=2))
+                else:
+                    list.append(content)
+            
+            return ",".join(list)
+        return None
+    
     """
     describe a resource that can be file, a http or memory or any kind
     """
@@ -99,26 +145,34 @@ class CResource(object):
         @param path : path of the current resource to create 
         """
         self.protocolIdx = 0
-        self.queryIdx = path.find("?")
-        self.tagIdx = path.find("#")
         self.path = None
-        self.params =None
+        self.params = None
         self.type = "file"
         self.dirpath = None
-        self.content = None
+        self.contents = None
+        self.tag = None
+        self._setPath(path, parent_resource)
+    
+    
+    def _setPath(self, path, parent_resource=None):
+        """
+        @param path : path of the files to load. can identified one file by multiple file via a regexp or wildchar
+        """
         if path != None:
+            self.queryIdx = path.find("?")
+            self.tagIdx = path.find("#")    
             path = self._initType(path)
             path = self._initPath(path, parent_resource)
             path = self._initQuery(path)
-            if  self.tagIdx!=-1:
-                self.tag = path[self.tagIdx:]
+            if  self.tagIdx != -1:
+                self.tag = path[self.tagIdx + 1:]
                          
-            self.content = self._initContent()
+            self.contents = self._initContents()
         else:
             raise CBadResourceException("path parameter has 'None' value")
     
-    def _initType(self,path):
-        """
+    def _initType(self, path):
+        """ 
         return the protocol to use for resolving the url content 
         @param path : a string that start with protocol:// 
         @return : a type that identified which protocol to use : can be file, http or memory
@@ -138,36 +192,59 @@ class CResource(object):
         return path
     
     
-    def _initQuery(self,path):
+    def _initQuery(self, path):
         """
         return the query string parameter key=value that can be in the url. the substring starts with '#' will be ignored
         @param path : a string that can contain key value a.g foo?k=v&p=c
         @return : a param dictionnary that contain the key value 
         """
-        if self.queryIdx != - 1:
+        if self.queryIdx != -1:
            
             res_path = path
            # set query if exists
-            if self.tagIdx!= -1:
-                query = path[self.queryIdx+1:self.tagIdx]
+            if self.tagIdx != -1:
+                query = path[self.queryIdx + 1:self.tagIdx]
             else:
-                query = path[self.queryIdx+1:]
+                query = path[self.queryIdx + 1:]
     
             self.params = urlparse.parse_qs(query)
             
             
         return path
         
-      
-    def _initContent(self):
+    def _initContentsFile(self):
         """
-        return the content of the file with the variable replace 
-        @return : a String 
+        return the contents of the files identified by the path 
+        @return : a list of String 
         """
-        content = None
-        with open(self.path,encoding='utf8') as file:
-            content="\n".join(file.readlines())
-        return replaceVars(self.params,content) if self.params != None else content
+        # TODO manage path is a regexp  
+        contents = []
+        listFile = glob.glob(self.path)
+        if len(listFile) == 0:
+               return None
+           
+        for file in glob.glob(self.path):
+            with open(file, encoding='utf8') as ofile:
+                contents.append("\n".join(ofile.readlines()))
+                       
+        return contents
+    
+    
+    def _initContents(self):
+        """
+        return the content of the url with the variable replace 
+        @return : a  list of String 
+        """
+        if self.type == "file":
+            self.contents = self._initContentsFile()
+        else:
+            # not manager
+            self.content = None
+                          
+        if self.params != None:
+            self.contents = replaceVars(self.params, self.contents)
+            
+        return self.contents
         
     
     def _initPath(self, path, parent_resource=None):
@@ -180,16 +257,16 @@ class CResource(object):
         if path != None:
                  
                 
-            if self.queryIdx!= - 1:
-                self.path =  path[self.protocolIdx:self.queryIdx]
+            if self.queryIdx != -1:
+                self.path = path[self.protocolIdx:self.queryIdx]
             elif self.tagIdx != -1: 
-                self.path =  path[self.protocolIdx:self.tagIdx]
+                self.path = path[self.protocolIdx:self.tagIdx]
             else:
                 self.path = path[self.protocolIdx:]
 
     
-            if not self.path.startswith("/") and parent_resource !=None:
-                self.path = parent_resource.dirpath+os.sep+self.path
+            if not self.path.startswith("/") and parent_resource != None:
+                self.path = parent_resource.dirpath + os.sep + self.path
             
             self.dirpath = os.sep.join(self.path.split(os.sep)[:-1])
     
@@ -215,23 +292,36 @@ class FileIncluder(object):
        self._checkSlash = re.compile("(\".*//.*\")", re.MULTILINE)
        self._include = re.compile("((\\n)*\\{(\\n)*\\s*\"\\$include\"\\s*:(\\s*\".*\"\\s*)\\})", re.MULTILINE)
 
-    def getContent(self, filepath, parent_resource=None):
+    def _getContent(self, filepath, parent_resource=None):
         """
         return a resolved content json string without commentary
         """
+        content = None
         if filepath != None:
             _logger.info("getContent {0}".format(filepath))
+            
+            
+          
             # return a resolve content json 
-            resource = CResource(filepath,parent_resource)
-    
-            #remove comment 
-            resource.content = self._removeComment(resource.content)
+            resource = CResource(filepath, parent_resource)
+            # remove comment and content of the resource
+            self._removeComment(resource)
+            
             # resolve content 
-            resource.content = self._resolveContent(resource);
-     
-            return resource.content
+            self._resolveContent(resource);
+            
+                           
+            return resource.readAll()
         return None
-  
+    
+    def getContent(self, filepath):
+        """
+        return a resolved content json string without commentary
+        """
+        content = self._getContent(filepath)
+        if content == None :
+            raise IOError("[Errno 2] No such file or directory: '{0}'".format(filepath))
+        return content
     
     def _resolveContent(self, resource):
         """
@@ -239,67 +329,70 @@ class FileIncluder(object):
         """
         _logger.info("_revolveContent")
 
-        resolvedContent = resource.content;
-        if resolvedContent != None:
-            # apply regexp to remove content
-            for matches in self._include.findall(resource.content):
-                _logger.debug("_revolveContent: match found {0}".format(matches))
-                match = matches[0]
-                subContents = []
-                matchJson = self._getJson(match)
-                if matchJson != None:
-                    if  matchJson["$include"] != None:
-                        paths = matchJson["$include"].split(";")
-                        _logger.debug("_revolveContent: paths {0}".format(paths))
+        contents = resource.getContents();
+        if contents != None:
+            resolvedContents = []
+            for content in contents:
+                resolvedContent = content
+                # apply regexp to remove content
+                for matches in self._include.findall(resolvedContent):
+                    _logger.debug("_revolveContent: match found {0}".format(matches))
+                    match = matches[0]
+                    subContents = []
+                    # load json to get the path and resolve it
+                    matchJson = json.loads(match)
+                    if matchJson != None:
+                        if  matchJson["$include"] != None:
+                            paths = matchJson["$include"].split(";")
+                            _logger.debug("_revolveContent: paths {0}".format(paths))
+    
+                            # match is { $include: "file:///path of a file"}
+                            for path in paths:
+                                _logger.debug("_revolveContent: subContentPath {0}".format(path))
+                                subContent = self._getContent(path, resource)
+                                subContents.append(subContent)
+                             
+                            # replace match by list of subcontent 
+                            resolvedContent = resolvedContent.replace(match, str.join(",", subContents))
+                # check if it's json and format it 
+                resolvedContent = json.dumps(json.loads(resolvedContent), indent=2)
+                resolvedContents.append(resolvedContent);
+                            
+                            
+            # check if the json is ok and reformat it for the correct application of the regexp
+            resource.setContents(resolvedContents)         
 
-                        # match is { $include: "file:///path of a file"}
-                        for path in paths:
-                            _logger.debug("_revolveContent: subContentPath {0}".format(path))
-                            subContent = self.getContent(path,resource)
-                            subContents.append(subContent)
-                         
-                        # replace match by list of subcontent 
-                        resolvedContent = resolvedContent.replace(match,str.join(",",subContents));
-        return self._formatJson(resolvedContent)
-        
  
     
-    def _removeComment(self,content):
+    def _removeComment(self, resource):
         """
         change the content to remove all possible comment // or /* ...*/
         """
         _logger.info("_removeComment")
-        contentNoComment = content
-        if contentNoComment != None:
+        contents = resource.getContents()
+        if contents != None:
             # apply regexp to remove content
-           
-
-            for matches in self._all.findall(content):
-                for match in matches:
-                    if match != None and match.find("/") != -1:
-                        if self._check.search(match) != None or  self._checkSlash.search(match) == None:  
-                            _logger.debug("_removeComment: match found {0}".format(match))
-                            idx = match.find("/")
-                            # get the content of tis file
-                            contentNoComment = contentNoComment.replace(match[idx:], "")
-
-        return self._formatJson(contentNoComment)
+            contentsNoComment = []
+            for content in contents:
+                contentNoComment = content
+                for matches in self._all.findall(content):
+                    for match in matches:
+                        if match != None and match.find("/") != -1:
+                            if self._check.search(match) != None or  self._checkSlash.search(match) == None:  
+                                _logger.debug("_removeComment: match found {0}".format(match))
+                                idx = match.find("/")
+                                contentNoComment = contentNoComment.replace(match[idx:], "")
+                # check if it's json file and format it 
+                contentNoComment = json.dumps(json.loads(contentNoComment), indent=2)
+                contentsNoComment.append(contentNoComment)
+                       
+            resource.setContents(contentsNoComment)         
+       
            
         
  
-    def _getJson(self,content):
-        """
-        check if the content is a correct Json string.
-        @return True if json is ok, else false
-        """
-        return  json.loads(content)
-    
-    def _formatJson(self,content):
-        """
-        check if the content is a correct Json string.
-        @return True if json is ok, else false
-        """
-        return  json.dumps(self._getJson(content),indent=4)
+  
+
      
     @Validate
     def validate(self, context):

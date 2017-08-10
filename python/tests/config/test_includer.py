@@ -26,9 +26,12 @@ COHORTE file include unit test
 """
 
 
-import unittest
-import os
+from cohorte.config import includer as includer
 import json
+import os
+import unittest
+
+
 try:
     # Python 3
     # pylint: disable=F0401,E0611
@@ -38,13 +41,13 @@ except ImportError:
     # pylint: disable=F0401
     import urlparse
     
-from cohorte.config import includer as includer
 # unit test 
 ##############@                
 
 
-testCases = [
-   [ "empty", "empty" ], 
+testCasesInclude = [
+
+   [ "empty", "empty" ],
    [ "module_noComment", "noComment" ],
    [ "module_slashComment", "noComment" ],
    [ "module_slashStarComment", "noComment" ],
@@ -52,9 +55,13 @@ testCases = [
    [ "module_testDef", "testDef" ],
    [ "module_allCommentAndFile", "noComment2" ],
    [ "module_allMultiPath", "noCommentMutliPath" ] ,
+   [ "module_allMultiPathWildChar", "noCommentMutliPathWildChar" ] ,
+   [ "module_allMultiPathWildCharAndSubProp", "noCommentMutliPathWildCharAndProp" ] ,
 
 ]
-
+testCasesReplace = [
+    ["t=2&t2=3", "${t} foo ${t2}", "2 foo 3"]
+]
 
 class testIncluder(unittest.TestCase):
 
@@ -64,26 +71,35 @@ class testIncluder(unittest.TestCase):
 
     def test_replaceVar(self):
         print("test_replaceVar")
-        self.assertEqual(includer.replaceVars(urlparse.parse_qs("t=2&t2=3"), "${t} foo ${t2}"),"2 foo 3","test replace vars")
-        print("\t ok : case ${t} foo ${t2} -> 2 foo 3")
-
+        for case in testCasesReplace:
+            self.assertEqual(includer.replaceVars(urlparse.parse_qs(case[0]), [case[1]]), [case[2]], "test replace vars")
+            print("\t ok : queryString=[{0}]  stringToReplace=[{1}] result=[{2}]".format(case[0], case[1], case[2]))
+        
+    def test_includeNotExists(self):
+        print("test_includeNotExists")
+        self.assertRaises(OSError, self.include.getContent, "notexistsfile")
+        print("\t ok : Error valid ")
 
     def test_include(self):
         print("test_include")
-        pathFiles = os.path.dirname(__file__)+os.sep+"files"+os.sep
-        for case in testCases:
+        pathFiles = os.path.dirname(__file__) + os.sep + "files" + os.sep + "includer" + os.sep
+        for case in testCasesInclude:
             result = None
-            filepathOut = pathFiles+"out"+os.sep+case[1]+".json"
-            filepathIn = pathFiles+"in"+os.sep+case[0]+".json"
+            filepathOut = pathFiles + "out" + os.sep + case[1] + ".json"
+            filepathIn = pathFiles + "in" + os.sep + case[0] + ".json"
         
-            with open(filepathOut,encoding='utf8') as fileResult:
-                result = json.dumps(json.loads("\n".join(fileResult.readlines())),indent=4)
+            with open(filepathOut, encoding='utf8') as fileTest:
+                expectedRes = json.dumps(json.loads("\n".join(fileTest.readlines())), indent=4)
             caseinfo = "test case {0}".format(case[0])
-            self.assertEqual(self.include.getContent(filepathIn),result,caseinfo)
-            print("\t ok :case "+caseinfo)
+            
+            content = self.include.getContent(filepathIn)
+            result = json.dumps(json.loads(content), indent=4)
+          
+            self.assertEqual(result, expectedRes, caseinfo)
+            print("\t ok :case " + caseinfo)
 
         
 
 
-if __name__ == "__main__":    # call all test
+if __name__ == "__main__":  # call all test
    unittest.main()

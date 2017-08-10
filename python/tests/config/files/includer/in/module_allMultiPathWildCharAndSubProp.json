@@ -42,11 +42,12 @@
 				"ref": {
 					"id": "/properties/org_id/properties/ref",
 					"type": "string"
-				},
+				}
 			},
 			"required": ["ref"]
 		},
-		"deviceTest": [{ "$include" : "file://includeFile.json;file://subdir/includeFile.json,file://subdir2/*.json" }],
+		// include includefile with the content of property allOf and other file in cascade
+		"deviceTest": [{ "$include" : "file://includeFile.json#allOf;file://subdir/includeFile.json;file://subdir2/*.json" }],
 
 		/**
 		 * my comment 5
