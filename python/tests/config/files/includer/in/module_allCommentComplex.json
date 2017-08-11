@@ -31,7 +31,9 @@
 			 * my comment 
 			 */
 			"required": ["tid", "cby", "cat"]
-		},
+		},/*{
+			"prop":my prop in comment
+		},*/
 		/*
 		 * my comment 
 		 */

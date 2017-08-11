@@ -26,18 +26,16 @@ Parses JSON files and handles "import-files" and "from-file" special fields.
 """
 
 # Python standard library
+import cohorte
 import json
 import logging
-
-# iPOPO Decorators
 from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
     Requires, Property
 
+
+# iPOPO Decorators
 # COHORTE constants
-import cohorte
-
 # ------------------------------------------------------------------------------
-
 # Documentation strings format
 __docformat__ = "restructuredtext en"
 
@@ -75,6 +73,7 @@ _logger = logging.getLogger(__name__)
 @Provides(cohorte.SERVICE_FILE_READER)
 @Property('_handled_formats', 'file.format', ('json', 'js'))
 @Requires('_finder', cohorte.SERVICE_FILE_FINDER)
+@Requires('_includer', cohorte.SERVICE_FILE_INCLUDER)
 @Instantiate('cohorte-reader-json')
 class ConfigurationFileReader(object):
     """
@@ -91,6 +90,9 @@ class ConfigurationFileReader(object):
         """
         # The file finder
         self._finder = None
+        # the File includer
+        self._includer = None
+
 
     @staticmethod
     def _compute_overridden_props(json_object, overriding_props):
@@ -340,74 +342,9 @@ class ConfigurationFileReader(object):
         :raise IOError: Error reading an imported JSON file
         """
         # Read the file content, removing commented lines
-        lines = []
-        with open(filename) as filep:
-            # Comment block flag
-            commented = False
-            for line in filep:
-                if not commented:
-                    # Non commented line
-                    try:
-                        # Look for a multiline comment
-                        start_idx = line.index('/*')
-
-                        # Is the end of the comment on the same line ?
-                        end_idx = line.find('*/', start_idx)
-
-                        # We enter a comment block if the end of the comment
-                        # is not on this line
-                        commented = (end_idx == -1)
-
-                        if commented:
-                            # Remove the beginning of the comment
-                            line = line[:start_idx]
-                        else:
-                            # Remove the in-line comment
-                            end_idx += len('*/')
-                            line = ''.join((line[:start_idx], line[end_idx:]))
-                    except ValueError:
-                        # No multiline comment found
-                        pass
-
-                    # Single line comment
-                    can_comment = True
-                    for idx, char in enumerate(line):
-                        if char == '"':
-                            can_comment = not can_comment
-                        elif char == "/" and line[idx-1] == '/' \
-                                and can_comment:
-                            # Found a '//' and we're not in a string
-                            break
-                    else:
-                        # No break, no comment found
-                        idx = -1
-
-                    if idx > -1:
-                        # Valid index, remove the comment
-                        line = line[:idx-1]
-
-                    # Store the treated line
-                    if line:
-                        lines.append(line)
-
-                else:
-                    # We are in a comment block
-                    try:
-                        # Look for the end of the multi-line comment block
-                        end_idx = line.index('*/')
-                        end_idx += len('*/')
-                    except ValueError:
-                        # No end of comment
-                        pass
-                    else:
-                        # End of comment found
-                        commented = False
-
-                        # Store the line, without comments
-                        lines.append(line[end_idx:])
-
+        json_data_str = self._includer.getContent(filename)
         # Load the JSON data
-        json_data = json.loads(''.join(lines))
+        json_data = json.loads(json_data_str)
 
         # Check imports
         return self._do_recursive_imports(filename, json_data,

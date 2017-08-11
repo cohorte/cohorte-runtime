@@ -59,7 +59,6 @@ __version__ = ".".join(str(x) for x in __version_info__)
 # ------------------------------------------------------------------------------
 
 _logger = logging.getLogger(__name__)
-
 # ------------------------------------------------------------------------------
 
 regexp_replaceVar = re.compile("\\$\\{(.+?)\\}", re.MULTILINE)
@@ -224,7 +223,7 @@ class CResource(object):
                return None
            
         for file in glob.glob(self.path):
-            with open(file, encoding='utf8') as ofile:
+            with open(file) as ofile:
                 contents.append("\n".join(ofile.readlines()))
                        
         return contents
@@ -273,9 +272,7 @@ class CResource(object):
         return path
     
    
-    
-   
-    
+
     
     
 @ComponentFactory('cohorte-file-includer-factory')
@@ -286,11 +283,11 @@ class FileIncluder(object):
     Simple component that resolve a comment json that can include using { $include : "path"} a subfile json content
     """
     def __init__(self):
-       # TODO check what to init
-       self._all = re.compile("(/\\*+.*(\n|.)*?\\*.*(\n|.)*?.*\\*+/)|(.*//.*$)", re.MULTILINE)
-       self._check = re.compile("(/\\*+.*(\n|.)*?\\*.*(\n|.)*?.*\\*+/)", re.MULTILINE)
-       self._checkSlash = re.compile("(\".*//.*\")", re.MULTILINE)
-       self._include = re.compile("((\\n)*\\{(\\n)*\\s*\"\\$include\"\\s*:(\\s*\".*\"\\s*)\\})", re.MULTILINE)
+        
+        self._all = re.compile("(/\\*+((\n|\\s|\t)*[^\\*][^/](\n|\\s|\t)*)*\\*+/)|(.*//.*)", re.MULTILINE)
+        self._check = re.compile("(/\\*+((\n|\\s|\t)*[^\\*][^/](\n|\\s|\t)*)*\\*+/)", re.MULTILINE)
+        self._checkSlash = re.compile("(\".*//.*\")", re.MULTILINE)
+        self._include = re.compile("((\\n)*\\{(\\n)*\\s*\"\\$include\"\\s*:(\\s*\".*\"\\s*)\\})", re.MULTILINE)
 
     def _getContent(self, filepath, parent_resource=None):
         """
@@ -298,7 +295,7 @@ class FileIncluder(object):
         """
         content = None
         if filepath != None:
-            _logger.info("getContent {0}".format(filepath))
+            _logger.info("_getContent {0}".format(filepath))
             
             
           
@@ -355,6 +352,7 @@ class FileIncluder(object):
                             # replace match by list of subcontent 
                             resolvedContent = resolvedContent.replace(match, str.join(",", subContents))
                 # check if it's json and format it 
+
                 resolvedContent = json.dumps(json.loads(resolvedContent), indent=2)
                 resolvedContents.append(resolvedContent);
                             
@@ -377,30 +375,22 @@ class FileIncluder(object):
                 contentNoComment = content
                 for matches in self._all.findall(content):
                     for match in matches:
-                        if match != None and match.find("/") != -1:
+                        if match != None and match.find("/") != -1 and len(match) > 1:
+                            _logger.debug("match comment {0}".format(match))
                             if self._check.search(match) != None or  self._checkSlash.search(match) == None:  
                                 _logger.debug("_removeComment: match found {0}".format(match))
                                 idx = match.find("/")
                                 contentNoComment = contentNoComment.replace(match[idx:], "")
                 # check if it's json file and format it 
+                print("path={0} content{1}".format(resource.path, contentNoComment))
+
                 contentNoComment = json.dumps(json.loads(contentNoComment), indent=2)
                 contentsNoComment.append(contentNoComment)
                        
             resource.setContents(contentsNoComment)         
        
            
-        
- 
-  
 
-     
-    @Validate
-    def validate(self, context):
-        pass
-    
-    @Invalidate
-    def invalidate(self, context):
-        pass
     
 
     

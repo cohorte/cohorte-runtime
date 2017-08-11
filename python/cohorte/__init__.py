@@ -139,7 +139,6 @@ SVCPROP_SYNONYM_INTERFACES = "cohorte.remote.synonyms"
 SERVICE_FILE_INCLUDER = 'cohorte.file.includer'
 """ Specification provided by a file includer """
 
-
 SERVICE_FILE_FINDER = 'cohorte.file.finder'
 """ Specification provided by a file finder """
 

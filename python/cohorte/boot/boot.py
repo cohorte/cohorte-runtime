@@ -24,13 +24,19 @@ COHORTE Python bootstrap
 """
 
 # Python standard library
-from pprint import pformat
 import argparse
+import cohorte
 import logging
 import os
+import pelix.framework
+from pelix.ipopo.constants import get_ipopo_svc_ref
+from pprint import pformat
 import sys
 import threading
 import traceback
+
+import cohorte.boot.constants as constants
+
 
 # Ensure that the content of PYTHONPATH has priority over other paths
 # This is necessary on Windows, where packages installed in 'develop' mode
@@ -48,12 +54,8 @@ except KeyError:
     pass
 
 # COHORTE modules
-import cohorte
-import cohorte.boot.constants as constants
 
 # Pelix framework
-from pelix.ipopo.constants import get_ipopo_svc_ref
-import pelix.framework
 
 # ------------------------------------------------------------------------------
 
@@ -67,7 +69,7 @@ __version__ = ".".join(str(x) for x in __version_info__)
 # ------------------------------------------------------------------------------
 
 MINIMAL_BUNDLES = ('pelix.ipopo.core', 'cohorte.config.finder',
-                   'cohorte.config.reader', 'cohorte.config.parser')
+                   'cohorte.config.reader', 'cohorte.config.parser', 'cohorte.config.includer')
 """ List of bundles to be installed before the isolate loader """
 
 _logger = logging.getLogger(__name__)
