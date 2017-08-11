@@ -382,7 +382,6 @@ class FileIncluder(object):
                                 idx = match.find("/")
                                 contentNoComment = contentNoComment.replace(match[idx:], "")
                 # check if it's json file and format it 
-                print("path={0} content{1}".format(resource.path, contentNoComment))
 
                 contentNoComment = json.dumps(json.loads(contentNoComment), indent=2)
                 contentsNoComment.append(contentNoComment)

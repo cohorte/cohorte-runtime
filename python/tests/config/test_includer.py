@@ -46,21 +46,26 @@ except ImportError:
 
 
 testCasesInclude = [
-
-   [ "empty", "empty" ],
-   [ "module_noComment", "noComment" ],
-   [ "module_slashComment", "noComment" ],
-   [ "module_slashStarComment", "noComment" ],
-   [ "module_allComment", "noComment" ],
-   [ "module_testDef", "testDef" ],
-   [ "module_allCommentAndFile", "noComment2" ],
-   [ "module_allMultiPath", "noCommentMutliPath" ] ,
-   [ "module_allMultiPathWildChar", "noCommentMutliPathWildChar" ] ,
-   [ "module_allMultiPathWildCharAndSubProp", "noCommentMutliPathWildCharAndProp" ] ,
+    # [ "boot-forker", "boot-forker" ],
+    # [ "empty", "empty" ],
+    # [ "module_noComment", "noComment" ],
+    # [ "module_slashComment", "noComment" ],
+    [ "module_slashStarComment", "noComment" ],
+    [ "module_allComment", "noComment" ],
+    [ "module_testDef", "testDef" ],
+    [ "module_allCommentAndFile", "noComment2" ],
+    [ "module_allMultiPath", "noCommentMutliPath" ] ,
+    [ "module_allMultiPathWildChar", "noCommentMutliPathWildChar" ] ,
+    [ "module_allMultiPathWildCharAndSubProp", "noCommentMutliPathWildCharAndProp" ] ,
 
 ]
 testCasesReplace = [
-    ["t=2&t2=3", "${t} foo ${t2}", "2 foo 3"]
+    ["t=2&t2=3", "${t} foo ${t2}", "2 foo 3"],
+    ["t=2&", "${t} foo ${t2}", "2 foo "],
+    ["t=2", "${t} foo ${t2}", "2 foo "],
+    ["t=2&foo=test", "${t} foo ${t2}", "2 foo "],
+    ["", "${t} foo ${t2}", " foo "]
+
 ]
 
 class testIncluder(unittest.TestCase):
@@ -77,7 +82,7 @@ class testIncluder(unittest.TestCase):
         
     def test_includeNotExists(self):
         print("test_includeNotExists")
-        self.assertRaises(OSError, self.include.getContent, "notexistsfile")
+        self.assertRaises(IOError, self.include.getContent, "notexistsfile")
         print("\t ok : Error valid ")
 
     def test_include(self):
@@ -88,7 +93,7 @@ class testIncluder(unittest.TestCase):
             filepathOut = pathFiles + "out" + os.sep + case[1] + ".json"
             filepathIn = pathFiles + "in" + os.sep + case[0] + ".json"
         
-            with open(filepathOut, encoding='utf8') as fileTest:
+            with open(filepathOut) as fileTest:
                 expectedRes = json.dumps(json.loads("\n".join(fileTest.readlines())), indent=4)
             caseinfo = "test case {0}".format(case[0])
             
