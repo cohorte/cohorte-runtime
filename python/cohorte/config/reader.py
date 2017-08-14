@@ -342,10 +342,8 @@ class ConfigurationFileReader(object):
         :raise IOError: Error reading an imported JSON file
         """
         # Read the file content, removing commented lines
-        json_data_str = self._includer.getContent(filename)
-        # Load the JSON data
-        json_data = json.loads(json_data_str)
-
+        json_data = self._includer.get_content(filename, True)
+      
         # Check imports
         return self._do_recursive_imports(filename, json_data,
                                           overridden_props, include_stack)
@@ -364,7 +362,7 @@ class ConfigurationFileReader(object):
         :raise IOError: Error reading the configuration file
         """
         # Parse the first matching file
-        # TODO change retrieve file by using the cinluder 
+        print("filename {0} basefile {1}".format(filename, base_file))
         finder = self._finder.find_rel(filename, base_file)
         try:
             conffile = next(finder)

@@ -27,6 +27,7 @@ COHORTE file include unit test
 
 
 from cohorte.config import includer as includer
+from cohorte.config.includer import CBadResourceException
 import json
 import os
 import unittest
@@ -45,66 +46,90 @@ except ImportError:
 ##############@                
 
 
-testCasesInclude = [
-    # [ "boot-forker", "boot-forker" ],
-    # [ "empty", "empty" ],
-    # [ "module_noComment", "noComment" ],
-    # [ "module_slashComment", "noComment" ],
-    [ "module_slashStarComment", "noComment" ],
-    [ "module_allComment", "noComment" ],
-    [ "module_testDef", "testDef" ],
-    [ "module_allCommentAndFile", "noComment2" ],
-    [ "module_allMultiPath", "noCommentMutliPath" ] ,
-    [ "module_allMultiPathWildChar", "noCommentMutliPathWildChar" ] ,
-    [ "module_allMultiPathWildCharAndSubProp", "noCommentMutliPathWildCharAndProp" ] ,
+test_cases_include = [
+    # ("boot-forker", "boot-forker"),
+    # ("merged/composer/python-top", "python-top") ,
+    # ("empty", "empty"),
+    ("arrayTag", "arrayTag"),
+    ("module_noComment", "noComment"),
+    ("module_slashComment", "noComment"),
+    ("module_slashStarComment", "noComment"),
+    ("module_allComment", "noComment"),
+    ("module_testDef", "testDef"),
+    ("module_allCommentAndFile", "noComment2"),
+    ("module_allMultiPath", "noCommentMutliPath") ,
+    ("module_allMultiPathWildChar", "noCommentMutliPathWildChar") ,
+    ("module_allMultiPathWildCharAndSubProp", "noCommentMutliPathWildCharAndProp") ,
+    ("merged/java-*", "merge-java") ,
+    ("merged/java-*;merged/composer/*", "merge-java-composer") ,
 
 ]
-testCasesReplace = [
-    ["t=2&t2=3", "${t} foo ${t2}", "2 foo 3"],
-    ["t=2&", "${t} foo ${t2}", "2 foo "],
-    ["t=2", "${t} foo ${t2}", "2 foo "],
-    ["t=2&foo=test", "${t} foo ${t2}", "2 foo "],
-    ["", "${t} foo ${t2}", " foo "]
+test_cases_replace = [
+    ("t=2&t2=3", "${t} foo ${t2}", "2 foo 3"),
+    ("t=2&", "${t} foo ${t2}", "2 foo "),
+    ("t=2", "${t} foo ${t2}", "2 foo "),
+    ("t=2&foo=test", "${t} foo ${t2}", "2 foo "),
+    ("", "${t} foo ${t2}", " foo ")
+]
 
+test_cases_mergedict = [
+    (json.loads('{"a":{"b":{"b1":"b2"}},"c":["c1","c2"]}'),
+        json.loads('{"a": {"b": {"b3": "b4"}},"d": {"d1": "d2"},"c": ["c3", "c4"]}'),
+        json.loads('{"a": {"b": {"b1": "b2"}}, "c": ["c1", "c2", "c3", "c4"], "d": {"d1": "d2"}}'))
 ]
 
 class testIncluder(unittest.TestCase):
 
     def setUp(self):
         self.include = includer.FileIncluder()
+        self.path_files = os.path.dirname(__file__) + os.sep + "files" + os.sep + "includer" + os.sep
 
 
-    def test_replaceVar(self):
-        print("test_replaceVar")
-        for case in testCasesReplace:
-            self.assertEqual(includer.replaceVars(urlparse.parse_qs(case[0]), [case[1]]), [case[2]], "test replace vars")
-            print("\t ok : queryString=[{0}]  stringToReplace=[{1}] result=[{2}]".format(case[0], case[1], case[2]))
+    def test_merge_dict(self):
+        print("test_merge_dict")
+        for js1, js2, expect in test_cases_mergedict:
+     
+            result = includer.merge_full_dict(js1, js2)
+            self.assertEqual(json.dumps(result), json.dumps(expect))
+            print("\t ok : queryString=[{0}]  stringToReplace=[{1}] result=[{2}]".format(js1, js2, result))
+
         
-    def test_includeNotExists(self):
-        print("test_includeNotExists")
-        self.assertRaises(IOError, self.include.getContent, "notexistsfile")
+    def test_replace_var(self):
+        print("test_replace_var")
+        for query, to_replace, replaced in test_cases_replace:
+            self.assertEqual(includer.replace_vars(urlparse.parse_qs(query), [to_replace]), [replaced], "test replace vars")
+            print("\t ok : queryString=[{0}]  stringToReplace=[{1}] result=[{2}]".format(query, to_replace, replaced))
+        
+    def test_include_notexists(self):
+        print("test_include_notexists")
+        self.assertRaises(IOError, self.include.get_content, "notexistsfile")
+        self.assertRaises(CBadResourceException, self.include.get_content, self.path_files + "in" + os.sep + "badTag.json")
+
         print("\t ok : Error valid ")
 
     def test_include(self):
         print("test_include")
-        pathFiles = os.path.dirname(__file__) + os.sep + "files" + os.sep + "includer" + os.sep
-        for case in testCasesInclude:
+        for file_in, file_out in test_cases_include:
             result = None
-            filepathOut = pathFiles + "out" + os.sep + case[1] + ".json"
-            filepathIn = pathFiles + "in" + os.sep + case[0] + ".json"
-        
-            with open(filepathOut) as fileTest:
-                expectedRes = json.dumps(json.loads("\n".join(fileTest.readlines())), indent=4)
-            caseinfo = "test case {0}".format(case[0])
+            filepath_out = self.path_files + "out" + os.sep + file_out + ".json"
+            filepath_in = []
+            if file_in.find(";") != -1:
+                for path in file_in.split(";"):
+                    filepath_in.append(self.path_files + "in" + os.sep + path + ".js*")
+            else:
+                filepath_in.append(self.path_files + "in" + os.sep + file_in + ".js*")
+
+            with open(filepath_out) as file_test:
+                expected_result = json.dumps(json.loads("\n".join(file_test.readlines())), indent=4, sort_keys=True)
+            caseinfo = "test case {0}".format(file_in)
             
-            content = self.include.getContent(filepathIn)
-            result = json.dumps(json.loads(content), indent=4)
-          
-            self.assertEqual(result, expectedRes, caseinfo)
+            content = self.include.get_content(";".join(filepath_in), True)
+            result = json.dumps(content, indent=4, sort_keys=True)
+   
+            self.assertEqual(result, expected_result, caseinfo)
             print("\t ok :case " + caseinfo)
 
-        
-
+   
 
 if __name__ == "__main__":  # call all test
    unittest.main()
