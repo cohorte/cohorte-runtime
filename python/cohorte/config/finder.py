@@ -27,19 +27,18 @@ COHORTE file finder
 """
 
 # Python standard library
+import cohorte
 import fnmatch
+import glob
 import logging
 import os
-
-# iPOPO decorators
 from pelix.ipopo.decorators import ComponentFactory, Instantiate, Provides, \
     Validate, Invalidate
 
+
+# iPOPO decorators
 # COHORTE constants
-import cohorte
-
 # ------------------------------------------------------------------------------
-
 # Documentation strings format
 __docformat__ = "restructuredtext en"
 
@@ -111,32 +110,33 @@ class FileFinder(object):
 
     def _internal_find(self, filename):
         """
-        A generator to find the given file in the platform directories.
+        A generator to find the given files in the platform directories that matches the filename.
 
         :param filename: Name of the file to find
         """
-        if os.path.isabs(filename) and os.path.exists(filename):
-            # The file name is absolute and valid
-            yield filename
-
-        if filename.startswith(os.path.sep):
-            # os.path.join won't work if the name starts with a path separator
-            filename = filename[len(os.path.sep):]
-
+        
+        # TODO use generator
+        paths = glob.glob(filename)
+        if paths and len(paths) > 0:
+            yield paths
+        
+        
+      
         # Look into root directories
         for root_dir in self._gen_roots():
             path = os.path.realpath(os.path.join(root_dir, filename))
-            if os.path.exists(path):
-                yield path
+            paths = glob.glob(path)
+            if paths:
+                yield paths
 
         # Test the absolute file name
         path = os.path.realpath(filename)
         if os.path.exists(path):
-            yield path
+            yield [path]
 
     def find_rel(self, filename, base_file):
         """
-        A generator to find the given file in the platform folders
+        A generator to find the given files in the platform folders
 
         :param filename: The file to look for (tries its absolute path then its
                           name)
@@ -145,7 +145,6 @@ class FileFinder(object):
         """
         # Avoid to give the same file twice
         handled = set()
-
         if base_file:
             abspath = os.path.abspath
             file_exists = os.path.exists
@@ -176,37 +175,40 @@ class FileFinder(object):
             for base_dir in filtered_dirs:
                 # Try the base directory directly (as a relative directory)
                 path = os.path.join(base_dir, filename)
-                for found_file in self._internal_find(path):
-                    if found_file in handled:
-                        # Already known
-                        continue
-                    else:
-                        handled.add(found_file)
-
-                    yield found_file
-
-                # Try without the platform prefix, if any
-                platform_subdir = self._extract_platform_path(base_dir)
-                if platform_subdir:
-                    path = os.path.join(platform_subdir, filename)
-                    for found_file in self._internal_find(path):
+                for found_files in self._internal_find(path):
+                    for found_file in found_files:
                         if found_file in handled:
                             # Already known
                             continue
                         else:
                             handled.add(found_file)
 
-                        yield found_file
+                    yield found_files
 
-        # Find files, the standard way
-        for found_file in self._internal_find(filename):
-            if found_file in handled:
-                # Already known
-                continue
-            else:
-                handled.add(found_file)
+                # Try without the platform prefix, if any
+                platform_subdir = self._extract_platform_path(base_dir)
+                if platform_subdir:
+                    path = os.path.join(platform_subdir, filename)
+                    for found_files in self._internal_find(path):
+                        for found_file in found_files:
+                            if found_file in handled:
+                                # Already known
+                                continue
+                            else:
+                                handled.add(found_file)
 
-            yield found_file
+                        yield found_files
+        else:
+            # Find files, the standard way
+            for found_files in self._internal_find(filename):
+                for found_file in found_files:
+                    if found_file in handled:
+                        # Already known
+                        continue
+                    else:
+                        handled.add(found_file)
+    
+                yield found_files
 
     def find_gen(self, pattern, base_dir=None, recursive=True):
         """

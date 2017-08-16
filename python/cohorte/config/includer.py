@@ -34,7 +34,7 @@ import json
 import logging
 import os
 from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
-    Validate, Invalidate
+    Validate, Invalidate, Requires
 import re
 
 
@@ -133,7 +133,7 @@ class CResource(object):
     def get_params(self):
         return self.parms
     
-    def getpath(self):
+    def get_path(self):
         return self.path
     
     def getdirpath(self):
@@ -164,7 +164,8 @@ class CResource(object):
                         tag_key = self.tag[:idx_obraces]
                         
                     if not tag_key in json_obj.keys():
-                        raise CBadResourceException("include property [{0}]  defined in file [{1}] doesn't exists in file [{2}]".format(tag_key, self.resource_parent.path, self.path))
+                        mess = "include property [{0}]  defined in file [{1}] doesn't exists in file [{2}]".format(tag_key, self.resource_parent.filename, self.filename);
+                        raise CBadResourceException(mess)
                     else:
                         arr_elem = json_obj[tag_key]
                     # manage a tag can identified a array or a object and we want a elem of the array or all elemnet or the array
@@ -217,81 +218,85 @@ class CResource(object):
     """
     describe a resource that can be file, a http or memory or any kind
     """
-    def __init__(self, path, parent_resource=None):
+    def __init__(self, filename, finder, parent_resource=None):
         """
         construct a resource from a string e.g file:///mypath/foo.txt?k1=v1&#mytag 
         @param resource : parent resource , use if path is relative 
+        @param alternive_dirs : alternative dirs to locate  the file content to include
         @param path : path of the current resource to create 
         """
-        self.fullpath = path
+        self.fullpath = filename
         self.protocol_idx = 0
-        self.path = None
+        # contain the paths possible of location of the file
+        self.filename = None
+        # list of directory data and base (and home) where the file can be located
+        self._finder = finder
         self.params = None
         self.type = "file"
+        # contain the subpath of the directory not an absolute path 
         self.dirpath = None
         self.contents = None
         self.tag = None
         self.resource_parent = parent_resource;
-        self._setpath(path, parent_resource)
+        self._set_filename(filename, parent_resource)
     
     
-    def _setpath(self, path, parent_resource=None):
+    def _set_filename(self, filename, parent_resource=None):
         """
         @param path : path of the files to load. can identified one file by multiple file via a regexp or wildchar
         """
-        if path != None:
-            self.query_idx = path.find("?")
-            self.tag_idx = path.find("#")    
-            path = self._init_type(path)
-            path = self._initpath(path, parent_resource)
-            path = self._init_query(path)
+        if filename != None:
+            self.query_idx = filename.find("?")
+            self.tag_idx = filename.find("#")    
+            filename = self._init_type(filename)
+            filename = self._init_filename(filename, parent_resource)
+            filename = self._init_query(filename)
             if  self.tag_idx != -1:
-                self.tag = path[self.tag_idx + 1:]
+                self.tag = filename[self.tag_idx + 1:]
                          
             self.contents = self._init_contents()
         else:
             raise CBadResourceException("path parameter has 'None' value")
     
-    def _init_type(self, path):
+    def _init_type(self, filename):
         """ 
         return the protocol to use for resolving the url content 
         @param path : a string that start with protocol:// 
         @return : a type that identified which protocol to use : can be file, http or memory
         """
-        if path != None:
+        if filename != None:
             self.type = "file"
              # prefix that identify the protocol e.g file://
-            if path.startswith("memory://"):
+            if filename.startswith("memory://"):
                 self.type = "memory"
                 self.protocol_idx = 9
-            elif path.startswith("http://"):
+            elif filename.startswith("http://"):
                 self.type = "http"
                 self.protocol_idx = 7
-            elif path.startswith("file://"):
+            elif filename.startswith("file://"):
                 self.protocol_idx = 7
 
-        return path
+        return filename
     
     
-    def _init_query(self, path):
+    def _init_query(self, filename):
         """
         return the query string parameter key=value that can be in the url. the substring starts with '#' will be ignored
-        @param path : a string that can contain key value a.g foo?k=v&p=c
+        @param filename : a string that can contain key value a.g foo?k=v&p=c
         @return : a param dictionnary that contain the key value 
         """
         if self.query_idx != -1:
            
-            res_path = path
            # set query if exists
             if self.tag_idx != -1:
-                query = path[self.query_idx + 1:self.tag_idx]
+                query = filename[self.query_idx + 1:self.tag_idx]
             else:
-                query = path[self.query_idx + 1:]
+                query = filename[self.query_idx + 1:]
     
             self.params = urlparse.parse_qs(query)
             
             
-        return path
+        return filename
         
     def _init_contents_file(self):
         """
@@ -299,18 +304,19 @@ class CResource(object):
         @return : a list of String 
         """
         contents = []
-        list_file = glob.iglob(self.path)
-        res = peek(list_file)
-
-        if res == None:
-               return None
-           
-        first, list_file = res
-        for file in list_file:
-            with open(file) as obj_file:
-                contents.append("\n".join(obj_file.readlines()))
-                       
-        return contents
+        # TODO manage c
+        
+        list_file = self._finder.find_rel(self.filename, self.dirpath)
+      
+        for files in list_file:
+            for file in files:
+                with open(file) as obj_file:
+                    contents.append("\n".join(obj_file.readlines()))
+          
+        if len(contents) > 0:              
+            return contents
+        # no content found in list of directory
+        return None
     
     
     def _init_contents(self):
@@ -330,30 +336,40 @@ class CResource(object):
         return self.contents
         
     
-    def _initpath(self, path, parent_resource=None):
+    def _init_filename(self, filename, parent_resource=None):
         """
-        return the absolute path of the resource to read
-        @param path : path of the resource to read 
+        return the  filename of the resource to read
+        @param filename : path of the resource to read 
         @param parent_resource : a parent resource that include the current in order to resolve the relative path if it's necessary
         @return : a String 
         """
-        if path != None:
+        if filename != None:
                  
-                
+            res_file_name = None    
             if self.query_idx != -1:
-                self.path = path[self.protocol_idx:self.query_idx]
+                res_file_name = filename[self.protocol_idx:self.query_idx]
             elif self.tag_idx != -1: 
-                self.path = path[self.protocol_idx:self.tag_idx]
+                res_file_name = filename[self.protocol_idx:self.tag_idx]
             else:
-                self.path = path[self.protocol_idx:]
+                res_file_name = filename[self.protocol_idx:]
+             
+            # compute dir path and filename 
+            if res_file_name.find(os.sep) != -1:
+                split_file = res_file_name.split(os.sep)
+                self.dirpath = os.sep.join(split_file[:-1])
+                self.filename = split_file[-1]
+
+            else:
+                self.dirpath = ""
+                self.filename = res_file_name
+                
+            # check if parent resource has dirpath 
+            if  parent_resource != None and parent_resource.dirpath != "":
+                self.dirpath = parent_resource.dirpath + os.sep + self.dirpath 
+           
 
     
-            if not self.path.startswith("/") and parent_resource != None:
-                self.path = parent_resource.dirpath + os.sep + self.path
-            
-            self.dirpath = os.sep.join(self.path.split(os.sep)[:-1])
-    
-        return path
+        return filename
     
    
 
@@ -361,22 +377,21 @@ class CResource(object):
     
 @ComponentFactory('cohorte-file-includer-factory')
 @Provides(cohorte.SERVICE_FILE_INCLUDER)
+@Requires("_finder", cohorte.SERVICE_FILE_FINDER)
 @Instantiate('cohorte-file-includer')
 class FileIncluder(object):
     """
     Simple component that resolve a comment json that can include using { $include : "path"} a subfile json content
     """
     def __init__(self):
-        
         self._all = re.compile("(/\\*+((\n|/|\\s|\t)*[^\\*][^/](\n|/|\\s|\t)*)*\\*+/)|(.*//.*)", re.MULTILINE)
         self._check = re.compile("(/\\*+((\n|/|\\s|\t)*[^\\*][^/](\n|/|\\s|\t)*)*\\*+/)", re.MULTILINE)
         self._check_slash = re.compile("(\".*//.*\")", re.MULTILINE)
         self._include = re.compile("((\\n)*\\{(\\n)*\\s*\"\\$include\"\\s*:(\\s*\".*\"\\s*)\\})", re.MULTILINE)
+        self._finder = None
 
 
-
-
-
+        
     def _get_content(self, filepath, parent_resource=None):
         """
         return a resolved content json string without commentary
@@ -388,7 +403,7 @@ class FileIncluder(object):
             
           
             # return a resolve content json 
-            resource = CResource(filepath, parent_resource)
+            resource = CResource(filepath, self._finder, parent_resource)
             # remove comment and content of the resource
             self._remove_comment(resource)
             
@@ -400,48 +415,50 @@ class FileIncluder(object):
           
         return None
     
-    def get_content(self, filepath, want_json=False):
+    def get_content(self, filename, want_json=False):
         """
-        @param filepath: path of the file or files to read. if it's list of file wanted, we need to hve a regexp or a string with a wildchar or list of file with ";" as separator
+        @param filename: path of the file or files to read. if it's list of file wanted, we need to hve a regexp or a string with a wildchar or list of file with ";" as separator
         @param wantJson : boolean to defined if we want a json object as a result or a string
         return a resolved content json string without commentary
         """
-        # # check if the file is a list of file or only one file 
-        paths = [filepath]
-        res_contents = []
-        if filepath.find(";") != -1:
-           paths = filepath.split(";")
+    
         
-        merge_content = None
-        for path in paths: 
-            list_file = glob.iglob(path)
-            res = peek(list_file)
-            if  res == None:
-                raise IOError("{0} doesn't exists ".format(path))
-            else:
-                # do standard 
-                first, list_file = res;
-                for path in list_file:
-                    json_content = json.loads(self._get_content(path))
-                    if isinstance(json_content, dict):
-                        # must be always a dict to append all json dict
-
-                        if merge_content == None:
-                            merge_content = json.loads("{}")
-                        merge_content = merge_full_dict(merge_content, json_content)
-                        
-                    else:
-                        # must be always a list to append all json arrays
-                        if merge_content == None:
-                            merge_content = json.loads("[]")
-                        merge_content.append(json_content)
-               
-                
+        # multi path asked if the filename contains ; separator 
+        if filename.find(";") != -1: 
+            content = ",".join([self._get_content(name) for name in filename.split(";")])
+        else:
+            content = self._get_content(filename)
             
-       
+        merge_content = None
+        if content == None:
+            raise IOError("file {0} doesn't exists".format(filename))
+        json_contents = json.loads("[" + content + "]")
+     
+        for json_content in json_contents:
+            if isinstance(json_content, dict):
+                # must be always a dict to append all json dict
+    
+                if merge_content == None:
+                    merge_content = json.loads("{}")
+                merge_content = merge_full_dict(merge_content, json_content)
+                
+            elif isinstance(json_content, list):
+                # must be always a list to append all json arrays
+                if merge_content == None:
+                    merge_content = json.loads("[]")
+                    for arr in json_content:
+                        merge_content.append(arr)
+                       
+                if merge_content == None:
+                    raise IOError("{0} doesn't exists ".format(path))
+                      
+   
         if not want_json:
             return json.dumps(merge_content)
         return merge_content
+     
+     
+      
     
     def _resolve_content(self, resource):
         """
@@ -474,9 +491,6 @@ class FileIncluder(object):
                              
                             # replace match by list of subcontent 
                             resolved_content = resolved_content.replace(match, str.join(",", sub_contents))
-                # check if it's json and format it 
-
-                resolved_content = json.dumps(json.loads(resolved_content), indent=2)
                 resolved_contents.append(resolved_content);
                             
                             
@@ -504,8 +518,7 @@ class FileIncluder(object):
                                 _logger.debug("_removeComment: match found {0}".format(match))
                                 idx = match.find("/")
                                 content_no_comment = content_no_comment.replace(match[idx:], "")
-                # check if it's json file and format it 
-
+                    
                 content_no_comment = json.dumps(json.loads(content_no_comment), indent=2)
                 contents_no_comment.append(content_no_comment)
                        

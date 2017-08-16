@@ -72,7 +72,6 @@ _logger = logging.getLogger(__name__)
 @ComponentFactory('cohorte-reader-json-factory')
 @Provides(cohorte.SERVICE_FILE_READER)
 @Property('_handled_formats', 'file.format', ('json', 'js'))
-@Requires('_finder', cohorte.SERVICE_FILE_FINDER)
 @Requires('_includer', cohorte.SERVICE_FILE_INCLUDER)
 @Instantiate('cohorte-reader-json')
 class ConfigurationFileReader(object):
@@ -88,8 +87,7 @@ class ConfigurationFileReader(object):
         """
         Sets up the parser
         """
-        # The file finder
-        self._finder = None
+    
         # the File includer
         self._includer = None
 
@@ -331,23 +329,7 @@ class ConfigurationFileReader(object):
 
         return local
 
-    def _parse_file(self, filename, overridden_props, include_stack):
-        """
-        Returns the parsed JSON content of the given file
-
-        :param filename: A JSON file to parse
-        :param overridden_props: Properties to override in imported files
-        :return: The parsed content (array or dictionary)
-        :raise ValueError: Error parsing the file
-        :raise IOError: Error reading an imported JSON file
-        """
-        # Read the file content, removing commented lines
-        json_data = self._includer.get_content(filename, True)
-      
-        # Check imports
-        return self._do_recursive_imports(filename, json_data,
-                                          overridden_props, include_stack)
-
+ 
     def _load_file(self, filename, base_file, overridden_props, include_stack):
         """
         Parses a configuration file.
@@ -362,32 +344,14 @@ class ConfigurationFileReader(object):
         :raise IOError: Error reading the configuration file
         """
         # Parse the first matching file
-        print("filename {0} basefile {1}".format(filename, base_file))
-        finder = self._finder.find_rel(filename, base_file)
-        try:
-            conffile = next(finder)
-        except StopIteration:
-            # No file found
-            raise IOError("File not found: '{0}' (base: {1})"
-                          .format(filename, base_file))
-
-        try:
-            # Get the first file that is not yet in the include stack
-            while conffile in include_stack:
-                conffile = next(finder)
-        except StopIteration:
-            # All found files are already in the inclusion stack
-            raise ValueError("Recursive import detected: '{0}' - '{1}'"
-                             .format(conffile, include_stack))
-
-        # Store the selected file in the inclusion stack
-        include_stack.append(conffile)
-
+      
+        json_data = self._includer.get_content(filename, base_file, True)
         # Parse the file and resolve inclusions
-        json_data = self._parse_file(conffile, overridden_props, include_stack)
-
+        self._do_recursive_imports(filename, json_data,
+                                          overridden_props, include_stack)  
         # Remove the top of the stack before returning
         include_stack.pop()
+        
         return json_data
 
     def load_file(self, filename, base_file=None, overridden_props=None,

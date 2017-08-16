@@ -25,7 +25,7 @@ COHORTE file include unit test
     limitations under the License.
 """
 
-
+from cohorte.config import finder as finder
 from cohorte.config import includer as includer
 from cohorte.config.includer import CBadResourceException
 import json
@@ -47,19 +47,20 @@ except ImportError:
 
 
 test_cases_include = [
-    # ("boot-forker", "boot-forker"),
-    # ("merged/composer/python-top", "python-top") ,
-    # ("empty", "empty"),
-    ("arrayTag", "arrayTag"),
-    ("module_noComment", "noComment"),
-    ("module_slashComment", "noComment"),
-    ("module_slashStarComment", "noComment"),
-    ("module_allComment", "noComment"),
-    ("module_testDef", "testDef"),
-    ("module_allCommentAndFile", "noComment2"),
-    ("module_allMultiPath", "noCommentMutliPath") ,
-    ("module_allMultiPathWildChar", "noCommentMutliPathWildChar") ,
-    ("module_allMultiPathWildCharAndSubProp", "noCommentMutliPathWildCharAndProp") ,
+    ("boot-forker.json", "boot-forker"),
+    ("merged/composer/python-top.js", "python-top") ,
+    ("empty.js*", "empty"),
+    ("arrayTag.json", "arrayTag"),
+    ("arrayTag.js*", "arrayTag"),
+    ("module_noComment.json", "noComment"),
+    ("module_slashComment.json", "noComment"),
+    ("module_slashStarComment.json", "noComment"),
+    ("module_allComment.json", "noComment"),
+    ("module_testDef.json", "testDef"),
+    ("module_allCommentAndFile.json", "noComment2"),
+    ("module_allMultiPath.json", "noCommentMutliPath") ,
+    ("module_allMultiPathWildChar.json", "noCommentMutliPathWildChar") ,
+    ("module_allMultiPathWildCharAndSubProp.json", "noCommentMutliPathWildCharAndProp") ,
     ("merged/java-*", "merge-java") ,
     ("merged/java-*;merged/composer/*", "merge-java-composer") ,
 
@@ -81,8 +82,14 @@ test_cases_mergedict = [
 class testIncluder(unittest.TestCase):
 
     def setUp(self):
+        # mock the finder to validate the includer  
+        self.finder = finder.FileFinder();
+        self.finder._roots = [
+            os.path.dirname(__file__) + os.sep + "files" + os.sep + "includer" + os.sep + "in_data",
+            os.path.dirname(__file__) + os.sep + "files" + os.sep + "includer" + os.sep + "in_base"
+        ]
         self.include = includer.FileIncluder()
-        self.path_files = os.path.dirname(__file__) + os.sep + "files" + os.sep + "includer" + os.sep
+        self.include._finder = self.finder
 
 
     def test_merge_dict(self):
@@ -103,7 +110,7 @@ class testIncluder(unittest.TestCase):
     def test_include_notexists(self):
         print("test_include_notexists")
         self.assertRaises(IOError, self.include.get_content, "notexistsfile")
-        self.assertRaises(CBadResourceException, self.include.get_content, self.path_files + "in" + os.sep + "badTag.json")
+        self.assertRaises(CBadResourceException, self.include.get_content, "badTag.json")
 
         print("\t ok : Error valid ")
 
@@ -111,21 +118,16 @@ class testIncluder(unittest.TestCase):
         print("test_include")
         for file_in, file_out in test_cases_include:
             result = None
-            filepath_out = self.path_files + "out" + os.sep + file_out + ".json"
-            filepath_in = []
-            if file_in.find(";") != -1:
-                for path in file_in.split(";"):
-                    filepath_in.append(self.path_files + "in" + os.sep + path + ".js*")
-            else:
-                filepath_in.append(self.path_files + "in" + os.sep + file_in + ".js*")
-
+            filepath_out = os.path.dirname(__file__) + os.sep + "files" + os.sep + "includer" + os.sep + "out" + os.sep + file_out + ".json"
+           
             with open(filepath_out) as file_test:
                 expected_result = json.dumps(json.loads("\n".join(file_test.readlines())), indent=4, sort_keys=True)
             caseinfo = "test case {0}".format(file_in)
             
-            content = self.include.get_content(";".join(filepath_in), True)
+            content = self.include.get_content(file_in , True)
+
             result = json.dumps(content, indent=4, sort_keys=True)
-   
+           
             self.assertEqual(result, expected_result, caseinfo)
             print("\t ok :case " + caseinfo)
 
