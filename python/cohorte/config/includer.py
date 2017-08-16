@@ -306,12 +306,10 @@ class CResource(object):
         contents = []
         # TODO manage c
         
-        list_file = self._finder.find_rel(self.filename, self.dirpath)
       
-        for files in list_file:
-            for file in files:
-                with open(file) as obj_file:
-                    contents.append("\n".join(obj_file.readlines()))
+        for file in self._finder.find_rel(self.filename, self.dirpath):
+            with open(file) as obj_file:
+                contents.append("\n".join(obj_file.readlines()))
           
         if len(contents) > 0:              
             return contents

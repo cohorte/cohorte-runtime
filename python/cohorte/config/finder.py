@@ -127,12 +127,13 @@ class FileFinder(object):
             path = os.path.realpath(os.path.join(root_dir, filename))
             paths = glob.glob(path)
             if paths:
-                yield paths
+                for path in paths:
+                    yield path
 
         # Test the absolute file name
         path = os.path.realpath(filename)
         if os.path.exists(path):
-            yield [path]
+            yield path
 
     def find_rel(self, filename, base_file):
         """
