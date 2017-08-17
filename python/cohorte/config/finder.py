@@ -114,28 +114,22 @@ class FileFinder(object):
 
         :param filename: Name of the file to find
         """
-        
-        # TODO use generator
-        paths = glob.glob(filename)
-        if paths and len(paths) > 0:
-            yield paths
-        
-        
-      
+
+   
         # Look into root directories
         for root_dir in self._gen_roots():
             path = os.path.realpath(os.path.join(root_dir, filename))
-            paths = glob.glob(path)
-            if paths:
-                for path in paths:
-                    yield path
+            paths = glob.iglob(path)
+        
+            for real_path in paths: 
+                yield real_path
 
         # Test the absolute file name
         path = os.path.realpath(filename)
         if os.path.exists(path):
             yield path
 
-    def find_rel(self, filename, base_file):
+    def find_rel(self, filename, base_file=None):
         """
         A generator to find the given files in the platform folders
 
@@ -146,6 +140,7 @@ class FileFinder(object):
         """
         # Avoid to give the same file twice
         handled = set()
+
         if base_file:
             abspath = os.path.abspath
             file_exists = os.path.exists
@@ -176,6 +171,7 @@ class FileFinder(object):
             for base_dir in filtered_dirs:
                 # Try the base directory directly (as a relative directory)
                 path = os.path.join(base_dir, filename)
+
                 for found_files in self._internal_find(path):
                     for found_file in found_files:
                         if found_file in handled:

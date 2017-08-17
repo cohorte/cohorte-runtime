@@ -31,7 +31,7 @@ from cohorte.config.includer import CBadResourceException
 import json
 import os
 import unittest
-
+import  cohorte.config.common as common
 
 try:
     # Python 3
@@ -48,6 +48,7 @@ except ImportError:
 
 test_cases_include = [
     ("boot-forker.json", "boot-forker"),
+    ("merged/boot-forker-merge.js", "boot-forker-merge"),
     ("merged/composer/python-top.js", "python-top") ,
     ("empty.js*", "empty"),
     ("arrayTag.json", "arrayTag"),
@@ -76,7 +77,7 @@ test_cases_replace = [
 test_cases_mergedict = [
     (json.loads('{"a":{"b":{"b1":"b2"}},"c":["c1","c2"]}'),
         json.loads('{"a": {"b": {"b3": "b4"}},"d": {"d1": "d2"},"c": ["c3", "c4"]}'),
-        json.loads('{"a": {"b": {"b1": "b2"}}, "c": ["c1", "c2", "c3", "c4"], "d": {"d1": "d2"}}'))
+        json.loads('{"a": {"b": {"b1": "b2", "b3": "b4"}}, "c": ["c3", "c4", "c1", "c2"], "d": {"d1": "d2"}}'))
 ]
 
 class testIncluder(unittest.TestCase):
@@ -96,7 +97,8 @@ class testIncluder(unittest.TestCase):
         print("test_merge_dict")
         for js1, js2, expect in test_cases_mergedict:
      
-            result = includer.merge_full_dict(js1, js2)
+            result = common.merge_object(js1, js2)
+            print(json.dumps(result))
             self.assertEqual(json.dumps(result), json.dumps(expect))
             print("\t ok : queryString=[{0}]  stringToReplace=[{1}] result=[{2}]".format(js1, js2, result))
 
@@ -104,7 +106,7 @@ class testIncluder(unittest.TestCase):
     def test_replace_var(self):
         print("test_replace_var")
         for query, to_replace, replaced in test_cases_replace:
-            self.assertEqual(includer.replace_vars(urlparse.parse_qs(query), [to_replace]), [replaced], "test replace vars")
+            self.assertEqual(common.replace_vars(urlparse.parse_qs(query), [to_replace]), [replaced], "test replace vars")
             print("\t ok : queryString=[{0}]  stringToReplace=[{1}] result=[{2}]".format(query, to_replace, replaced))
         
     def test_include_notexists(self):
@@ -127,7 +129,6 @@ class testIncluder(unittest.TestCase):
             content = self.include.get_content(file_in , True)
 
             result = json.dumps(content, indent=4, sort_keys=True)
-           
             self.assertEqual(result, expected_result, caseinfo)
             print("\t ok :case " + caseinfo)
 

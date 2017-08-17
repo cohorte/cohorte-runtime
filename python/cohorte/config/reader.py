@@ -29,8 +29,11 @@ Parses JSON files and handles "import-files" and "from-file" special fields.
 import cohorte
 import json
 import logging
+import os
 from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
     Requires, Property
+
+import common
 
 
 # iPOPO Decorators
@@ -176,11 +179,12 @@ class ConfigurationFileReader(object):
             from_filename = json_data.get(KEY_FILE_FROM)
             import_filenames = json_data.get(KEY_FILES_IMPORT)
 
-            if from_filename:
+            if from_filename and not filename.endswith(from_filename):
                 # Load & return the content of the imported file
                 # (this method will be called by _load_file)
                 new_props = self._compute_overridden_props(json_data,
                                                            overridden_props)
+
 
                 imported_data = self._load_file(from_filename, filename,
                                                 new_props, include_stack)
@@ -191,7 +195,7 @@ class ConfigurationFileReader(object):
                 # Return the imported object
                 return imported_data
 
-            elif import_filenames:
+            elif import_filenames and not filename.endswith(import_filenames):
                 # Load the content of the imported file and merge with local
                 # values, i.e. add entries existing only in the imported file
                 # and merge arrays
@@ -213,7 +217,7 @@ class ConfigurationFileReader(object):
                     self._update_properties(imported_data, overridden_props)
 
                     # Merge arrays with imported data
-                    json_data = self.merge_object(json_data, imported_data)
+                    json_data = common.merge_object(json_data, imported_data)
 
                     # Do the recursive import
                     for key, value in json_data.items():
@@ -239,96 +243,9 @@ class ConfigurationFileReader(object):
         # Nothing to do
         return json_data
 
-    @staticmethod
-    def _find_equivalent(searched_dict, dicts_list):
-        """
-        Finds the item in the given list which has the same ID than the given
-        dictionary.
+ 
 
-        A dictionary is equivalent to another if they have the same value for
-        one of the following keys: 'id', 'uid', 'name'.
-
-        :param searched_dict: The dictionary to look for into the list
-        :param dicts_list: A list of potential equivalents
-        :return: The first item found in the list equivalent to the given
-                 dictionary, or None
-        """
-        for id_key in ('id', 'uid', 'name'):
-            # Recognize the ID key used, if any
-            local_id = searched_dict.get(id_key)
-            if local_id:
-                # Found an ID
-                for other_item in dicts_list:
-                    if other_item.get(id_key) == local_id:
-                        # Found an item with the same ID
-                        return other_item
-
-        # Found nothing
-        return None
-
-    def merge_object(self, local, imported):
-        """
-        Merges recursively two JSON objects.
-
-        The local values have priority on imported ones.
-        Arrays of objects are also merged.
-
-        :param local: The local object, which will receive the merged values
-                      (modified in-place)
-        :param imported: The imported object, which will be merged into local
-        :return: The merge result, i.e. local
-        """
-        for key, imp_value in imported.items():
-            if key not in local:
-                # Missing key
-                local[key] = imp_value
-            else:
-                # Get current value
-                cur_value = local[key]
-                cur_type = type(cur_value)
-
-                if cur_type is not type(imp_value):
-                    # Different types found
-                    _logger.warning("Trying to merge different types. "
-                                    "Ignoring. (key: %s, types: %s / %s)",
-                                    key, cur_type, type(imp_value))
-                    continue
-
-                if cur_type is dict:
-                    # Merge children
-                    local[key] = self.merge_object(cur_value, imp_value)
-                elif cur_type is list:
-                    # Merge arrays
-                    new_array = imp_value[:]
-
-                    for cur_item in cur_value:
-                        # Merge items
-                        if type(cur_item) is dict:
-                            # Recognize the ID key used
-                            imp_item = self._find_equivalent(cur_item,
-                                                             imp_value)
-                            if not imp_item:
-                                # No equivalent found, append the item
-                                new_array.append(cur_item)
-
-                            elif imp_item != cur_item:
-                                # Found an equivalent that must be merged
-                                self.merge_object(cur_item, imp_item)
-
-                                # Replace the existing entry
-                                idx = new_array.index(imp_item)
-                                del new_array[idx]
-                                new_array.insert(idx, cur_item)
-
-                        elif cur_item not in imp_value:
-                            # Append new values
-                            new_array.append(cur_item)
-
-                    # Update the object
-                    local[key] = new_array
-
-        return local
-
+   
  
     def _load_file(self, filename, base_file, overridden_props, include_stack):
         """
@@ -344,13 +261,16 @@ class ConfigurationFileReader(object):
         :raise IOError: Error reading the configuration file
         """
         # Parse the first matching file
-      
-        json_data = self._includer.get_content(filename, base_file, True)
+        # get base dir of the base file to retrieve the include one 
+        dirpath = os.sep.join(base_file.split(os.sep)[:-1]) + os.sep if base_file != None and base_file.find(os.sep) != -1 else ""
+        fullfilename = dirpath + filename 
+
+        json_data = self._includer.get_content(fullfilename, True)
         # Parse the file and resolve inclusions
-        self._do_recursive_imports(filename, json_data,
+        self._do_recursive_imports(fullfilename, json_data,
                                           overridden_props, include_stack)  
         # Remove the top of the stack before returning
-        include_stack.pop()
+        # include_stack.pop()
         
         return json_data
 
@@ -373,7 +293,7 @@ class ConfigurationFileReader(object):
 
         try:
             # Load the file
-            return self._load_file(filename, base_file, overridden_props,
+            return self._load_file("conf" + os.sep + filename, base_file, overridden_props,
                                    include_stack)
         except ValueError as ex:
             # Log parsing errors

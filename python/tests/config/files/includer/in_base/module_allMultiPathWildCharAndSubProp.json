@@ -47,7 +47,18 @@
 			"required": ["ref"]
 		},
 		// include includefile with the content of property allOf and other file in cascade
-		"deviceTest": [{ "$include" : "file://includeFile.json#allOf;file://subdir/includeFile.json;file://subdir2/*.json" }],
+		"deviceTest": [
+			{
+			 	"$include" : {
+					"path":[
+						"file://includeFile.json#allOf",
+						"file://subdir/includeFile.json",
+						"file://subdir2/*.json" 
+					],
+					"test":true
+				}
+			}
+		],
 
 		/**
 		 * my comment 5

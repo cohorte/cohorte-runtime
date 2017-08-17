@@ -29,13 +29,17 @@ this allow to split a composition file in severals file and get a full resolved 
 # COHORTE constants
 import cohorte
 import glob
+from httplib import FOUND
 import itertools
 import json
 import logging
+from nis import match
 import os
 from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
     Validate, Invalidate, Requires
 import re
+
+import common
 
 
 try:
@@ -61,57 +65,6 @@ __version__ = ".".join(str(x) for x in __version_info__)
 
 _logger = logging.getLogger(__name__)
 # ------------------------------------------------------------------------------
-
-regexp_replace_var = re.compile("\\$\\{(.+?)\\}", re.MULTILINE)
-def merge_full_dict(dict_1, dict_2):
-    dict_res = dict_1.copy()
-    _merge_full_dict(dict_res, dict_2)
-    return dict_res
-    
-
-def _merge_full_dict(dict_1, dict_2):
-   
-    for k, v2 in dict_2.items():
-        v1 = dict_1.get(k)  # returns None if v1 has no value for this key
-     
-        if (isinstance(v1, dict) and 
-             isinstance(v2, dict)):
-            merge_full_dict(v1, v2)
-        elif isinstance(v1, list) and isinstance(v2, list):
-            for value in v2:
-                dict_1[k].append(value)
-        else:
-            dict_1[k] = v2
-
-def peek(iterable):
-    try:
-      
-        first = next(iterable)
-    except Exception:
-        return None
-    return first, itertools.chain([first], iterable)  
-
-def replace_vars(params, contents):
-    """
-    @param params : a dictionnary 
-    @param content : content with variable to be replace 
-    @return a string with variable identified by k from the query string by the value 
-    """
-    if isinstance(contents, str):
-        contents = [contents]
-    replace_contents = []
-
-    if params != None:
-        for content in contents:
-            replace_content = content
-            for match in regexp_replace_var.findall(content):
-                if match in params:
-                    replace_content = replace_content.replace("${" + match + "}", params[match][0])
-                else:
-                    replace_content = replace_content.replace("${" + match + "}", "") 
-            replace_contents.append(replace_content)
-    return replace_contents
-
 
 
 class CBadResourceException(Exception):
@@ -218,7 +171,7 @@ class CResource(object):
     """
     describe a resource that can be file, a http or memory or any kind
     """
-    def __init__(self, filename, finder, parent_resource=None):
+    def __init__(self, filename, includer, finder, parent_resource=None):
         """
         construct a resource from a string e.g file:///mypath/foo.txt?k1=v1&#mytag 
         @param resource : parent resource , use if path is relative 
@@ -227,6 +180,8 @@ class CResource(object):
         """
         self.fullpath = filename
         self.protocol_idx = 0
+        # use to know the keep the generator due to the manage of import as it is today
+        self._include = includer
         # contain the paths possible of location of the file
         self.filename = None
         # list of directory data and base (and home) where the file can be located
@@ -300,17 +255,20 @@ class CResource(object):
         
     def _init_contents_file(self):
         """
+        if the path contain a wildChar we read o all files else only the first one (compatibilty with the current way to manage import)
         return the contents of the files identified by the path 
         @return : a list of String 
         """
         contents = []
-        # TODO manage c
-        
-      
-        for file in self._finder.find_rel(self.filename, self.dirpath):
+        path = self.filename
+    
+            
+        for file in self._finder.find_rel(path, self.dirpath):
             with open(file) as obj_file:
                 contents.append("\n".join(obj_file.readlines()))
-          
+
+         
+
         if len(contents) > 0:              
             return contents
         # no content found in list of directory
@@ -329,7 +287,7 @@ class CResource(object):
             self.content = None
                           
         if self.params != None:
-            self.contents = replace_vars(self.params, self.contents)
+            self.contents = common.replace_vars(self.params, self.contents)
             
         return self.contents
         
@@ -385,31 +343,33 @@ class FileIncluder(object):
         self._all = re.compile("(/\\*+((\n|/|\\s|\t)*[^\\*][^/](\n|/|\\s|\t)*)*\\*+/)|(.*//.*)", re.MULTILINE)
         self._check = re.compile("(/\\*+((\n|/|\\s|\t)*[^\\*][^/](\n|/|\\s|\t)*)*\\*+/)", re.MULTILINE)
         self._check_slash = re.compile("(\".*//.*\")", re.MULTILINE)
-        self._include = re.compile("((\\n)*\\{(\\n)*\\s*\"\\$include\"\\s*:(\\s*\".*\"\\s*)\\})", re.MULTILINE)
+        _simple_include = "((\\n)*\\{(\\n)*\\s*\"\\$include\"\\s*:(\\s*\"[^\\}]*\"\\s*)\\})"
+        _complex_include = "((\n)*\\{(\\s|\n|\t)*\"\\$include\"(\\s|\n|\t)*:(\\s|\n|\t)*\\{((\\s|\n|\t)*\"[^\\}]*\"(\\s|\n|\t)*:(\\s|\n|\t)*[^\\}]*(\\s|\n|\t)*,{0,1}(\\s|\n|\t)*)*\\}(\\s|\n|\t)*)\\}"
+        self._include = re.compile("(" + _simple_include + ")|(" + _complex_include + ")", re.MULTILINE)
+        _simple_merge = "(,{0,1}(\n|\s|\t)*\"\$merge\"(\n|\s|\t)*:((\n|\s|\t)*\[(\n|\s|\t)*\"[^\}]*\"(\n|\s|\t)*\](\n|\s|\t)*,{0,1}))"
+        self._merge = re.compile(_simple_merge, re.MULTILINE)
+
         self._finder = None
-
-
+        self._file_generator = {}  # list of generator by file 
         
     def _get_content(self, filepath, parent_resource=None):
         """
         return a resolved content json string without commentary
         """
-        content = None
         if filepath != None:
             _logger.info("_getContent {0}".format(filepath))
             
             
-          
             # return a resolve content json 
-            resource = CResource(filepath, self._finder, parent_resource)
+            resource = CResource(filepath, self, self._finder, parent_resource)
             # remove comment and content of the resource
             self._remove_comment(resource)
             
             # resolve content 
             self._resolve_content(resource);
-            
-                           
-            return resource.readall()
+                   
+            return resource.readall()  
+ 
           
         return None
     
@@ -438,7 +398,7 @@ class FileIncluder(object):
     
                 if merge_content == None:
                     merge_content = json.loads("{}")
-                merge_content = merge_full_dict(merge_content, json_content)
+                merge_content = common.merge_object(merge_content, json_content)
                 
             elif isinstance(json_content, list):
                 # must be always a list to append all json arrays
@@ -456,7 +416,24 @@ class FileIncluder(object):
         return merge_content
      
      
-      
+    def _get_include_path(self, json_match):
+        if  isinstance(json_match, dict):
+            paths = json_match["path"]
+            if isinstance(paths, basestring):
+                paths = paths.split(";")
+            # TODO property to manage
+        else:
+            paths = json_match.split(";")
+            _logger.debug("_revolveContent: paths {0}".format(paths))
+        return paths
+    
+    def _get_include_match(self, matches):
+        found_match = None
+        for match in matches:
+            if match != "":
+                found_match = match
+                break
+        return found_match
     
     def _resolve_content(self, resource):
         """
@@ -471,24 +448,44 @@ class FileIncluder(object):
                 resolved_content = content
                 # apply regexp to remove content
                 for matches in self._include.findall(resolved_content):
-                    _logger.debug("_revolveContent: match found {0}".format(matches))
-                    match = matches[0]
+                    found_match = self._get_include_match(matches)
+
+                    _logger.debug("_revolveContent: match found {0}".format(found_match))
                     sub_contents = []
                     # load json to get the path and resolve it
-                    match_json = json.loads(match)
+                    match_json = json.loads(found_match)
                     if match_json != None:
-                        if  match_json["$include"] != None:
-                            paths = match_json["$include"].split(";")
-                            _logger.debug("_revolveContent: paths {0}".format(paths))
-    
+                        if "$include" in match_json.keys():
                             # match is { $include: "file:///path of a file"}
-                            for path in paths:
-                                _logger.debug("_revolveContent: subContentPath {0}".format(path))
+                            for path in self._get_include_path(match_json["$include"]):
+                                _logger.debug("_revolveContent: $include - subContentPath {0}".format(path))
                                 sub_content = self._get_content(path, resource)
                                 sub_contents.append(sub_content)
-                             
+                            resolved_content = resolved_content.replace(found_match, str.join(",", sub_contents))
+
+                     
+                # apply regexp to remove content
+                for matches in self._merge.findall(resolved_content):
+                    found_match = self._get_include_match(matches)
+
+                    _logger.debug("_revolveContent: match found {0}".format(found_match))
+                    sub_contents = []
+                    # load json to get the path and resolve it
+                    idx_sep = found_match.find(":")
+                    end_coma = found_match.endswith(",")
+                    if end_coma:
+                        match_json = json.loads(found_match[idx_sep + 1:-1])
+                    else:
+                        match_json = json.loads(found_match[idx_sep + 1:])
+
+                    if match_json != None:
+                        resolved_content = json.loads(resolved_content.replace(found_match, "," if end_coma else ""))
+                        for path in match_json:
+                            _logger.debug("_revolveContent: $merge - subContentPath {0}".format(path))
+                            # merge this json with the current one
+                            resolved_content = json.dumps(common.merge_object(resolved_content, json.loads(self._get_content(path, resource))))
+                
                             # replace match by list of subcontent 
-                            resolved_content = resolved_content.replace(match, str.join(",", sub_contents))
                 resolved_contents.append(resolved_content);
                             
                             
@@ -516,9 +513,10 @@ class FileIncluder(object):
                                 _logger.debug("_removeComment: match found {0}".format(match))
                                 idx = match.find("/")
                                 content_no_comment = content_no_comment.replace(match[idx:], "")
-                    
+
                 content_no_comment = json.dumps(json.loads(content_no_comment), indent=2)
                 contents_no_comment.append(content_no_comment)
+
                        
             resource.set_contents(contents_no_comment)         
        
