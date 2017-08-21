@@ -187,6 +187,8 @@ class CResource(object):
         # contain the subpath of the directory not an absolute path 
         self.dirpath = None
         self.contents = None
+        self.read_files_name = None  # list of file name read that correspond to the contents . use for error managment
+        
         self.tag = None
         self.resource_parent = parent_resource;
         self._set_filename(filename, parent_resource)
@@ -258,11 +260,12 @@ class CResource(object):
         contents = []
         path = self.filename
     
-            
+     	self.read_files_name = []       
         for file in self._finder.find_rel(path, self.dirpath):
             lines = []
             with open(file) as obj_file:
                 comment_line = False
+                self.read_files_name.append(file)
                 for line in obj_file:
                     # remove /* */  comment, the // is manage by the regexp
                     # TODO manage "http://" /* 
@@ -535,7 +538,7 @@ class FileIncluder(object):
         if contents != None:
             # apply regexp to remove content
             contents_no_comment = []
-            for content in contents:
+            for idx, content in enumerate(contents):
                 content_no_comment = content
                 for match in self._check.findall(content):
                     if match != None and match.find("/") != -1 and len(match) > 1:
@@ -548,7 +551,7 @@ class FileIncluder(object):
                 try:
                     content_no_comment = json.dumps(json.loads(content_no_comment), indent=2)
                 except Exception as e:
-                    raise CBadResourceException("not valid json for file {0}, Error {1}".format(resource.fullpath, e.__str__()))
+                    raise CBadResourceException("not valid json for file {0}, Error {1}".format(resource.read_files_name[idx], e.__str__()))
                 contents_no_comment.append(content_no_comment)
 
                        
