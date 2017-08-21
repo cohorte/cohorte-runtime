@@ -195,7 +195,7 @@ class ConfigurationFileReader(object):
                 # Return the imported object
                 return imported_data
 
-            elif import_filenames and not filename.endswith(import_filenames):
+            elif import_filenames:
                 # Load the content of the imported file and merge with local
                 # values, i.e. add entries existing only in the imported file
                 # and merge arrays
@@ -208,24 +208,25 @@ class ConfigurationFileReader(object):
                     del json_data[KEY_OVERRIDDEN_PROPERTIES]
 
                 for import_filename in import_filenames:
-                    # Import files
-                    imported_data = self._load_file(
-                        import_filename, filename, overridden_props,
-                        include_stack)
-
-                    # Update properties in imported data
-                    self._update_properties(imported_data, overridden_props)
-
-                    # Merge arrays with imported data
-                    json_data = common.merge_object(json_data, imported_data)
-
-                    # Do the recursive import
-                    for key, value in json_data.items():
-                        new_value = self._do_recursive_imports(
-                            filename, value, overridden_props, include_stack)
-                        if new_value is not value:
-                            # The value has been changed
-                            json_data[key] = value
+                    if not filename.endswith(import_filename):
+                        # Import files
+                        imported_data = self._load_file(
+                            import_filename, filename, overridden_props,
+                            include_stack)
+    
+                        # Update properties in imported data
+                        self._update_properties(imported_data, overridden_props)
+    
+                        # Merge arrays with imported data
+                        json_data = common.merge_object(json_data, imported_data)
+    
+                        # Do the recursive import
+                        for key, value in json_data.items():
+                            new_value = self._do_recursive_imports(
+                                filename, value, overridden_props, include_stack)
+                            if new_value is not value:
+                                # The value has been changed
+                                json_data[key] = value
 
                 return json_data
 

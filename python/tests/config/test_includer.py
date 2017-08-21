@@ -47,6 +47,8 @@ except ImportError:
 
 
 test_cases_include = [
+    ("my_composition.js", "my_composition"),
+    ("composition.js", "composition"),
     ("boot-forker.json", "boot-forker"),
     ("merged/boot-forker-merge.js", "boot-forker-merge"),
     ("merged/composer/python-top.js", "python-top") ,
@@ -63,7 +65,7 @@ test_cases_include = [
     ("module_allMultiPathWildChar.json", "noCommentMutliPathWildChar") ,
     ("module_allMultiPathWildCharAndSubProp.json", "noCommentMutliPathWildCharAndProp") ,
     ("merged/java-*", "merge-java") ,
-    ("merged/java-*;merged/composer/*", "merge-java-composer") ,
+    ("merged/java-*;merged/composer/*", "merge-java-composer") 
 
 ]
 test_cases_replace = [
@@ -100,21 +102,21 @@ class testIncluder(unittest.TestCase):
             result = common.merge_object(js1, js2)
             print(json.dumps(result))
             self.assertEqual(json.dumps(result), json.dumps(expect))
-            print("\t ok : queryString=[{0}]  stringToReplace=[{1}] result=[{2}]".format(js1, js2, result))
+            print("====>\t ok : queryString=[{0}]  stringToReplace=[{1}] result=[{2}]".format(js1, js2, result))
 
         
     def test_replace_var(self):
         print("test_replace_var")
         for query, to_replace, replaced in test_cases_replace:
             self.assertEqual(common.replace_vars(urlparse.parse_qs(query), [to_replace]), [replaced], "test replace vars")
-            print("\t ok : queryString=[{0}]  stringToReplace=[{1}] result=[{2}]".format(query, to_replace, replaced))
+            print("====>\t ok : queryString=[{0}]  stringToReplace=[{1}] result=[{2}]".format(query, to_replace, replaced))
         
     def test_include_notexists(self):
         print("test_include_notexists")
         self.assertRaises(IOError, self.include.get_content, "notexistsfile")
         self.assertRaises(CBadResourceException, self.include.get_content, "badTag.json")
 
-        print("\t ok : Error valid ")
+        print("====>\t ok : Error valid ")
 
     def test_include(self):
         print("test_include")
@@ -129,8 +131,10 @@ class testIncluder(unittest.TestCase):
             content = self.include.get_content(file_in , True)
 
             result = json.dumps(content, indent=4, sort_keys=True)
+          
+
             self.assertEqual(result, expected_result, caseinfo)
-            print("\t ok :case " + caseinfo)
+            print("====>\t ok :case " + caseinfo)
 
    
 

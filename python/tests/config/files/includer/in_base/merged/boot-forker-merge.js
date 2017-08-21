@@ -7,7 +7,9 @@
 	 * Composer
 	 */
 	
-	"$merge" : ["boot-forker.js"],
+	"$merge" : [
+		"boot-fork*r.js"
+	],
 		
 	"bundles" : [
 	

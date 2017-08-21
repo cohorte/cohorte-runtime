@@ -28,18 +28,14 @@ this allow to split a composition file in severals file and get a full resolved 
 
 # COHORTE constants
 import cohorte
+from cohorte.config import common 
 import glob
-from httplib import FOUND
-import itertools
 import json
 import logging
-from nis import match
 import os
 from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
     Validate, Invalidate, Requires
 import re
-
-import common
 
 
 try:
@@ -209,7 +205,7 @@ class CResource(object):
             if  self.tag_idx != -1:
                 self.tag = filename[self.tag_idx + 1:]
                          
-            self.contents = self._init_contents()
+            self.contents = self._read_contents()
         else:
             raise CBadResourceException("path parameter has 'None' value")
     
@@ -253,7 +249,7 @@ class CResource(object):
             
         return filename
         
-    def _init_contents_file(self):
+    def _read_contents_file(self):
         """
         if the path contain a wildChar we read o all files else only the first one (compatibilty with the current way to manage import)
         return the contents of the files identified by the path 
@@ -264,10 +260,29 @@ class CResource(object):
     
             
         for file in self._finder.find_rel(path, self.dirpath):
+            lines = []
             with open(file) as obj_file:
-                contents.append("\n".join(obj_file.readlines()))
-
-         
+                comment_line = False
+                for line in obj_file:
+                    # remove /* */  comment, the // is manage by the regexp
+                    # TODO manage "http://" /* 
+                    idx_last_str = line.rfind("\"")
+                    idx_start = line.find("/*")
+                    idx_end = line.find("*/")
+                    if idx_start != -1 and idx_end != -1 :
+                        if not idx_start + 1 < idx_end:
+                            lines.append(line)
+                        else:
+                            lines.append(line[:idx_start] + line[idx_end + 2:])
+                    elif idx_start != -1 and idx_last_str < idx_start:
+                        comment_line = True
+                        lines.append(line[:idx_start])
+                    elif idx_end != -1 and comment_line:
+                        comment_line = False
+                        lines.append(line[idx_end + 2:])
+                    elif not comment_line:
+                        lines.append(line)
+                contents.append("\n".join(lines));
 
         if len(contents) > 0:              
             return contents
@@ -275,13 +290,13 @@ class CResource(object):
         return None
     
     
-    def _init_contents(self):
+    def _read_contents(self):
         """
         return the content of the url with the variable replace 
         @return : a  list of String 
         """
         if self.type == "file":
-            self.contents = self._init_contents_file()
+            self.contents = self._read_contents_file()
         else:
             # not manager
             self.content = None
@@ -340,8 +355,8 @@ class FileIncluder(object):
     Simple component that resolve a comment json that can include using { $include : "path"} a subfile json content
     """
     def __init__(self):
-        self._all = re.compile("(/\\*+((\n|/|\\s|\t)*[^\\*][^/](\n|/|\\s|\t)*)*\\*+/)|(.*//.*)", re.MULTILINE)
-        self._check = re.compile("(/\\*+((\n|/|\\s|\t)*[^\\*][^/](\n|/|\\s|\t)*)*\\*+/)", re.MULTILINE)
+        # regexp that manage multiline comment and // comment
+        self._check = re.compile("(.*//.*)", re.MULTILINE)
         self._check_slash = re.compile("(\".*//.*\")", re.MULTILINE)
         _simple_include = "((\\n)*\\{(\\n)*\\s*\"\\$include\"\\s*:(\\s*\"[^\\}]*\"\\s*)\\})"
         _complex_include = "((\n)*\\{(\\s|\n|\t)*\"\\$include\"(\\s|\n|\t)*:(\\s|\n|\t)*\\{((\\s|\n|\t)*\"[^\\}]*\"(\\s|\n|\t)*:(\\s|\n|\t)*[^\\}]*(\\s|\n|\t)*,{0,1}(\\s|\n|\t)*)*\\}(\\s|\n|\t)*)\\}"
@@ -356,22 +371,28 @@ class FileIncluder(object):
         """
         return a resolved content json string without commentary
         """
+        
         if filepath != None:
             _logger.info("_getContent {0}".format(filepath))
             
             
             # return a resolve content json 
             resource = CResource(filepath, self, self._finder, parent_resource)
+
             # remove comment and content of the resource
             self._remove_comment(resource)
-            
+
             # resolve content 
             self._resolve_content(resource);
-                   
+   
             return resource.readall()  
  
           
         return None
+    
+    # for using it from jython without osgi and ipopo resolution
+    def set_finder(self, finder):
+        self._finder = finder
     
     def get_content(self, filename, want_json=False):
         """
@@ -380,7 +401,6 @@ class FileIncluder(object):
         return a resolved content json string without commentary
         """
     
-        
         # multi path asked if the filename contains ; separator 
         if filename.find(";") != -1: 
             content = ",".join([self._get_content(name) for name in filename.split(";")])
@@ -459,6 +479,7 @@ class FileIncluder(object):
                             # match is { $include: "file:///path of a file"}
                             for path in self._get_include_path(match_json["$include"]):
                                 _logger.debug("_revolveContent: $include - subContentPath {0}".format(path))
+
                                 sub_content = self._get_content(path, resource)
                                 sub_contents.append(sub_content)
                             resolved_content = resolved_content.replace(found_match, str.join(",", sub_contents))
@@ -473,18 +494,23 @@ class FileIncluder(object):
                     # load json to get the path and resolve it
                     idx_sep = found_match.find(":")
                     end_coma = found_match.endswith(",")
+                    start_coma = found_match.startswith(",")
+
                     if end_coma:
                         match_json = json.loads(found_match[idx_sep + 1:-1])
                     else:
                         match_json = json.loads(found_match[idx_sep + 1:])
 
                     if match_json != None:
-                        resolved_content = json.loads(resolved_content.replace(found_match, "," if end_coma else ""))
+                        resolved_content = json.loads(resolved_content.replace(found_match, "," if end_coma and start_coma else ""))
                         for path in match_json:
                             _logger.debug("_revolveContent: $merge - subContentPath {0}".format(path))
                             # merge this json with the current one
-                            resolved_content = json.dumps(common.merge_object(resolved_content, json.loads(self._get_content(path, resource))))
-                
+
+                            to_merges = json.loads("[" + self._get_content(path, resource) + "]")
+                            for to_merge in to_merges:
+                                resolved_content = common.merge_object(resolved_content, to_merge)
+                        resolved_content = json.dumps(resolved_content)
                             # replace match by list of subcontent 
                 resolved_contents.append(resolved_content);
                             
@@ -499,22 +525,25 @@ class FileIncluder(object):
         change the content to remove all possible comment // or /* ...*/
         """
         _logger.info("_removeComment")
+
         contents = resource.get_contents()
         if contents != None:
             # apply regexp to remove content
             contents_no_comment = []
             for content in contents:
                 content_no_comment = content
-                for matches in self._all.findall(content):
-                    for match in matches:
-                        if match != None and match.find("/") != -1 and len(match) > 1:
-                            _logger.debug("match comment {0}".format(match))
-                            if self._check.search(match) != None or  self._check_slash.search(match) == None:  
-                                _logger.debug("_removeComment: match found {0}".format(match))
-                                idx = match.find("/")
-                                content_no_comment = content_no_comment.replace(match[idx:], "")
+                for match in self._check.findall(content):
+                    if match != None and match.find("/") != -1 and len(match) > 1:
+                        _logger.debug("match comment {0}".format(match))
 
-                content_no_comment = json.dumps(json.loads(content_no_comment), indent=2)
+                        if self._check_slash.search(match) == None:  
+                            _logger.debug("_removeComment: match found {0}".format(match))
+                            idx = match.find("/")
+                            content_no_comment = content_no_comment.replace(match[idx:], "")
+                try:
+                    content_no_comment = json.dumps(json.loads(content_no_comment), indent=2)
+                except Exception as e:
+                    raise CBadResourceException("not valid json for file {0}, Error {1}".format(resource.fullpath, e.__str__()))
                 contents_no_comment.append(content_no_comment)
 
                        

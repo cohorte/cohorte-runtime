@@ -129,6 +129,11 @@ class FileFinder(object):
         if os.path.exists(path):
             yield path
 
+    # call from java only 
+    def _set_roots(self, roots):
+        self._roots = roots    
+        
+        
     def find_rel(self, filename, base_file=None):
         """
         A generator to find the given files in the platform folders
