@@ -1,13 +1,10 @@
 #!/bin/bash
 
-DEVPI_URL=$1
-devpi_index=$2
-devpi_user=$3
-devpi_password=$4
-devpi_formats=$5
-
-# Move to the Python sources
-cd python
+DEVPI_URL='http://forge.cohorte-technologies.com:7080/'
+devpi_index='cohorte'
+devpi_user=$1
+devpi_password=$2
+devpi_formats='sdist,bdist_wheel'
 
 # Set up the virtual environment
 VENV_NAME=venv
