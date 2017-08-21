@@ -396,7 +396,12 @@ class FileIncluder(object):
     
     def get_content(self, filename, want_json=False):
         """
-        @param filename: path of the file or files to read. if it's list of file wanted, we need to hve a regexp or a string with a wildchar or list of file with ";" as separator
+        @param filename: path we want the content. the filename can be a absolute path, a path with key value params or tag to specify what content we want. 
+        e.g : 
+            -    file://mydir/myfile.js => this just get the content of the file myfile 
+            -    file://mydir.myfile.js?k1=v1&k2=v2 => this will get the content of the file myfile but it will replace all variable ${k1} and ${k2} by v1 and v2
+            -    file://mydir.myfile.js?k1=v1&k2=v2#myprop => this will get the only the property myprop of the content file myfile wth replace variable 
+        
         @param wantJson : boolean to defined if we want a json object as a result or a string
         return a resolved content json string without commentary
         """
