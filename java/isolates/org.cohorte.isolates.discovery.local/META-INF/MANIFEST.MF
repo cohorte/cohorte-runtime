@@ -11,9 +11,8 @@ Created-By: iPOJO 1.12.1
 Import-Package: org.apache.felix.ipojo, org.apache.felix.ipojo.annotat
  ions, org.apache.felix.ipojo.architecture, org.cohorte.herald, org.co
  horte.herald.http, org.cohorte.herald.http.impl, org.cohorte.herald.t
- ransport, org.osgi.framework;version=1.3.0, org.osgi.service.cm;versi
- on=1.2, org.osgi.service.http, org.osgi.service.log;version=1.3.0, or
- g.psem2m.isolates.constants
+ ransport, org.osgi.framework, org.osgi.service.cm, org.osgi.service.h
+ ttp, org.osgi.service.log, org.psem2m.isolates.constants
 iPOJO-Components: instance { $name="cohorte-local-discovery" $componen
  t="cohorte-local-discovery-factory" }component { $name="cohorte-local
  -discovery-factory" $classname="org.cohorte.isolates.discovery.local.
@@ -53,4 +52,5 @@ iPOJO-Components: instance { $name="cohorte-local-discovery" $componen
   { $name="validate" }inner { $name="1" method { $name="discoverNeighb
  ors" }method { $name="run" }}inner { $name="2" method { $name="run" }
  }}}
+Bundle-Vendor: COHORTE Technologies
 
