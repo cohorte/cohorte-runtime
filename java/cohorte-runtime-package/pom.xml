@@ -47,12 +47,12 @@
 		<dependency>
 			<groupId>org.cohorte.runtime</groupId>
 			<artifactId>org.cohorte.composer.api</artifactId>
-			<version>3.0.0</version>		
+			<version>${project.version}</version>		
 		</dependency>
 		<dependency>
 			<groupId>org.cohorte.runtime</groupId>
 			<artifactId>org.cohorte.composer.isolate</artifactId>
-			<version>3.0.0</version>		
+			<version>${project.version}</version>		
 		</dependency>
 		<dependency>
 			<groupId>org.cohorte.runtime</groupId>
