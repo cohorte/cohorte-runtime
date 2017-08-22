@@ -29,10 +29,14 @@ from cohorte.config import finder as finder
 from cohorte.config import includer as includer
 from cohorte.config.includer import CBadResourceException
 import json
+import logging
 import os
 import unittest
+
 import  cohorte.config.common as common
 
+
+logging.basicConfig(level=logging.INFO)
 try:
     # Python 3
     # pylint: disable=F0401,E0611

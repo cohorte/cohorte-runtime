@@ -206,7 +206,9 @@ class CResource(object):
             filename = self._init_query(filename)
             if  self.tag_idx != -1:
                 self.tag = filename[self.tag_idx + 1:]
-                         
+                _logger.info("property tag {0}".format(self.tag))
+
+
             self.contents = self._read_contents()
         else:
             raise CBadResourceException("path parameter has 'None' value")
@@ -229,6 +231,7 @@ class CResource(object):
             elif filename.startswith("file://"):
                 self.protocol_idx = 7
 
+
         return filename
     
     
@@ -247,7 +250,8 @@ class CResource(object):
                 query = filename[self.query_idx + 1:]
     
             self.params = urlparse.parse_qs(query)
-            
+            _logger.info("replace params {0}".format(self.params))
+
             
         return filename
         
@@ -262,6 +266,7 @@ class CResource(object):
     
      	self.read_files_name = []       
         for file in self._finder.find_rel(path, self.dirpath):
+            _logger.info("read file {0}".format(file))
             lines = []
             with open(file) as obj_file:
                 comment_line = False
@@ -342,7 +347,8 @@ class CResource(object):
                 self.dirpath = parent_resource.dirpath + os.sep + self.dirpath 
            
 
-    
+        _logger.info("filename {0}".format(filename))
+
         return filename
     
    
@@ -467,7 +473,7 @@ class FileIncluder(object):
         """
         return a resolve content with all include file content 
         """
-        _logger.info("_revolveContent")
+        _logger.debug("_revolveContent")
 
         contents = resource.get_contents();
         if contents != None:
@@ -532,7 +538,7 @@ class FileIncluder(object):
         """
         change the content to remove all possible comment // or /* ...*/
         """
-        _logger.info("_removeComment")
+        _logger.debug("_removeComment")
 
         contents = resource.get_contents()
         if contents != None:
