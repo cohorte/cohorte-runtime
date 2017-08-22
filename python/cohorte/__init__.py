@@ -70,6 +70,10 @@ PROP_VERBOSE = 'cohorte.verbose'
 PROP_COLORED = 'cohorte.log.color'
 """ COHORTE logging color mode """
 
+
+PROP_ENV_STARTER = 'cohorte.forker.starter.environment'
+""" environment parmeter for isolate starter """
+
 PROP_CONFIG_BROKER = 'cohorte.configuration.broker.url'
 """ URL to the configuration broker """
 

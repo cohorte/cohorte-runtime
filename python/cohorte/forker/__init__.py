@@ -42,6 +42,10 @@ Specification of a forker event listener:
 - forker_gone(uid, node)
 """
 
+SERVICE_ENV_STARTER = 'cohorte.forker.starter.environment'
+""" Specification of isolate starter environment context"""
+
+
 SERVICE_STARTER = 'cohorte.forker.starter'
 """ Specification of an isolate starter """
 

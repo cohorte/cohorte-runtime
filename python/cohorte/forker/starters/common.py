@@ -25,7 +25,12 @@ Common code for isolate starters
 """
 
 # Standard library
+import cohorte
+import cohorte.forker
+import cohorte.utils
 import os
+from pelix.ipopo.decorators import Requires, Validate, Invalidate
+
 
 try:
     # Python 3
@@ -37,12 +42,8 @@ except ImportError:
     from urllib import quote
 
 # Pelix framework
-from pelix.ipopo.decorators import Requires, Validate, Invalidate
 
 # COHORTE modules
-import cohorte
-import cohorte.forker
-import cohorte.utils
 
 # ------------------------------------------------------------------------------
 
@@ -55,7 +56,7 @@ __version__ = ".".join(str(x) for x in __version_info__)
 
 # ------------------------------------------------------------------------------
 
-
+@Requires('_environment', cohorte.forker.SERVICE_ENV_STARTER)
 @Requires('_watcher', cohorte.forker.SERVICE_WATCHER)
 class CommonStarter(object):
     """
@@ -65,6 +66,9 @@ class CommonStarter(object):
         """
         Sets up members
         """
+        # isolate environment 
+        self._environment = None
+        
         # Isolate watcher
         self._watcher = None
 
@@ -172,6 +176,11 @@ class CommonStarter(object):
         """
         # Process environment
         env = os.environ.copy()
+
+        # add environment variable 
+        env_starter = self._environment.get_envs()
+        if env_starter != None:
+            env.update(env_starter)
 
         # Use configuration environment variables
         config_env = configuration.get('environment')

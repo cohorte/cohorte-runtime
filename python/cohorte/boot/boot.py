@@ -24,13 +24,19 @@ COHORTE Python bootstrap
 """
 
 # Python standard library
-from pprint import pformat
 import argparse
+import cohorte
 import logging
 import os
+import pelix.framework
+from pelix.ipopo.constants import get_ipopo_svc_ref
+from pprint import pformat
 import sys
 import threading
 import traceback
+
+import cohorte.boot.constants as constants
+
 
 # Ensure that the content of PYTHONPATH has priority over other paths
 # This is necessary on Windows, where packages installed in 'develop' mode
@@ -39,7 +45,8 @@ try:
     for path in os.environ['PYTHONPATH'].split(os.pathsep):
         try:
             p = os.path.normpath(path)
-            sys.path.remove(p)
+            if p in sys.path:
+                sys.path.remove(p)
         except IndexError:
             pass
 
@@ -48,12 +55,8 @@ except KeyError:
     pass
 
 # COHORTE modules
-import cohorte
-import cohorte.boot.constants as constants
 
 # Pelix framework
-from pelix.ipopo.constants import get_ipopo_svc_ref
-import pelix.framework
 
 # ------------------------------------------------------------------------------
 
@@ -491,7 +494,6 @@ def main(args=None):
     :return: An integer error code, 0 for success (see load_isolate())
     """
     parser = argparse.ArgumentParser(description="Cohorte Python bootstrap")
-
     # Isolate boot parameters
     group = parser.add_argument_group("Isolate boot")
     group.add_argument("--uid", action="store",
@@ -553,10 +555,13 @@ def main(args=None):
 
     parser.add_argument("--version", action="version",
                         version="Cohorte bootstrap {0}".format(__version__))
-
+    
+  
+    parser.add_argument('--env', action='append', dest="env_isolate_param")
     # Parse arguments
     args = parser.parse_args(args)
-
+    
+    
     # Set up the logger
     configure_logger(args.logfile, args.debug, args.verbose, args.color)
 
@@ -573,6 +578,12 @@ def main(args=None):
                             cohorte.PROP_COLORED: args.color,
                             cohorte.PROP_HOME: home,
                             cohorte.PROP_BASE: base}
+
+
+    # TODO add envs property if it's passed in order to be retrieve by environmentParameter component 
+    if args.env_isolate_param:
+         # The isolate environment paremter
+        framework_properties[cohorte.PROP_ENV_STARTER] = args.env_isolate_param
 
     if args.isolate_uid:
         # The isolate UID has been given
