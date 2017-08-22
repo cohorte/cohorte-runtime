@@ -45,7 +45,6 @@ small-install.zip
 *.pyc
 *.pyo
 __pycache__/
-build/
 dist/
 *.egg-info/
 
@@ -70,5 +69,4 @@ pom.xml.versionsBackup
 pom.xml.next
 release.properties
 
-build.sh
 venv

@@ -17,11 +17,10 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.cohorte.runtime</groupId>
-		<artifactId>cohorte-java</artifactId>
+		<artifactId>cohorte-runtime-bundles</artifactId>
 		<version>1.2.0-SNAPSHOT</version>
-		<relativePath>../../pom.xml</relativePath>
+		<relativePath>../../Build/maven/build-bundles/pom.xml</relativePath>
 	</parent>
-	<artifactId>org.cohorte.composer.api</artifactId>
-	<version>3.0.0</version>
+	<artifactId>org.cohorte.composer.api</artifactId>	
 	<packaging>eclipse-plugin</packaging>
 </project>

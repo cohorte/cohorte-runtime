@@ -4,17 +4,23 @@ Bundle-ManifestVersion: 2
 Bundle-Name: COHORTE :: Loggers
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-SymbolicName: org.psem2m.isolates.loggers
-Bundle-Vendor: isandlaTech.com
+Bundle-Vendor: COHORTE Technologies
 Bundle-Version: 1.2.0.qualifier
 Created-By: iPOJO  1.8.0
 Export-Package: org.psem2m.isolates.loggers
-Import-Package: org.apache.felix.ipojo, org.apache.felix.ipojo.annotat
- ions;version=1.12.1, org.apache.felix.ipojo.architecture, org.osgi.fr
- amework;version=1.3.0, org.osgi.service.cm;version=1.2, org.osgi.serv
- ice.log;version=1.3, org.psem2m.isolates.base, org.psem2m.isolates.ba
- se.activators, org.psem2m.isolates.services.dirs, org.psem2m.utilitie
- s, org.psem2m.utilities.files, org.psem2m.utilities.json, org.psem2m.
- utilities.logging
+Import-Package: org.apache.felix.ipojo,
+ org.apache.felix.ipojo.annotations,
+ org.apache.felix.ipojo.architecture,
+ org.osgi.framework,
+ org.osgi.service.cm,
+ org.osgi.service.log,
+ org.psem2m.isolates.base,
+ org.psem2m.isolates.base.activators,
+ org.psem2m.isolates.services.dirs,
+ org.psem2m.utilities,
+ org.psem2m.utilities.files,
+ org.psem2m.utilities.json,
+ org.psem2m.utilities.logging
 iPOJO-Components: instance { $component="psem2m-loggers-channels-facto
  ry" $name="psem2m-loggers-channels" }instance { $component="psem2m-lo
  gging-conditions-factory" }component { $classname="org.psem2m.isolate
