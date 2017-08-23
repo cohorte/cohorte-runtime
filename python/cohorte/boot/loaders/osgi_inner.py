@@ -32,30 +32,27 @@ Modifications:
 """
 
 # Python standard library
-import logging
-import os
-import sys
-import time
-import threading
-
-# iPOPO Decorators
-from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
-    Invalidate, Property, Requires
-import pelix.framework
-import pelix.shell
-
-# COHORTE constants
 import cohorte
 import cohorte.repositories
+import logging
+import os
+import pelix.framework
+from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
+    Invalidate, Property, Requires
+import pelix.shell
+import sys
+import threading
+import time
 
-# Herald
 import herald
-
-# JPype (Java bridge)
 import jpype
 
-# ------------------------------------------------------------------------------
 
+# iPOPO Decorators
+# COHORTE constants
+# Herald
+# JPype (Java bridge)
+# ------------------------------------------------------------------------------
 # Documentation strings format
 __docformat__ = "restructuredtext en"
 
@@ -137,6 +134,8 @@ class PyBridge(object):
         # Convert stored components
         self._java_boot_config = self._to_java(java_configuration)
         self._prepare_components(java_configuration.composition)
+
+
 
     def _prepare_components(self, raw_components):
         """

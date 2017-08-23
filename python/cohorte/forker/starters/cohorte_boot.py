@@ -26,30 +26,28 @@ Starts Cohorte isolates using the boot script
 
 
 # Standard library
+import cohorte
+import cohorte.forker
+import cohorte.monitor
+import cohorte.utils
 import logging
 import os
+from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
+    Property, Instantiate
 import subprocess
 import sys
 
-# Pelix framework
-from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
-    Property, Instantiate
+import cohorte.forker.starters.common as common
+from herald import beans
+import herald
+from herald.exceptions import HeraldException
 import pelix.http as http
 
+
+# Pelix framework
 # COHORTE modules
-import cohorte
-import cohorte.forker
-import cohorte.forker.starters.common as common
-import cohorte.monitor
-import cohorte.utils
-
 # Herald
-import herald
-from herald import beans
-from herald.exceptions import HeraldException
-
 # ------------------------------------------------------------------------------
-
 # Documentation strings format
 __docformat__ = "restructuredtext en"
 
@@ -113,7 +111,6 @@ class CohorteBoot(common.CommonStarter):
 
         # Python interpreter to use
         args = [sys.executable]
-
         # Interpreter arguments
         interpreter_args = configuration.get('boot', {}).get('boot_args')
         if interpreter_args:

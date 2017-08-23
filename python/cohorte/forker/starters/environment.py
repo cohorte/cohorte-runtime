@@ -4,7 +4,7 @@
 isolate stater environment parmeter component
 provide the env paremter to set for all isolate
 
-:author: Aurélien Pisu
+:author: Aurelien Pisu
 :license: Apache Software License 2.0
 :version: 1.0.0
 

@@ -493,6 +493,9 @@ def main(args=None):
     :param args: An optional list of arguments (used instead of sys.argv)
     :return: An integer error code, 0 for success (see load_isolate())
     """
+    # override main module for  the start of isolate 
+    sys.modules["__main__"] = sys.modules[__name__]
+    
     parser = argparse.ArgumentParser(description="Cohorte Python bootstrap")
     # Isolate boot parameters
     group = parser.add_argument_group("Isolate boot")
