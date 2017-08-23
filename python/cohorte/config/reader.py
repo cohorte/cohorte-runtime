@@ -33,7 +33,7 @@ import os
 from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
     Requires, Property
 
-import common
+import cohorte.config.common as common
 
 
 # iPOPO Decorators

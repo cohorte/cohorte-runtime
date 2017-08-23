@@ -264,7 +264,7 @@ class CResource(object):
         contents = []
         path = self.filename
     
-     	self.read_files_name = []       
+        self.read_files_name = []       
         for file in self._finder.find_rel(path, self.dirpath):
             _logger.info("read file {0}".format(file))
             lines = []
