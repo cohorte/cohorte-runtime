@@ -29,15 +29,15 @@ import collections
 import logging
 import uuid
 
-# iPOPO Decorators
+import cohorte
+import cohorte.config.common as common
 from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
     Requires
 
+
+# iPOPO Decorators
 # COHORTE constants
-import cohorte
-
 # ------------------------------------------------------------------------------
-
 # Documentation strings format
 __docformat__ = "restructuredtext en"
 
@@ -198,7 +198,7 @@ class BootConfigParser(object):
                        level=json_object['level'],
                        sublevel=json_object['sublevel'],
                        # Reuse boot configuration values
-                       **boot_config._asdict())
+                       ** boot_config._asdict())
 
     def _prepare_configuration(self, uid, name, kind,
                                bundles=None, composition=None,
@@ -378,7 +378,7 @@ class BootConfigParser(object):
         else:
             # Merge the configurations: this method considers that the first
             # parameter has priority on the second
-            configuration = self._reader.merge_object(isolate_conf,
+            configuration = common.merge_object(isolate_conf,
                                                       configuration)
 
         # Extend with the boot configuration
