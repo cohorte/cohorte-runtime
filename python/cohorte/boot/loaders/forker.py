@@ -24,24 +24,22 @@ COHORTE forker/monitor loader
 """
 
 # Python standard library
+import cohorte
 import logging
 import os
-import uuid
-
-# iPOPO Decorators
+import pelix.framework
 from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
     Invalidate, Requires, Property
-import pelix.framework
+import uuid
 
-# COHORTE constants
-import cohorte
 import cohorte.boot.loaders.utils as utils
-
-# Herald
 import herald
 
-# ------------------------------------------------------------------------------
 
+# iPOPO Decorators
+# COHORTE constants
+# Herald
+# ------------------------------------------------------------------------------
 # Documentation strings format
 __docformat__ = "restructuredtext en"
 

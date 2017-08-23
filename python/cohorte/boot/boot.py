@@ -70,7 +70,7 @@ __version__ = ".".join(str(x) for x in __version_info__)
 # ------------------------------------------------------------------------------
 
 MINIMAL_BUNDLES = ('pelix.ipopo.core', 'cohorte.config.finder',
-                   'cohorte.config.reader', 'cohorte.config.parser')
+                   'cohorte.config.reader', 'cohorte.config.parser', 'cohorte.config.includer')
 """ List of bundles to be installed before the isolate loader """
 
 _logger = logging.getLogger(__name__)
