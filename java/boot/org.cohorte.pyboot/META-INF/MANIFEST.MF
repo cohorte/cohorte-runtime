@@ -6,12 +6,9 @@ Bundle-SymbolicName: org.cohorte.pyboot
 Bundle-Vendor: COHORTE Technologies
 Bundle-Version: 1.2.0.qualifier
 Created-By: iPOJO  1.8.0
-Import-Package: org.apache.felix.ipojo,
- org.apache.felix.ipojo.architecture,
- org.cohorte.pyboot.api,
- org.osgi.framework,
- org.osgi.service.cm,
- org.osgi.service.log
+Import-Package: org.apache.felix.ipojo, org.apache.felix.ipojo.archite
+ cture, org.cohorte.pyboot.api, org.osgi.framework, org.osgi.service.c
+ m, org.osgi.service.log
 iPOJO-Components: instance { $name="cohorte-java-bridge-client" $compo
  nent="cohorte-java-bridge-client-factory" }component { $name="cohorte
  -java-bridge-client-factory" $classname="org.cohorte.pyboot.BridgeCli
