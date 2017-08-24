@@ -1,5 +1,7 @@
 package org.psem2m.isolates.loggers;
 
+import java.io.File;
+import java.util.List;
 import java.util.logging.Level;
 
 import org.psem2m.utilities.IXDescriber;
@@ -15,6 +17,12 @@ import org.psem2m.utilities.json.JSONObject;
 public interface ILoggingConditions extends IXDescriber {
 
 	/**
+	 * @return the number of deleted file
+	 * @throws CLoggingConditionsException
+	 */
+	int cleanLoggingConditionsFile() throws CLoggingConditionsException;
+
+	/**
 	 * @param aConditionId
 	 *            The ID of the condition to retreive.
 	 * @return The found logging condition.
@@ -27,6 +35,21 @@ public interface ILoggingConditions extends IXDescriber {
 	 * @return The found logging condition.
 	 */
 	ILoggingCondition getCondition(final String aConditionId);
+
+	/**
+	 * @return
+	 */
+	List<ILoggingCondition> getConditions();
+
+	/**
+	 * @return the file of the conditions (set of condition)
+	 */
+	File getFile();
+
+	/**
+	 * @return the id of the conditions (set of condition)
+	 */
+	String getId();
 
 	/**
 	 * @param aConditionId
@@ -50,22 +73,26 @@ public interface ILoggingConditions extends IXDescriber {
 	/**
 	 * @param aConditionId
 	 *            The ID of the condition to create.
+	 * @param aInitialLevel
+	 *            the level set only when the condition is created
 	 * @param aComments
 	 *            One or more comment lines.
 	 * @return The created logging condition.
 	 */
 	ILoggingCondition newLoggingCondition(final Class<?> aConditionId,
-			final String... aComments);
+			final Level aInitialLevel, final String... aComments);
 
 	/**
 	 * @param aConditionId
 	 *            The ID of the condition to create.
+	 * @param aInitialLevel
+	 *            the level set only when the condition is created
 	 * @param aComments
 	 *            One or more comment lines.
 	 * @return The created logging condition.
 	 */
 	ILoggingCondition newLoggingCondition(final String aConditionId,
-			final String... aComments);
+			final Level aInitialLevel, final String... aComments);
 
 	/**
 	 * @param aConditionLevel

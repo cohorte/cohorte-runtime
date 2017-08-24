@@ -4,18 +4,18 @@ package org.psem2m.isolates.loggers;
  * @author ogattaz
  *
  */
-public class CLogChannelException extends CLoggersException {
+public class CLoggersException extends Exception {
 
 	/**
 	 *
 	 */
-	private static final long serialVersionUID = 2424862007434516208L;
+	private static final long serialVersionUID = 1109486025824328252L;
 
 	/**
 	 * @param aFormat
 	 * @param aArgs
 	 */
-	public CLogChannelException(final String aFormat, final Object... aArgs) {
+	public CLoggersException(final String aFormat, final Object... aArgs) {
 		super(String.format(aFormat, aArgs));
 	}
 
@@ -24,7 +24,7 @@ public class CLogChannelException extends CLoggersException {
 	 * @param aFormat
 	 * @param aArgs
 	 */
-	public CLogChannelException(final Throwable aCause, final String aFormat,
+	public CLoggersException(final Throwable aCause, final String aFormat,
 			final Object... aArgs) {
 		super(String.format(aFormat, aArgs), aCause);
 	}

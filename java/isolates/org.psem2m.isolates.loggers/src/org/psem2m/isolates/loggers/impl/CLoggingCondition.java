@@ -14,9 +14,9 @@ import org.psem2m.utilities.json.JSONObject;
  * Creation of a logging condition
  *
  * <pre>
- * // declare the Logging condition identified by &quot;ISubSystemStuff&quot;
- * pLoggingConditions.newLoggingCondition(ISubSystemStuff.class,
- * 		&quot;SubSystem Stuff logging condition&quot;);
+ * / / declare a Logging condition identified by "ISubSystemStuff"
+ * pLoggingConditions.newLoggingCondition(ISubSystemStuff.class,"SubSystem Stuff logging condition");
+ *
  * </pre>
  *
  * Usage of the logging condition using a method "isLoggingConditionDebugOn()"
@@ -27,7 +27,7 @@ import org.psem2m.utilities.json.JSONObject;
  *
  * <pre>
  * if (isLoggingConditionDebugOn(ISubSystemA.class){
- *
+ * 
  *     logActivityDebug(this, "myMethod", "My message with an arg [%s]", aArg);
  * }
  * </pre>
@@ -75,7 +75,7 @@ public class CLoggingCondition implements ILoggingCondition {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * org.psem2m.utilities.IXDescriber#addDescriptionInBuffer(java.lang.Appendable
 	 * )
@@ -84,9 +84,24 @@ public class CLoggingCondition implements ILoggingCondition {
 	public Appendable addDescriptionInBuffer(Appendable aBuffer) {
 
 		CXStringUtils.appendKeyValInBuff(aBuffer, PROP_ID, getId());
+		CXStringUtils.appendKeyValInBuff(aBuffer, PROP_LEVEL, getLevel()
+				.getName());
 		CXStringUtils.appendKeyValInBuff(aBuffer, PROP_CMT, getComment()
 				.replace('\n', '§'));
 		return aBuffer;
+	}
+
+	/**
+	 * @return
+	 */
+	CLoggingCondition cloneMe() {
+
+		final CLoggingCondition wNewLC = new CLoggingCondition(pId,
+				pComment.split("\n"));
+
+		wNewLC.setLevel(getLevel());
+
+		return wNewLC;
 	}
 
 	@Override
@@ -101,7 +116,7 @@ public class CLoggingCondition implements ILoggingCondition {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.isolates.loggers.ILoggingCondition#getLevel()
 	 */
 	@Override
@@ -111,7 +126,7 @@ public class CLoggingCondition implements ILoggingCondition {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * org.psem2m.isolates.loggers.ILoggingCondition#isOn(java.util.logging.
 	 * Level)
@@ -130,7 +145,7 @@ public class CLoggingCondition implements ILoggingCondition {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see
 	 * org.psem2m.isolates.loggers.ILoggingCondition#setConditionLevel(java.
 	 * util.logging.Level)
@@ -150,7 +165,7 @@ public class CLoggingCondition implements ILoggingCondition {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.utilities.IXDescriber#toDescription()
 	 */
 	@Override
@@ -160,7 +175,7 @@ public class CLoggingCondition implements ILoggingCondition {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see org.psem2m.isolates.loggers.ILoggingCondition#toJson()
 	 */
 	@Override
