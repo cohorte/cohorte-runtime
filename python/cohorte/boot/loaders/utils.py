@@ -20,7 +20,8 @@ import pelix.ipopo.constants as constants
 # ------------------------------------------------------------------------------
 
 # Bundle version
-from cohorte.version import *
+import cohorte.version
+__version__=cohorte.version.__version__
 
 # ------------------------------------------------------------------------------
 

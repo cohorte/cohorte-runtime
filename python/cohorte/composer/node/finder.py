@@ -39,7 +39,8 @@ import cohorte.repositories
 # ------------------------------------------------------------------------------
 
 # Bundle version
-from cohorte.version import *
+import cohorte.version
+__version__=cohorte.version.__version__
 
 # ------------------------------------------------------------------------------
 

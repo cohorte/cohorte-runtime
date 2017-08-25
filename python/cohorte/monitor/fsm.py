@@ -29,7 +29,8 @@ from cohorte.utils.statemachine import StateMachine
 # ------------------------------------------------------------------------------
 
 # Bundle version
-from cohorte.version import *
+import cohorte.version
+__version__=cohorte.version.__version__
 
 # ------------------------------------------------------------------------------
 

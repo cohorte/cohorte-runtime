@@ -47,7 +47,8 @@ from cohorte.repositories.java.manifest import Manifest
 # ------------------------------------------------------------------------------
 
 # Bundle version
-from cohorte.version import *
+import cohorte.version
+__version__=cohorte.version.__version__
 
 # ------------------------------------------------------------------------------
 
