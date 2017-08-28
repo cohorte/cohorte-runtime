@@ -35,7 +35,6 @@ import os
 from pelix.ipopo.decorators import ComponentFactory, Instantiate, Provides, \
     Validate, Invalidate
 
-
 # iPOPO decorators
 # COHORTE constants
 # ------------------------------------------------------------------------------
@@ -50,27 +49,28 @@ __version__ = ".".join(str(x) for x in __version_info__)
 
 _logger = logging.getLogger(__name__)
 
+
 # ------------------------------------------------------------------------------
-
-
-@ComponentFactory('cohorte-file-finder-factory')
-@Provides(cohorte.SERVICE_FILE_FINDER)
-@Instantiate('cohorte-file-finder')
-class FileFinder(object):
+class FileFinderAbs(object):
     """
     Simple file finder : tries to find the given file in the platform main
     directories.
     """
+
     def __init__(self):
         """
         Sets up the finder
         """
-        # Keep the Bundle context to access framework properties
-        self._context = None
 
         # Search roots
         self._roots = []
         self._custom_roots = set()
+
+    def _get_context(self):
+        """
+        return the bundle context
+        """
+        pass
 
     def _extract_platform_path(self, path):
         """
@@ -115,13 +115,12 @@ class FileFinder(object):
         :param filename: Name of the file to find
         """
 
-   
         # Look into root directories
         for root_dir in self._gen_roots():
             path = os.path.realpath(os.path.join(root_dir, filename))
             paths = glob.iglob(path)
-        
-            for real_path in paths: 
+
+            for real_path in paths:
                 yield real_path
 
         # Test the absolute file name
@@ -129,11 +128,10 @@ class FileFinder(object):
         if os.path.exists(path):
             yield path
 
-    # call from java only 
+    # call from java only
     def _set_roots(self, roots):
-        self._roots = roots    
-        
-        
+        pass
+
     def find_rel(self, filename, base_file=None):
         """
         A generator to find the given files in the platform folders
@@ -209,7 +207,7 @@ class FileFinder(object):
                         continue
                     else:
                         handled.add(found_file)
-    
+
                 yield found_files
 
     def find_gen(self, pattern, base_dir=None, recursive=True):
@@ -269,9 +267,51 @@ class FileFinder(object):
 
         # Search in Base, then Home
         for name in (cohorte.PROP_BASE, cohorte.PROP_HOME):
-            value = self._context.get_property(name)
+            value = self._get_context().get_property(name)
             if value and value not in self._roots:
                 self._roots.append(value)
+
+    def validate(self):
+        """
+        treaitment to do on validate. should be call by a component
+        """
+        try:
+            # Prepare the sets
+            del self._roots[:]
+            self._custom_roots.clear()
+
+            # Update the roots list
+            self.update_roots()
+        except Exception as e:
+            _logger.error("failed to init roots path {0}".format(e))
+
+    def invalidate(self):
+        """
+        treaitment to do on invalidate. should be call by a component
+        """
+        # Store the framework access
+        del self._roots[:]
+        self._custom_roots.clear()
+
+
+@ComponentFactory('cohorte-file-finder-factory')
+@Provides(cohorte.SERVICE_FILE_FINDER)
+@Instantiate('cohorte-file-finder')
+class FileFinder(FileFinderAbs):
+    """
+    Simple file finder : tries to find the given file in the platform main
+    directories.
+    """
+
+    def __init__(self):
+        """
+        Sets up the finder
+        """
+        super(FileFinder, self).__init__()
+
+    # override
+    def _get_context(self):
+        return self._context
 
     @Validate
     def validate(self, context):
@@ -282,13 +322,7 @@ class FileFinder(object):
         """
         # Store the framework access
         self._context = context
-
-        # Prepare the sets
-        del self._roots[:]
-        self._custom_roots.clear()
-
-        # Update the roots list
-        self.update_roots()
+        super(FileFinder, self).validate()
 
     @Invalidate
     def invalidate(self, context):
@@ -297,7 +331,5 @@ class FileFinder(object):
 
         :param context: The bundle context
         """
-        # Store the framework access
-        self._context = None
-        del self._roots[:]
-        self._custom_roots.clear()
+        super(FileFinder, self).invalidate()
+
