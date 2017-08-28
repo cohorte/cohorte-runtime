@@ -6,18 +6,12 @@ Bundle-SymbolicName: org.cohorte.shell.remote
 Bundle-Vendor: COHORTE Technologies
 Bundle-Version: 1.2.0.qualifier
 Created-By: iPOJO  1.8.0
-Import-Package: org.apache.felix.ipojo,
- org.apache.felix.ipojo.architecture,
- org.apache.felix.service.command;status=provisional,
- org.cohorte.shell,
- org.osgi.framework,
- org.osgi.service.cm,
- org.osgi.service.log,
- org.osgi.util.tracker,
- org.psem2m.isolates.base,
- org.psem2m.isolates.constants,
- org.psem2m.isolates.loggers,
- org.psem2m.utilities.logging
+Import-Package: org.apache.felix.ipojo, org.apache.felix.ipojo.archite
+ cture, org.apache.felix.service.command;status=provisional, org.cohor
+ te.shell, org.osgi.framework, org.osgi.service.cm, org.osgi.service.l
+ og, org.osgi.util.tracker, org.psem2m.isolates.base, org.psem2m.isola
+ tes.constants, org.psem2m.isolates.loggers, org.psem2m.utilities.logg
+ ing
 iPOJO-Components: component { $name="cohorte-remote-shell-factory" $cl
  assname="org.cohorte.remote.shell.RemoteShellService" provides { $spe
  cifications="{org.cohorte.shell.IRemoteShell}" property { $name="osgi

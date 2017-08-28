@@ -6,6 +6,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: COHORTE :: Local Discovery
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-SymbolicName: org.cohorte.isolates.discovery.local
+Bundle-Vendor: COHORTE Technologies
 Bundle-Version: 1.2.0.qualifier
 Created-By: iPOJO 1.12.1
 Import-Package: org.apache.felix.ipojo, org.apache.felix.ipojo.annotat
@@ -52,5 +53,4 @@ iPOJO-Components: instance { $name="cohorte-local-discovery" $componen
   { $name="validate" }inner { $name="1" method { $name="discoverNeighb
  ors" }method { $name="run" }}inner { $name="2" method { $name="run" }
  }}}
-Bundle-Vendor: COHORTE Technologies
 

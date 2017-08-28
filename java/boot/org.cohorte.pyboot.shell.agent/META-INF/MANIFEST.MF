@@ -6,15 +6,10 @@ Bundle-SymbolicName: org.cohorte.pyboot.shell.agent
 Bundle-Vendor: COHORTE Technologies
 Bundle-Version: 1.2.0.qualifier
 Created-By: iPOJO  1.8.0
-Import-Package: org.apache.felix.ipojo,
- org.apache.felix.ipojo.architecture,
- org.cohorte.herald,
- org.cohorte.pyboot.api,
- org.cohorte.shell,
- org.osgi.framework,
- org.osgi.service.cm,
- org.osgi.service.http,
- org.osgi.service.log
+Import-Package: org.apache.felix.ipojo, org.apache.felix.ipojo.archite
+ cture, org.cohorte.herald, org.cohorte.pyboot.api, org.cohorte.shell,
+  org.osgi.framework, org.osgi.service.cm, org.osgi.service.http, org.
+ osgi.service.log
 iPOJO-Components: instance { $name="cohorte-shell-agent" $component="c
  ohorte-shell-agent-factory" }component { $name="cohorte-shell-agent-f
  actory" $classname="org.cohorte.pyboot.shell.agent.ShellAgent" provid

@@ -7,12 +7,9 @@ Bundle-Vendor: COHORTE Technologies
 Bundle-Version: 1.2.0.qualifier
 Created-By: iPOJO  1.8.0
 Export-Package: org.psem2m.status.storage
-Import-Package: org.apache.felix.ipojo,
- org.apache.felix.ipojo.architecture,
- org.osgi.service.cm,
- org.osgi.service.log,
- org.psem2m.isolates.base,
- org.psem2m.utilities.logging
+Import-Package: org.apache.felix.ipojo, org.apache.felix.ipojo.archite
+ cture, org.osgi.service.cm, org.osgi.service.log, org.psem2m.isolates
+ .base, org.psem2m.utilities.logging
 iPOJO-Components: instance { $name="psem2m-status-storage-creator" $co
  mponent="psem2m-status-storage-creator-factory" }component { $name="p
  sem2m-status-storage-creator-factory" $public="false" $classname="org

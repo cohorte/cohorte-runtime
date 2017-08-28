@@ -16,6 +16,7 @@
 
 package org.psem2m.isolates.loggers;
 
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.psem2m.isolates.base.activators.CActivatorBase;
 import org.psem2m.isolates.base.activators.IActivatorBase;
@@ -25,47 +26,55 @@ import org.psem2m.isolates.base.activators.IActivatorBase;
  *
  */
 public class CBundleLoggersActivator extends CActivatorBase implements
-        IActivatorBase {
+		IActivatorBase {
 
-    /** first instance **/
-    private static CBundleLoggersActivator sSingleton = null;
+	/** first instance **/
+	private static CBundleLoggersActivator sSingleton = null;
 
-    /**
-     * @return
-     */
-    public static CBundleLoggersActivator getInstance() {
+	/**
+	 * @return
+	 */
+	public static CBundleLoggersActivator getInstance() {
 
-        return sSingleton;
-    }
+		return sSingleton;
+	}
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
-     * )
-     */
-    @Override
-    public void start(final BundleContext bundleContext) throws Exception {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
+	 * )
+	 */
+	@Override
+	public void start(final BundleContext bundleContext) throws Exception {
 
-        // Store the singleton reference
-        sSingleton = this;
+		// Store the singleton reference
+		sSingleton = this;
 
-        super.start(bundleContext);
-    }
+		super.start(bundleContext);
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
-     */
-    @Override
-    public void stop(final BundleContext bundleContext) throws Exception {
+		final Bundle wBundle = bundleContext.getBundle();
+		System.out.printf("%50s | Bundle=[%50s][%s] started\n",
+				"Activator.start()", wBundle.getSymbolicName(),
+				wBundle.getVersion());
+	}
 
-        super.stop(bundleContext);
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
+	 */
+	@Override
+	public void stop(final BundleContext bundleContext) throws Exception {
 
-        // Forget the singleton reference
-        sSingleton = null;
-    }
+		super.stop(bundleContext);
+
+		System.out.printf("%50s | Bundle=[%50s] stopped\n", "Activator.stop()",
+				bundleContext.getBundle().getSymbolicName());
+
+		// Forget the singleton reference
+		sSingleton = null;
+	}
 }

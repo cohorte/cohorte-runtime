@@ -43,12 +43,9 @@ import PyQt4.QtGui as QtGui
 
 # ------------------------------------------------------------------------------
 
-# Module version
-__version_info__ = (1, 1, 0)
-__version__ = ".".join(str(x) for x in __version_info__)
-
-# Documentation strings format
-__docformat__ = "restructuredtext en"
+# Bundle version
+import cohorte.version
+__version__=cohorte.version.__version__
 
 # ------------------------------------------------------------------------------
 

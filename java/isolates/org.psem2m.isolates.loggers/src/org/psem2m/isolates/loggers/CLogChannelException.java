@@ -4,7 +4,7 @@ package org.psem2m.isolates.loggers;
  * @author ogattaz
  *
  */
-public class CLogChannelException extends Exception {
+public class CLogChannelException extends CLoggersException {
 
 	/**
 	 *

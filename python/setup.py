@@ -4,9 +4,9 @@
 iPOPO installation script
 
 :author: Thomas Calmant
-:copyright: Copyright 2014-2016, Cohorte Technologies (ex. isandlaTech)
+:copyright: Copyright 2014-2017, Cohorte Technologies (ex. isandlaTech)
 :license: Apache License 2.0
-:version: 1.1.0
+:version: 1.2.0
 :status: Beta
 
 ..
@@ -25,13 +25,6 @@ iPOPO installation script
     See the License for the specific language governing permissions and
     limitations under the License.
 """
-
-# Module version
-__version_info__ = (1, 1, 0)
-__version__ = ".".join(str(x) for x in __version_info__)
-
-# Documentation strings format
-__docformat__ = "restructuredtext en"
 
 # ------------------------------------------------------------------------------
 
@@ -52,6 +45,7 @@ def read(fname):
     with open(os.path.join(os.path.dirname(__file__), fname)) as fd:
         return fd.read()
 
+exec(open('cohorte/version.py').read())
 setup(
     name='Cohorte-Python',
     version=__version__,

@@ -24,4 +24,6 @@ import org.psem2m.utilities.logging.IActivityLogger;
  */
 public interface ILogChannelSvc extends IActivityLogger {
 
+	String getId();
+
 }

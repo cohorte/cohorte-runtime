@@ -1,18 +1,16 @@
 package org.psem2m.isolates.loggers.impl;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.logging.Level;
 
-import org.apache.felix.ipojo.annotations.Component;
-import org.apache.felix.ipojo.annotations.Instantiate;
-import org.apache.felix.ipojo.annotations.Invalidate;
-import org.apache.felix.ipojo.annotations.Provides;
-import org.apache.felix.ipojo.annotations.Requires;
-import org.apache.felix.ipojo.annotations.Validate;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
+import org.psem2m.isolates.loggers.CLoggingConditionsException;
 import org.psem2m.isolates.loggers.ILoggingCondition;
 import org.psem2m.isolates.loggers.ILoggingConditions;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
@@ -28,13 +26,15 @@ import org.psem2m.utilities.json.JSONObject;
  * @author ogattaz
  *
  */
-@Component(name = "psem2m-logging-conditions-factory")
-@Instantiate
-@Provides(specifications = ILoggingConditions.class)
 public class CLoggingConditions implements ILoggingConditions {
 
-	private static final String FILE_NAME = "LoggingConditions.js";
+	private static final String FILE_NAME_FORMAT = "LoggingConditions_%s.js";
+
 	private static final String ID_NULL = "<Null id condition>";
+
+	private static final String LIB_FILENAME = "filename";
+
+	private static final String LIB_ID = "id";
 
 	private static final String MESS_ALREADY_EXISTS = "The logging condition [%s] already exixts.";
 
@@ -47,37 +47,45 @@ public class CLoggingConditions implements ILoggingConditions {
 			.format("The given String conditon Id is null or empty. Use [%s] ",
 					ID_NULL);
 
-	private static final String PROP_CONDITIONS = "conditions";
+	private static final String PROP_CONDITION_DESCRS = "condition_descriptions";
 
-	private static final String PROP_DOCS_CONDITION = "condition_docs";
+	private static final String PROP_CONDITION_DOCS = "condition_docs";
 
 	private static final String PROP_SIZE = "size";
 
 	private final Map<String, ILoggingCondition> pConditions = new TreeMap<String, ILoggingCondition>();
 
-	private CXFileUtf8 pFileMemoDefs = null;
+	private final CXFileUtf8 pFileMemoDefs;
+
+	private final String pId;
 
 	/**
 	 * Service reference managed by iPojo (see metadata.xml)
 	 *
 	 * This service is the general logger of the current isolate
 	 **/
-	@Requires
-	private IIsolateLoggerSvc pIsolateLoggerSvc;
-
+	private final IIsolateLoggerSvc pIsolateLoggerSvc;
 	/**
 	 * Service reference managed by iPojo (see metadata.xml)
 	 *
 	 * This service is the knowledge of the locations of the current isolate
 	 **/
-	@Requires
-	private IPlatformDirsSvc pPlatformDirsSvc;
+	private final IPlatformDirsSvc pPlatformDirsSvc;
 
 	/**
-	 *
+	 * injection by constructor
 	 */
-	public CLoggingConditions() {
+	public CLoggingConditions(final String aConditionsId,
+			final IIsolateLoggerSvc aLogger,
+			final IPlatformDirsSvc aPlatformDirsSvc) {
 		super();
+
+		pId = aConditionsId;
+		pIsolateLoggerSvc = aLogger;
+		pPlatformDirsSvc = aPlatformDirsSvc;
+
+		pFileMemoDefs = new CXFileUtf8(pPlatformDirsSvc.getIsolateLogDir()
+				.getAbsolutePath(), getFileName());
 	}
 
 	/*
@@ -89,6 +97,11 @@ public class CLoggingConditions implements ILoggingConditions {
 	 */
 	@Override
 	public Appendable addDescriptionInBuffer(Appendable aBuffer) {
+
+		CXStringUtils.appendKeyValInBuff(aBuffer, LIB_ID, getId());
+
+		CXStringUtils.appendKeyValInBuff(aBuffer, LIB_FILENAME, getFileName());
+
 		CXStringUtils
 				.appendKeyValInBuff(aBuffer, PROP_SIZE, pConditions.size());
 
@@ -99,15 +112,58 @@ public class CLoggingConditions implements ILoggingConditions {
 			if (wIdx > 0) {
 				wSB.append(',');
 			}
-			CXStringUtils.appendFormatStrInBuff(wSB, "(%02)=[", wIdx);
+			CXStringUtils.appendFormatStrInBuff(wSB, "(%02d)=[", wIdx);
 			wEntry.getValue().addDescriptionInBuffer(wSB);
 			wSB.append(']');
 			wIdx++;
 		}
-		CXStringUtils.appendKeyValInBuff(aBuffer, PROP_CONDITIONS,
+		CXStringUtils.appendKeyValInBuff(aBuffer, PROP_CONDITION_DESCRS,
 				wSB.toString());
 
 		return aBuffer;
+	}
+
+	/**
+	 * @return 1 if a file is deleted
+	 */
+	int cleanFile() {
+
+		if (pFileMemoDefs != null && pFileMemoDefs.exists()) {
+			return pFileMemoDefs.delete() ? 1 : 0;
+		}
+		return 0;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.isolates.loggers.ILoggingConditions#cleanLoggingConditionsFile
+	 * ()
+	 */
+	@Override
+	public int cleanLoggingConditionsFile() throws CLoggingConditionsException {
+
+		return pFileMemoDefs.delete() ? 1 : 0;
+	}
+
+	/**
+	 * @param aConditionsId
+	 * @return
+	 */
+	CLoggingConditions cloneMe(final String aConditionsId) {
+
+		final CLoggingConditions wNewLCs = new CLoggingConditions(
+				aConditionsId, pIsolateLoggerSvc, pPlatformDirsSvc);
+
+		for (final Entry<String, ILoggingCondition> wEntry : pConditions
+				.entrySet()) {
+
+			wNewLCs.pConditions.put(wEntry.getKey(),
+					((CLoggingCondition) wEntry.getValue()).cloneMe());
+		}
+
+		return wNewLCs;
 	}
 
 	/*
@@ -146,19 +202,49 @@ public class CLoggingConditions implements ILoggingConditions {
 		return wCondition;
 	}
 
-	@Invalidate
-	void invalidate() {
-		pIsolateLoggerSvc.logInfo(this, "validate", "validating...");
-		try {
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.isolates.loggers.ILoggingConditions#getConditions()
+	 */
+	@Override
+	public List<ILoggingCondition> getConditions() {
 
-			// Store defs of conditions in ...Base/log/LoggingConditions.js
-			storeLoggingConditions(pFileMemoDefs);
+		final List<ILoggingCondition> wList = new ArrayList<ILoggingCondition>();
 
-		} catch (Exception | Error e) {
-			pIsolateLoggerSvc.logSevere(this, "validate", "ERROR: %s", e);
-
+		for (final Entry<String, ILoggingCondition> wEntry : pConditions
+				.entrySet()) {
+			wList.add(wEntry.getValue());
 		}
-		pIsolateLoggerSvc.logInfo(this, "invalidate", "invalidated");
+
+		return wList;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see org.psem2m.isolates.loggers.ILoggingConditions#getFile()
+	 */
+	@Override
+	public File getFile() {
+		return pFileMemoDefs;
+	}
+
+	/**
+	 * @return
+	 */
+	String getFileName() {
+		return String.format(FILE_NAME_FORMAT, getId());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.isolates.loggers.ILoggingConditions#getId()
+	 */
+	@Override
+	public String getId() {
+		return pId;
 	}
 
 	/*
@@ -212,7 +298,7 @@ public class CLoggingConditions implements ILoggingConditions {
 			final JSONObject wConf = new JSONObject(aFile.readAll());
 
 			final JSONArray wConditionDefs = wConf
-					.getJSONArray(PROP_DOCS_CONDITION);
+					.getJSONArray(PROP_CONDITION_DOCS);
 
 			// load stored Conditions
 			wMax = wConditionDefs.length();
@@ -237,8 +323,9 @@ public class CLoggingConditions implements ILoggingConditions {
 	 */
 	@Override
 	public ILoggingCondition newLoggingCondition(Class<?> aConditionId,
-			String... aComments) {
-		return newLoggingCondition(validConditionId(aConditionId), aComments);
+			final Level aInitialLevel, String... aComments) {
+		return newLoggingCondition(validConditionId(aConditionId),
+				aInitialLevel, aComments);
 	}
 
 	/*
@@ -250,23 +337,51 @@ public class CLoggingConditions implements ILoggingConditions {
 	 */
 	@Override
 	public ILoggingCondition newLoggingCondition(final String aConditionId,
-			String... aComments) {
+			final Level aInitialLevel, String... aComments) {
 
 		final String wConfitionId = validConditionId(aConditionId);
 
 		ILoggingCondition wCondition = pConditions.get(wConfitionId);
 
 		if (wCondition != null) {
-			pIsolateLoggerSvc.logWarn(this, "setConditionLevel",
+			pIsolateLoggerSvc.logWarn(this, "newLoggingCondition",
 					MESS_ALREADY_EXISTS, aConditionId);
 			return wCondition;
 		}
 
 		wCondition = new CLoggingCondition(wConfitionId, aComments);
 
+		wCondition.setLevel(aInitialLevel);
+
 		pConditions.put(wConfitionId, wCondition);
 
 		return wCondition;
+	}
+
+	/**
+	 *
+	 */
+	void read() {
+		pIsolateLoggerSvc.logInfo(this, "read", "Reading...");
+		try {
+
+			// Read defs of conditions from
+			// ...Base/log/LoggingConditions_[conditionsId].js
+
+			final int wNbLoadedConditions = loadStoredConditions(pFileMemoDefs);
+
+			pIsolateLoggerSvc.logInfo(this, "read", "NbLoadedConditions=[%s]",
+					wNbLoadedConditions);
+
+			pIsolateLoggerSvc.logInfo(this, "read", "LoggingConditions:\n%s",
+					toJson().toString(2));
+
+			pIsolateLoggerSvc.logInfo(this, "read", "Read ok.");
+
+		} catch (Exception | Error e) {
+			pIsolateLoggerSvc.logSevere(this, "read",
+					"Reading NOT OK : ERROR: %s", e);
+		}
 	}
 
 	/**
@@ -339,6 +454,27 @@ public class CLoggingConditions implements ILoggingConditions {
 	}
 
 	/**
+	 *
+	 */
+	boolean store() {
+
+		pIsolateLoggerSvc.logInfo(this, "store", "Storing...");
+		try {
+
+			// Store defs of conditions in ...Base/log/LoggingConditions.js
+			storeLoggingConditions(pFileMemoDefs);
+
+			pIsolateLoggerSvc.logInfo(this, "store", "Stored");
+			return true;
+
+		} catch (Exception | Error e) {
+			pIsolateLoggerSvc.logSevere(this, "store",
+					"Storing NOT OK : ERROR: %s", e);
+			return false;
+		}
+	}
+
+	/**
 	 * @param aFile
 	 * @return
 	 * @throws IOException
@@ -379,36 +515,8 @@ public class CLoggingConditions implements ILoggingConditions {
 			wArray.put(wEntry.getValue().toJson());
 		}
 
-		wObj.put(PROP_DOCS_CONDITION, wArray);
+		wObj.put(PROP_CONDITION_DOCS, wArray);
 		return wObj;
-	}
-
-	/**
-	 *
-	 */
-	@Validate
-	void validate() {
-		pIsolateLoggerSvc.logInfo(this, "validate", "validating...");
-		try {
-
-			// Read defs of conditions from ...Base/log/LoggingConditions.js
-
-			pFileMemoDefs = new CXFileUtf8(pPlatformDirsSvc.getIsolateLogDir()
-					.getAbsolutePath(), FILE_NAME);
-
-			final int wNbLoadedConditions = loadStoredConditions(pFileMemoDefs);
-
-			pIsolateLoggerSvc.logInfo(this, "validate",
-					"NbLoadedConditions=[%s]", wNbLoadedConditions);
-
-			pIsolateLoggerSvc.logInfo(this, "validate",
-					"LoggingConditions:\n%s", toJson().toString(2));
-
-		} catch (Exception | Error e) {
-			pIsolateLoggerSvc.logSevere(this, "validate", "ERROR: %s", e);
-
-		}
-		pIsolateLoggerSvc.logInfo(this, "validate", "validated");
 	}
 
 	/**
@@ -437,6 +545,5 @@ public class CLoggingConditions implements ILoggingConditions {
 		pIsolateLoggerSvc
 				.logWarn(this, "validConditionId", MESS_STRING_ID_NULL);
 		return ID_NULL;
-
 	}
 }

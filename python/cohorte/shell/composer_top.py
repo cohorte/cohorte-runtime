@@ -42,12 +42,9 @@ import cohorte.composer
 
 # ------------------------------------------------------------------------------
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# Module version
-__version_info__ = (3, 0, 0)
-__version__ = ".".join(str(x) for x in __version_info__)
+# Bundle version
+import cohorte.version
+__version__=cohorte.version.__version__
 
 # ------------------------------------------------------------------------------
 

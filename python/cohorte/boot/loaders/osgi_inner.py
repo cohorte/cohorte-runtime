@@ -53,12 +53,10 @@ import jpype
 # Herald
 # JPype (Java bridge)
 # ------------------------------------------------------------------------------
-# Documentation strings format
-__docformat__ = "restructuredtext en"
 
-# Version
-__version_info__ = (1, 1, 0)
-__version__ = ".".join(str(x) for x in __version_info__)
+# Bundle version
+import cohorte.version
+__version__=cohorte.version.__version__
 
 # ------------------------------------------------------------------------------
 
@@ -86,7 +84,7 @@ PYTHON_BRIDGE_BUNDLE = "org.cohorte.pyboot"
 PYTHON_JAVA_BRIDGE_INTERFACE = "org.cohorte.pyboot.api.IPyBridge"
 """ Interface of the Python - Java bridge """
 
-HERALD_EVENT_BUNDLE_API = "org.cohorte.herald.eventapi"
+HERALD_BUNDLE_API = "org.cohorte.herald.api"
 """ Name of the bundle and package which contain the Herald Event API """
 
 HERALD_EVENT_INTERFACE = "org.cohorte.herald.eventapi.IEvent"
@@ -459,10 +457,10 @@ class JavaOsgiLoader(object):
             # Prepare the "extra system package" framework property
             if extra_packages:
                 new_extra_packages = "{0}; version=1.0.0, {1}; version=1.0.0,{2}".format(
-                    PYTHON_BRIDGE_BUNDLE_API, HERALD_EVENT_BUNDLE_API, extra_packages)
+                    PYTHON_BRIDGE_BUNDLE_API, HERALD_BUNDLE_API, extra_packages)
             else:
                 new_extra_packages = "{0}; version=1.0.0, {1}; version=1.0.0".format(
-                    PYTHON_BRIDGE_BUNDLE_API, HERALD_EVENT_BUNDLE_API)
+                    PYTHON_BRIDGE_BUNDLE_API, HERALD_BUNDLE_API)
         else:
             if extra_packages:
                 new_extra_packages = "{0}".format(extra_packages)
@@ -637,7 +635,7 @@ class JavaOsgiLoader(object):
 
         # Find the Herald API JAR file
         herald_event_jar = self._repository.get_artifact(
-            HERALD_EVENT_BUNDLE_API)
+            HERALD_BUNDLE_API)
         if herald_event_jar:
             # Add the bundle to the class path...
             classpath.append(herald_event_jar.file)
