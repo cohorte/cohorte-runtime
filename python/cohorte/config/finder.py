@@ -27,21 +27,21 @@ COHORTE file finder
 """
 
 # Python standard library
-import cohorte
 import fnmatch
 import glob
 import logging
 import os
+
+import cohorte.version
 from pelix.ipopo.decorators import ComponentFactory, Instantiate, Provides, \
     Validate, Invalidate
+
 
 # iPOPO decorators
 # COHORTE constants
 # ------------------------------------------------------------------------------
-
 # Bundle version
-import cohorte.version
-__version__=cohorte.version.__version__
+__version__ = cohorte.version.__version__
 
 # ------------------------------------------------------------------------------
 
@@ -115,7 +115,9 @@ class FileFinderAbs(object):
 
         # Look into root directories
         for root_dir in self._gen_roots():
+            _logger.debug("_internal_find : root_dir=[{0}]".format(root_dir))
             path = os.path.realpath(os.path.join(root_dir, filename))
+            _logger.debug("_internal_find : path=[{0}]".format(path))
             paths = glob.iglob(path)
 
             for real_path in paths:
@@ -128,7 +130,7 @@ class FileFinderAbs(object):
 
     # call from java only
     def _set_roots(self, roots):
-        pass
+        self._roots = roots
 
     def find_rel(self, filename, base_file=None):
         """
