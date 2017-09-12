@@ -29,6 +29,7 @@
 		<module>../../../boot/org.cohorte.pyboot.shell.agent</module>
 		<module>../../../boot/org.psem2m.isolates.base</module>
 		<module>../../../boot/org.psem2m.isolates.constants</module>
+		<module>../../../boot/org.cohorte.slf4j-OCIL</module>
 
 		<module>../../../composer/org.cohorte.composer.api</module>
 		<module>../../../composer/org.cohorte.composer.isolate</module>

@@ -36,6 +36,11 @@
 		</dependency>
 		<dependency>
 			<groupId>org.cohorte.runtime</groupId>
+			<artifactId>org.cohorte.slf4j-OCIL</artifactId>
+			<version>${project.version}</version>		
+		</dependency>
+		<dependency>
+			<groupId>org.cohorte.runtime</groupId>
 			<artifactId>org.psem2m.isolates.base</artifactId>
 			<version>${project.version}</version>		
 		</dependency>
