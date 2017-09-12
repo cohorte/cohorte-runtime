@@ -18,6 +18,7 @@ package org.psem2m.isolates.loggers.impl;
 
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import org.osgi.framework.BundleException;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
@@ -95,6 +96,16 @@ public class CLogChannelSvc extends CPojoBase implements ILogChannelSvc {
 	@Override
 	public String getId() {
 		return pChannelName;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.utilities.logging.IActivityLogger#getJulLogger()
+	 */
+	@Override
+	public Logger getJulLogger() {
+		return pLogger.getJulLogger();
 	}
 
 	/*

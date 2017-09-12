@@ -16,13 +16,13 @@
 
 package org.psem2m.isolates.loggers;
 
-import org.psem2m.utilities.logging.IActivityLogger;
+import org.psem2m.utilities.logging.IActivityLoggerJul;
 
 /**
  * @author isandlatech (www.isandlatech.com) - ogattaz
  *
  */
-public interface ILogChannelSvc extends IActivityLogger {
+public interface ILogChannelSvc extends IActivityLoggerJul {
 
 	String getId();
 
