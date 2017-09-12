@@ -52,11 +52,9 @@ from herald.beans import Message
 
 # ------------------------------------------------------------------------------
 
-# Documentation strings format
-__docformat__ = "restructuredtext en"
-
-# Boot module version
-__version__ = "1.0.1"
+# Bundle version
+import cohorte.version
+__version__=cohorte.version.__version__
 
 # ------------------------------------------------------------------------------
 
