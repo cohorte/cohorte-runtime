@@ -1,0 +1,55 @@
+Manifest-Version: 1.0
+Bundle-Activator: org.cohorte.isolates.slf4j_ocil.Activator
+Bundle-ManifestVersion: 2
+Bundle-Name: Slf4j-OCIL
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-SymbolicName: org.cohorte.slf4j-OCIL
+Bundle-Vendor: COHORTE
+Bundle-Version: 1.0.0.qualifier
+Created-By: iPOJO 1.12.1
+Export-Package: org.cohorte.isolates.slf4j_ocil,org.slf4j.impl;version
+ ="1.6.0"
+Import-Package: org.apache.felix.ipojo;version="[1.12.1,2.0.0)", org.a
+ pache.felix.ipojo.architecture;version="[1.12.1,2.0.0)", org.osgi.fra
+ mework;version=1.3.0, org.osgi.service.cm;version=1.2, org.osgi.servi
+ ce.log;version=1.3, org.psem2m.utilities.logging, org.slf4j;version=1
+ .7.25, org.slf4j.event;version=1.7.25, org.slf4j.helpers;version=1.7.
+ 25, org.slf4j.spi;version=1.7.25
+iPOJO-Components: instance { $name="cohorte-isolate-slf4j-ocil" $compo
+ nent="cohorte-isolate-slf4j-ocil-factory" }component { $name="cohorte
+ -isolate-slf4j-ocil-factory" $factory-method="getSingleton" $classnam
+ e="org.slf4j.impl.CCpntOcilLoggerFactory" provides { $specifications=
+ "{org.cohorte.isolates.slf4j_ocil.IOcilManager}" }requires { $field="
+ pActivityLogger" $filter="(julname=org.chohorte.isolate.logger.svc)" 
+ }callback { $transition="invalidate" $method="invalidate" }callback {
+  $transition="validate" $method="validate" }manipulation { $classname
+ ="org.slf4j.impl.CCpntOcilLoggerFactory" interface { $name="org.slf4j
+ .ILoggerFactory" }interface { $name="org.cohorte.isolates.slf4j_ocil.
+ IOcilManager" }field { $name="pActivityLogger" $type="org.psem2m.util
+ ities.logging.IActivityLoggerJul" }field { $name="pOcilLoggerMap" $ty
+ pe="java.util.concurrent.ConcurrentMap" }field { $name="pParentJulLog
+ ger" $type="java.util.logging.Logger" }method { $name="getSingleton" 
+ $return="org.slf4j.impl.CCpntOcilLoggerFactory" }method { $name="addD
+ umpCurrentLoggersInSB" $return="java.lang.StringBuilder" $arguments="
+ {java.lang.StringBuilder}" $names="{aSB}" }method { $name="dumpCurren
+ tLoggers" $return="java.lang.String" }method { $name="filterLogger" $
+ return="boolean" $arguments="{org.slf4j.Logger,java.lang.String}" $na
+ mes="{aLogger,aFilter}" }method { $name="formatOneLogger" $return="ja
+ va.lang.String" $arguments="{org.slf4j.impl.COcilLoggerAdapter}" $nam
+ es="{aOcilLoggerAdapter}" }method { $name="getLevelOfLogger" $return=
+ "java.lang.String" $arguments="{org.slf4j.Logger}" $names="{aLogger}"
+  }method { $name="getLogger" $return="org.slf4j.Logger" $arguments="{
+ java.lang.String}" $names="{name}" }method { $name="getOcilLoggerMap"
+  $return="java.util.Map" }method { $name="getParentJulLogger" $return
+ ="java.util.logging.Logger" }method { $name="invalidate" }method { $n
+ ame="setLevel" $return="int" $arguments="{java.util.logging.Level}" $
+ names="{aJulLevel}" }method { $name="setLevel" $return="int" $argumen
+ ts="{java.util.logging.Level,java.lang.String}" $names="{aJulLevel,aL
+ oggerNameFilter}" }method { $name="setParentJulLogger" $arguments="{j
+ ava.util.logging.Logger}" $names="{aJulLogger}" }method { $name="swit
+ chParentJulLogger" $return="int" }method { $name="switchParentJulLogg
+ er" $return="int" $arguments="{java.util.logging.Logger}" $names="{aP
+ arentJulLogger}" }method { $name="switchParentJulLogger" $return="int
+ " $arguments="{java.util.logging.Logger,java.lang.String}" $names="{a
+ ParentJulLogger,aLoggerNameFilter}" }method { $name="validate" }}}
+
