@@ -16,12 +16,25 @@
 
 package org.psem2m.isolates.base;
 
-import org.psem2m.utilities.logging.IActivityLogger;
+import org.psem2m.utilities.logging.IActivityLoggerJul;
 
 /**
- * @author isandlatech (www.isandlatech.com) - ogattaz
+ * @author ogattaz
  *
  */
-public interface IIsolateLoggerSvc extends IActivityLogger {
+public interface IIsolateLoggerSvc extends IActivityLoggerJul {
+
+	/**
+	 * MOD_OG_1.0.14
+	 *
+	 * ATTENTION This name is used in the bundle "org.cohorte.slf4j-OCIL"
+	 *
+	 * <pre>
+	 * @Requires(filter="(julname=org.chohorte.isolate.logger.sv)")
+	 * </pre>
+	 *
+	 * @see org.slf4j.impl.CCpntOcilLoggerFactory
+	 */
+	String ISOLATE_LOGGER_NAME = "org.chohorte.isolate.logger.svc";
 
 }

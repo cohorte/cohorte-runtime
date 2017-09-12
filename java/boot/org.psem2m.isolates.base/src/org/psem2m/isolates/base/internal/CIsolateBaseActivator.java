@@ -24,10 +24,12 @@ import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.apache.felix.ipojo.annotations.Component;
 import org.apache.felix.ipojo.annotations.Instantiate;
 import org.apache.felix.ipojo.annotations.Provides;
+import org.cohorte.remote.IRemoteServicesConstants;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -49,13 +51,15 @@ import org.psem2m.isolates.base.dirs.impl.CPlatformDirsSvc;
 import org.psem2m.isolates.constants.IPlatformProperties;
 import org.psem2m.isolates.services.dirs.IFileFinderSvc;
 import org.psem2m.isolates.services.dirs.IPlatformDirsSvc;
+import org.psem2m.utilities.CXDictionary;
 import org.psem2m.utilities.CXException;
 import org.psem2m.utilities.CXJvmUtils;
 import org.psem2m.utilities.CXOSUtils;
-import org.psem2m.utilities.CXObjectBase;
+import org.psem2m.utilities.CXStringUtils;
+import org.psem2m.utilities.IXDescriber;
 import org.psem2m.utilities.logging.CActivityLoggerBasicConsole;
-import org.psem2m.utilities.logging.IActivityLogger;
 import org.psem2m.utilities.logging.IActivityLoggerBase;
+import org.psem2m.utilities.logging.IActivityLoggerJul;
 
 /**
  * This is the activator of the bundle "org.psem2m.isolates.base". This bundle
@@ -96,8 +100,8 @@ import org.psem2m.utilities.logging.IActivityLoggerBase;
 @Component(name = "cohorte-isolate-base-activator-factory", factoryMethod = "getSingleton")
 @Instantiate(name = "cohorte-isolate-base-activator")
 @Provides(specifications = { IIsolateBaseActivator.class })
-public class CIsolateBaseActivator extends CXObjectBase implements
-		BundleActivator, IIsolateBaseActivator {
+public class CIsolateBaseActivator implements BundleActivator,
+		IIsolateBaseActivator, IXDescriber {
 
 	/**
 	 * Service Infos bean
@@ -144,9 +148,12 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 	public static final int LOG_FILES_SIZE = 10 * 1024 * 1024;
 
 	private static final String SERVICE_SCOPE = "service.scope";
+
 	private static final String SINGLETON = "singleton";
 
 	private static CIsolateBaseActivator sMe;
+
+	private static final String UNKNOWN_ISOLATE_NAME = "UnknownIsolate";
 
 	/**
 	 * @return
@@ -156,7 +163,7 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 	}
 
 	/** Log instance underlying logger */
-	private IActivityLogger pActivityLogger;
+	private IActivityLoggerJul pActivityLogger;
 
 	/** The bundle context */
 	private BundleContext pBundleContext;
@@ -189,12 +196,6 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 	private ServiceListener pRegistrationListener = null;
 
 	/**
-	 *
-	 */
-
-	private final String UNKNOWN_ISOLATE_NAME = "UnknownIsolate";
-
-	/**
 	 * do nothing ! This Activator is instanciated by the Osgi framework, the
 	 * first metod to be called is the method "start()"
 	 */
@@ -202,6 +203,29 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 
 		super();
 		sMe = this;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * org.psem2m.utilities.IXDescriber#addDescriptionInBuffer(java.lang.Appendable
+	 * )
+	 */
+	@Override
+	public Appendable addDescriptionInBuffer(Appendable aBuffer) {
+
+		CXStringUtils.appendKeyValInBuff(aBuffer, "hasIsolateLoggerChannel",
+				this.hasIsolateLoggerChannel());
+		CXStringUtils.appendKeyValInBuff(aBuffer, "hasIsolateLoggerSvc",
+				hasIsolateLoggerSvc());
+		CXStringUtils.appendKeyValInBuff(aBuffer, "hasLogInternal",
+				hasLogInternal());
+		if (hasLogInternal()) {
+			CXStringUtils.appendKeyValInBuff(aBuffer, "LogInternalSize",
+					pLogInternal.size());
+		}
+		return aBuffer;
 	}
 
 	/**
@@ -253,7 +277,7 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.psem2m.isolates.base.IIsolateBaseActivator#getIsolateLoggerChannel()
 	 */
@@ -287,7 +311,7 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 	 * @throws Exception
 	 *             An error occurred while preparing the logger
 	 */
-	protected IActivityLogger getLogger() {
+	protected IActivityLoggerJul getLogger() {
 
 		// if no logger already created
 		if (pActivityLogger == null) {
@@ -367,7 +391,7 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.psem2m.isolates.base.IIsolateBaseActivator#hasIsolateLoggerChannel()
 	 */
@@ -383,6 +407,13 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 	public boolean hasIsolateLoggerSvc() {
 
 		return pIsolateLoggerSvc != null;
+	}
+
+	/**
+	 * @return
+	 */
+	public boolean hasLogInternal() {
+		return this.pLogInternal != null;
 	}
 
 	/**
@@ -426,9 +457,9 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 
 			File wLogStorageDir = wPlatformDirsSvc.getIsolateLogDir();
 
-			// the name of the logger
-			final String wLoggerName = String.format("cohorte.isolate.%s.%s",
-					wIsolateName, wPlatformDirsSvc.getIsolateUID());
+			// the name of the JUL is a default one ( one per isolate, one per
+			// jvm)
+			final String wLoggerName = IIsolateLoggerSvc.ISOLATE_LOGGER_NAME;
 
 			addLineInReport(wReport, "The name of the logger : [%s]",
 					wLoggerName);
@@ -493,6 +524,7 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 
 		} catch (final Exception e) {
 			pActivityLogger = CActivityLoggerBasicConsole.getInstance();
+			pActivityLogger.getJulLogger().setLevel(Level.ALL);
 
 			addLineInReport(wReport,
 					"ERROR: Can't instanciate a CIsolateLoggerChannel : %s",
@@ -506,7 +538,9 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 	}
 
 	/**
-	 * log the registration of a service in the logger of the isolate
+	 * MOD_OG_1.0.14
+	 *
+	 * Logs the registration of a service in the logger of the isolate
 	 *
 	 * @param aName
 	 * @param aService
@@ -514,10 +548,25 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 	 */
 	private void logServiceRegistration(final String aServiceName,
 			final Object aServiceImpl) {
+		logServiceRegistration(aServiceName, aServiceImpl, null);
+	}
+
+	/**
+	 * MOD_OG_1.0.14
+	 *
+	 * Logs the registration of a service in the logger of the isolate
+	 *
+	 * @param aServiceName
+	 * @param aServiceImpl
+	 * @param aProps
+	 */
+	private void logServiceRegistration(final String aServiceName,
+			final Object aServiceImpl, final Dictionary<String, Object> aProps) {
 
 		getLogger().logInfo(this, "logServiceRegistration",
-				"Service=[%s] Implem.=[%s] Registered", aServiceName,
-				aServiceImpl);
+				"Service=[%s] Implem.=[%s] Registered %s", aServiceName,
+				aServiceImpl,
+				(aProps != null) ? CXDictionary.toString(aProps) : "");
 
 	}
 
@@ -569,7 +618,7 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 
 				switch (aServiceEvent.getType()) {
 				case ServiceEvent.REGISTERED: {
-					Object wServiceImpl = aBundleContext
+					final Object wServiceImpl = aBundleContext
 							.getService(wServiceReference);
 					logServiceRegistration(wServiceClass, wServiceImpl);
 					break;
@@ -601,7 +650,7 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 	 */
 	private <S> void registerOneService(final BundleContext aBundleContext,
 			final Class<S> aServiceInterface, final S aService,
-			final Dictionary<String, ?> aProps) {
+			final Dictionary<String, Object> aProps) {
 
 		try {
 			final ServiceRegistration<S> registration = aBundleContext
@@ -609,7 +658,8 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 			pRegisteredServicesInfos.add(new CServiceInfos(registration,
 					aServiceInterface.getName()));
 
-			logServiceRegistration(aServiceInterface.getName(), aService);
+			logServiceRegistration(aServiceInterface.getName(), aService,
+					aProps);
 
 		} catch (final Exception e) {
 
@@ -666,7 +716,7 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
 	 * )
@@ -704,12 +754,16 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 		 *      #SERVICE_RANKING
 		 */
 
-		Dictionary<String, Object> wProps = new Hashtable<String, Object>();
+		final Dictionary<String, Object> wProps = new Hashtable<String, Object>();
 		wProps.put(SERVICE_DESCRIPTION, "cohorte");
 		// the default service
 		wProps.put(SERVICE_RANKING, Integer.MAX_VALUE);
 		// service.scope = singleton – single instance used by all bundles
 		wProps.put(SERVICE_SCOPE, SINGLETON);
+
+		// MOD_OG 1.0.14 - The "pelix.remote.export.reject" property to limit
+		// the remote export of the service
+		wProps.put(IRemoteServicesConstants.PROP_EXPORT_REJECT, true);
 
 		// Register THE platform directories service
 		registerOneService(aBundleContext, IPlatformDirsSvc.class,
@@ -741,15 +795,41 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 							e);
 		}
 		try {
+			// MOD_OG 1.0.14
+			final IIsolateLoggerSvc wIsolateLogger = getIsolateLoggerSvc();
+
 			/*
-			 * Register THE service IIsolateLoggerSvc.
-			 *
+			 * Register THE isolate logger service as IIsolateLoggerSvc.
+			 * 
 			 * Note: the CIsolateLoggerSvc instance wrapps the
 			 * IsolateLoggerChannel created during the first call to the method
 			 * "getLogger()" at the begining of the method start().
 			 */
 			registerOneService(aBundleContext, IIsolateLoggerSvc.class,
-					getIsolateLoggerSvc(), wProps);
+					wIsolateLogger, wProps);
+
+			/*
+			 * MOD_OG 1.0.14
+			 *
+			 * Register THE isolate logger service as
+			 * IActivityLoggerJul("julname"="org.chohorte.isolate.logger.svc")
+			 *
+			 * ATTENTION This name of the property "julname" is used in the
+			 * bundle "org.cohorte.slf4j-OCIL"
+			 *
+			 * <pre>
+			 *
+			 * @Requires(filter="(julname=org.chohorte.isolate.logger.sv)")
+			 * </pre>
+			 *
+			 * @see org.slf4j.impl.CCpntOcilLoggerFactory
+			 */
+			final Dictionary<String, Object> wPropsBis = CXDictionary
+					.cloneDictionary(wProps);
+			wPropsBis.put("julname", IIsolateLoggerSvc.ISOLATE_LOGGER_NAME);
+			registerOneService(aBundleContext, IActivityLoggerJul.class,
+					wIsolateLogger, wPropsBis);
+
 		} catch (final Exception e) {
 			getLogger()
 					.logSevere(
@@ -774,7 +854,14 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
+	 * @see
+	 * org.psem2m.utilities.IXDescriber#addDescriptionInBuffer(java.lang.Appendable
+	 * )
+	 */
+	/*
+	 * (non-Javadoc)
+	 *
 	 * @see
 	 * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
 	 */
@@ -809,5 +896,15 @@ public class CIsolateBaseActivator extends CXObjectBase implements
 		System.out.printf("%50s | Bundle=[%50s] stopped\n",
 				"CBundleBaseActivator.stop()", aBundleContext.getBundle()
 						.getSymbolicName());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see org.psem2m.utilities.IXDescriber#toDescription()
+	 */
+	@Override
+	public String toDescription() {
+		return addDescriptionInBuffer(new StringBuilder()).toString();
 	}
 }

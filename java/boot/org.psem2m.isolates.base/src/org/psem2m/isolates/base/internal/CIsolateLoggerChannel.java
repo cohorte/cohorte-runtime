@@ -50,6 +50,14 @@ public class CIsolateLoggerChannel extends CActivityLoggerBasic {
 		open();
 	}
 
+	/**
+	 * @return
+	 */
+	private String getJulParentName() {
+		final String wParentName = getJulLogger().getParent().getName();
+		return (wParentName.isEmpty()) ? "root" : wParentName;
+	}
+
 	@Override
 	protected void initFileHandler() throws Exception {
 
@@ -65,7 +73,9 @@ public class CIsolateLoggerChannel extends CActivityLoggerBasic {
 	 * 	{
 	 *   "nbfiles": 1,
 	 *   "level": "ALL",
-	 *   "name": "cohorte.isolate.iotagregator.IOTA-GREG-ATOR-ISOL-1+4",
+	 *   "name": "org.cohorte.isolate.logger.svc",
+	 *   "parent": "root",
+	 *   "useparenthandlers": false,
 	 *   "pattern": "/Users/ogattaz/workspaces/Cohorte_IoT_Pack_git/server/cohorte-base/log/Log-iotagregator-%g.txt",
 	 *   "count": 10,
 	 *   "limit": 10485760,
@@ -82,28 +92,30 @@ public class CIsolateLoggerChannel extends CActivityLoggerBasic {
 	 */
 	public JSONObject toJson() throws JSONException {
 
-		JSONObject wInfos = new JSONObject();
+		final JSONObject wInfos = new JSONObject();
 
 		wInfos.put("name", getLoggerName());
 		wInfos.put("level", getLevel().getName());
+		wInfos.put("parent", getJulParentName());
+		wInfos.put("useparenthandlers", getJulLogger().getUseParentHandlers());
 		wInfos.put("pattern", getFilePathPattern());
 		wInfos.put("count", getFileCount());
 		wInfos.put("limit", getFileLimit());
 
-		int wNbFile = getFileHandler().getExistingFileNames().size();
+		final int wNbFile = getFileHandler().getExistingFileNames().size();
 		wInfos.put("nbfiles", wNbFile);
 
-		JSONArray wFiles = new JSONArray();
+		final JSONArray wFiles = new JSONArray();
 		wInfos.put("files", wFiles);
 
-		for (CActivityFileText wActivityFileText : this.getFileHandler()
+		for (final CActivityFileText wActivityFileText : this.getFileHandler()
 				.getExistingFiles()) {
 
-			JSONObject wFile = new JSONObject();
+			final JSONObject wFile = new JSONObject();
 			wFiles.put(wFile);
 			wFile.put("path", wActivityFileText.getAbsolutePath());
 
-			String wLastModified = CXDateTime
+			final String wLastModified = CXDateTime
 					.getIso8601TimeStamp(wActivityFileText.lastModified());
 			wFile.put("lastmodified", wLastModified);
 			wFile.put("size", wActivityFileText.size());
@@ -127,10 +139,15 @@ public class CIsolateLoggerChannel extends CActivityLoggerBasic {
 	@Override
 	public String toString() {
 
-		StringBuilder wSB = new StringBuilder();
+		final StringBuilder wSB = new StringBuilder();
 		wSB.append(String.format("LoggerName=[%s]", getLoggerName()));
 		wSB.append('\n');
 		wSB.append(String.format("CurrentLevel=[%s]", getLevel().getName()));
+		wSB.append('\n');
+		wSB.append(String.format("Parent=[%s]", getJulParentName()));
+		wSB.append('\n');
+		wSB.append(String.format("UseParentHandlers=[%s]", getJulLogger()
+				.getUseParentHandlers()));
 		wSB.append('\n');
 		wSB.append(String.format("FilePathPattern=[%s]", getFilePathPattern()));
 		wSB.append('\n');
@@ -138,13 +155,13 @@ public class CIsolateLoggerChannel extends CActivityLoggerBasic {
 		wSB.append('\n');
 		wSB.append(String.format("FileSizeLimit=[%s]", getFileLimit()));
 
-		int wNbFile = this.getFileHandler().getExistingFileNames().size();
+		final int wNbFile = this.getFileHandler().getExistingFileNames().size();
 		wSB.append('\n');
 		wSB.append(String.format("NbExistingFiles=[%s]", wNbFile));
-		int wIdx = 0;
-		for (CActivityFileText wActivityFileText : this.getFileHandler()
+		final int wIdx = 0;
+		for (final CActivityFileText wActivityFileText : this.getFileHandler()
 				.getExistingFiles()) {
-			String wLastModified = CXDateTime
+			final String wLastModified = CXDateTime
 					.getIso8601TimeStamp(wActivityFileText.lastModified());
 
 			wSB.append('\n').append(
