@@ -83,10 +83,16 @@ public class CCpntOcilLoggerFactory implements ILoggerFactory, IOcilManager {
 	@Requires(filter = "(julname=org.chohorte.isolate.logger.svc)")
 	private IActivityLoggerJul pActivityLogger = null;
 
+	private java.util.logging.Logger pGlobalParentJulLogger;
+
+	/**
+	 * map that associate filter to loggerJul in order to automatically assign
+	 * the right logger while a new slf4j logger is created
+	 */
+	private final Map<String, java.util.logging.Logger> pMapFilterParentLogger = new ConcurrentHashMap<String, java.util.logging.Logger>();
+
 	// key: name (String), value: a JDK14LoggerAdapter;
 	private final ConcurrentMap<String, COcilLoggerAdapter> pOcilLoggerMap = new ConcurrentHashMap<String, COcilLoggerAdapter>();
-
-	private java.util.logging.Logger pParentJulLogger;
 
 	/**
 	 *
@@ -96,7 +102,7 @@ public class CCpntOcilLoggerFactory implements ILoggerFactory, IOcilManager {
 		// ensure jul initialization. see SLF4J-359
 		// note that call to java.util.logging.LogManager.getLogManager() fails
 		// on the Google App Engine platform. See SLF4J-363
-		pParentJulLogger = java.util.logging.Logger.getLogger("");
+		pGlobalParentJulLogger = java.util.logging.Logger.getLogger("");
 
 		pActivityLogger = CActivityLoggerBasicConsole.getInstance();
 
@@ -150,26 +156,25 @@ public class CCpntOcilLoggerFactory implements ILoggerFactory, IOcilManager {
 	}
 
 	/**
-	 * map that associate filter to loggerJul in order to automatically assign 
-	 * the right logger while a new slf4j logger is created
-	 */
-	private Map<String,java.util.logging.Logger> pMapFilterParentLogger = new ConcurrentHashMap<String, java.util.logging.Logger>();
-	
-	/**
 	 * @param aLogger
 	 * @param aFilter
 	 * @return
 	 */
 	private boolean filterLogger(final Logger aLogger, final String aFilter) {
+		return filterLoggerName(aLogger.getName(), aFilter);
+	}
+
+	private boolean filterLoggerName(final String aLoggerName,
+			final String aFilter) {
 		if (aFilter == null || aFilter.isEmpty()) {
 			return true;
 		}
 		if (aFilter.endsWith("*")) {
 			final String wFilterPrefix = aFilter.substring(0,
 					aFilter.length() - 2);
-			return aLogger.getName().startsWith(wFilterPrefix);
+			return aLoggerName.startsWith(wFilterPrefix);
 		}
-		return aLogger.getName().equals(aFilter);
+		return aLoggerName.equals(aFilter);
 	}
 
 	/**
@@ -228,19 +233,21 @@ public class CCpntOcilLoggerFactory implements ILoggerFactory, IOcilManager {
 			final java.util.logging.Logger wJulLogger = java.util.logging.Logger
 					.getLogger(name);
 
-			// if the filter is already defined and assign by a switch we assign the correct parent julLogger 
-			Optional<String> wOptKey = pMapFilterParentLogger.keySet().stream().filter(wKey->{
-				if( wKey.endsWith("*") ){
-					return wLogName.startsWith(wKey.substring(0,wKey.length()-1));
-				}else{
-					return wLogName!= null && wLogName.equals(wKey);
-				}
-			}).findFirst();
-			
-			if( wOptKey.get() != null ){
+			// if the filter is already defined and assign by a switch we assign
+			// the correct parent julLogger
+			Optional<String> wOptKey = pMapFilterParentLogger.keySet().stream()
+					.filter(wKey -> {
+						return filterLoggerName(wLogName, wKey);
+					}).findFirst();
+
+			if (wOptKey.isPresent()) {
+				pActivityLogger
+						.logInfo(this, "getLogger",
+								"set parent logger matching filter [%s]",
+								wOptKey.get());
 				wJulLogger.setParent(pMapFilterParentLogger.get(wOptKey.get()));
-			}else{
-				wJulLogger.setParent(pParentJulLogger);
+			} else {
+				wJulLogger.setParent(pGlobalParentJulLogger);
 			}
 
 			final COcilLoggerAdapter newInstance = new COcilLoggerAdapter(name,
@@ -275,7 +282,7 @@ public class CCpntOcilLoggerFactory implements ILoggerFactory, IOcilManager {
 	 */
 	@Override
 	public java.util.logging.Logger getParentJulLogger() {
-		return pParentJulLogger;
+		return pGlobalParentJulLogger;
 	}
 
 	@Invalidate
@@ -339,9 +346,9 @@ public class CCpntOcilLoggerFactory implements ILoggerFactory, IOcilManager {
 	 */
 	@Override
 	public void setParentJulLogger(final java.util.logging.Logger aJulLogger) {
-		pParentJulLogger = aJulLogger;
+		pGlobalParentJulLogger = aJulLogger;
 
-		switchParentJulLogger(pParentJulLogger, NO_LOGGER_NAME_FILTER);
+		switchParentJulLogger(pGlobalParentJulLogger, NO_LOGGER_NAME_FILTER);
 	}
 
 	/*
@@ -380,14 +387,16 @@ public class CCpntOcilLoggerFactory implements ILoggerFactory, IOcilManager {
 			final String aLoggerNameFilter) {
 
 		int wNbSwitch = 0;
-		
-		pMapFilterParentLogger.put(aLoggerNameFilter, aParentJulLogger);
-
+		if (aLoggerNameFilter != null) {
+			pMapFilterParentLogger.put(aLoggerNameFilter, aParentJulLogger);
+		}
 		for (final Entry<String, COcilLoggerAdapter> wEntry : pOcilLoggerMap
 				.entrySet()) {
 			if (filterLogger(wEntry.getValue(), aLoggerNameFilter)) {
 				final COcilLoggerAdapter wOcilLogger = wEntry.getValue();
-				pActivityLogger.logInfo(this, "switchParentJulLogger", "switch COcilLoggerAdapter %s to loggerJul %s",wOcilLogger,aParentJulLogger);
+				pActivityLogger.logInfo(this, "switchParentJulLogger",
+						"switch COcilLoggerAdapter %s to loggerJul %s",
+						wOcilLogger, aParentJulLogger);
 				wOcilLogger.setParentJulLogger(aParentJulLogger);
 				wNbSwitch++;
 			}

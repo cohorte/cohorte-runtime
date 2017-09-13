@@ -26,30 +26,33 @@ iPOJO-Components: instance { $name="cohorte-isolate-slf4j-ocil" $compo
  ="org.slf4j.impl.CCpntOcilLoggerFactory" interface { $name="org.slf4j
  .ILoggerFactory" }interface { $name="org.cohorte.isolates.slf4j_ocil.
  IOcilManager" }field { $name="pActivityLogger" $type="org.psem2m.util
- ities.logging.IActivityLoggerJul" }field { $name="pOcilLoggerMap" $ty
- pe="java.util.concurrent.ConcurrentMap" }field { $name="pParentJulLog
- ger" $type="java.util.logging.Logger" }method { $name="getSingleton" 
- $return="org.slf4j.impl.CCpntOcilLoggerFactory" }method { $name="addD
- umpCurrentLoggersInSB" $return="java.lang.StringBuilder" $arguments="
- {java.lang.StringBuilder}" $names="{aSB}" }method { $name="dumpCurren
- tLoggers" $return="java.lang.String" }method { $name="filterLogger" $
- return="boolean" $arguments="{org.slf4j.Logger,java.lang.String}" $na
- mes="{aLogger,aFilter}" }method { $name="formatOneLogger" $return="ja
- va.lang.String" $arguments="{org.slf4j.impl.COcilLoggerAdapter}" $nam
- es="{aOcilLoggerAdapter}" }method { $name="getLevelOfLogger" $return=
- "java.lang.String" $arguments="{org.slf4j.Logger}" $names="{aLogger}"
-  }method { $name="getLogger" $return="org.slf4j.Logger" $arguments="{
- java.lang.String}" $names="{name}" }method { $name="getOcilLoggerMap"
-  $return="java.util.Map" }method { $name="getParentJulLogger" $return
- ="java.util.logging.Logger" }method { $name="invalidate" }method { $n
- ame="setLevel" $return="int" $arguments="{java.util.logging.Level}" $
- names="{aJulLevel}" }method { $name="setLevel" $return="int" $argumen
- ts="{java.util.logging.Level,java.lang.String}" $names="{aJulLevel,aL
- oggerNameFilter}" }method { $name="setParentJulLogger" $arguments="{j
- ava.util.logging.Logger}" $names="{aJulLogger}" }method { $name="swit
- chParentJulLogger" $return="int" }method { $name="switchParentJulLogg
- er" $return="int" $arguments="{java.util.logging.Logger}" $names="{aP
- arentJulLogger}" }method { $name="switchParentJulLogger" $return="int
- " $arguments="{java.util.logging.Logger,java.lang.String}" $names="{a
- ParentJulLogger,aLoggerNameFilter}" }method { $name="validate" }}}
+ ities.logging.IActivityLoggerJul" }field { $name="pGlobalParentJulLog
+ ger" $type="java.util.logging.Logger" }field { $name="pMapFilterParen
+ tLogger" $type="java.util.Map" }field { $name="pOcilLoggerMap" $type=
+ "java.util.concurrent.ConcurrentMap" }method { $name="getSingleton" $
+ return="org.slf4j.impl.CCpntOcilLoggerFactory" }method { $name="addDu
+ mpCurrentLoggersInSB" $return="java.lang.StringBuilder" $arguments="{
+ java.lang.StringBuilder}" $names="{aSB}" }method { $name="dumpCurrent
+ Loggers" $return="java.lang.String" }method { $name="filterLogger" $r
+ eturn="boolean" $arguments="{org.slf4j.Logger,java.lang.String}" $nam
+ es="{aLogger,aFilter}" }method { $name="filterLoggerName" $return="bo
+ olean" $arguments="{java.lang.String,java.lang.String}" $names="{aLog
+ gerName,aFilter}" }method { $name="formatOneLogger" $return="java.lan
+ g.String" $arguments="{org.slf4j.impl.COcilLoggerAdapter}" $names="{a
+ OcilLoggerAdapter}" }method { $name="getLevelOfLogger" $return="java.
+ lang.String" $arguments="{org.slf4j.Logger}" $names="{aLogger}" }meth
+ od { $name="getLogger" $return="org.slf4j.Logger" $arguments="{java.l
+ ang.String}" $names="{name}" }method { $name="getOcilLoggerMap" $retu
+ rn="java.util.Map" }method { $name="getParentJulLogger" $return="java
+ .util.logging.Logger" }method { $name="invalidate" }method { $name="s
+ etLevel" $return="int" $arguments="{java.util.logging.Level}" $names=
+ "{aJulLevel}" }method { $name="setLevel" $return="int" $arguments="{j
+ ava.util.logging.Level,java.lang.String}" $names="{aJulLevel,aLoggerN
+ ameFilter}" }method { $name="setParentJulLogger" $arguments="{java.ut
+ il.logging.Logger}" $names="{aJulLogger}" }method { $name="switchPare
+ ntJulLogger" $return="int" }method { $name="switchParentJulLogger" $r
+ eturn="int" $arguments="{java.util.logging.Logger}" $names="{aParentJ
+ ulLogger}" }method { $name="switchParentJulLogger" $return="int" $arg
+ uments="{java.util.logging.Logger,java.lang.String}" $names="{aParent
+ JulLogger,aLoggerNameFilter}" }method { $name="validate" }}}
 
