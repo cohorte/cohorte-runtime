@@ -504,11 +504,18 @@ class FileIncluderAbs(object):
                         for path in match_json:
                             _logger.debug("_revolveContent: $merge - subContentPath {0}".format(path))
                             # merge this json with the current one
+                            w_content = self._get_content(path, resource)
+                            if w_content!=None:
+                                _logger.debug("_revolveContent: $merge - subContentPath not null {0}".format(path))
 
-                            to_merges = json.loads("[" + self._get_content(path, resource) + "]")
-                            for to_merge in to_merges:
-                                resolved_content = common.merge_object(resolved_content, to_merge)
+                                to_merges = json.loads("[" +w_content + "]")
+                                for to_merge in to_merges:
+                                    resolved_content = common.merge_object(resolved_content, to_merge)
+                            else:
+                                 _logger.debug("_revolveContent: $merge - subContentPath not null {0}".format(path))
+
                         resolved_content = json.dumps(resolved_content)
+
                         # replace match by list of subcontent
                 resolved_contents.append(resolved_content);
 
