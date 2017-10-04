@@ -26,18 +26,17 @@ Top Composer: Group by configuration
 """
 
 # iPOPO Decorators
+import cohorte
+import cohorte.composer
+import cohorte.version
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
     Instantiate
 
+
 # Composer
-import cohorte
-import cohorte.composer
-
 # ------------------------------------------------------------------------------
-
 # Bundle version
-import cohorte.version
-__version__=cohorte.version.__version__
+__version__ = cohorte.version.__version__
 
 # ------------------------------------------------------------------------------
 
@@ -68,13 +67,19 @@ class ConfigurationCriterion(object):
             # Read the configuration, without logging file errors
             config = self._configuration.read("{0}.js".format(isolate_name),
                                               False)
-
+           
             # Return the indicated node
             return config.get('node')
 
         except IOError:
-            # Ignore I/O error: the isolate has no specific configuration
-            pass
+            # Ignore I/O error: the isolate has no specific configuration   
+            try:
+                config = self._configuration.read("isolate_{0}.js".format(isolate_name),
+                                                  False)
+                # Return the indicated node
+                return config.get('node')
+            except:
+                pass
 
     def group(self, components, groups):
         """

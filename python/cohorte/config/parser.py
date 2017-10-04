@@ -363,18 +363,16 @@ class BootConfigParser(object):
         """
         # Load the isolate model file
         configuration = self.load_conf_raw(level, sublevel)
-
+        _logger.info("load isolate conf file {}.js".format(name))
         try:
             # Try to load the isolate-specific configuration
             # without logging "file not found" errors
             isolate_conf = self.read(name + ".js", False)
+           
         except IOError:
-            # Ignore I/O errors (file not found)
-            # Propagate ValueError (parsing errors)
-            # MOD AP if no myisolate.js we try isoalte_myisolate.js
             try:
                 isolate_conf = self.read("isolate_" + name + ".js", False)
-            except IOError:
+            except:
                 pass
             
         else:
