@@ -31,6 +31,7 @@ import uuid
 
 import cohorte
 import cohorte.config.common as common
+import cohorte.version
 from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
     Requires
 
@@ -38,10 +39,8 @@ from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
 # iPOPO Decorators
 # COHORTE constants
 # ------------------------------------------------------------------------------
-
 # Bundle version
-import cohorte.version
-__version__=cohorte.version.__version__
+__version__ = cohorte.version.__version__
 
 # ------------------------------------------------------------------------------
 
@@ -372,7 +371,12 @@ class BootConfigParser(object):
         except IOError:
             # Ignore I/O errors (file not found)
             # Propagate ValueError (parsing errors)
-            pass
+            # MOD AP if no myisolate.js we try isoalte_myisolate.js
+            try:
+                isolate_conf = self.read("isolate_" + name + ".js", False)
+            except IOError:
+                pass
+            
         else:
             # Merge the configurations: this method considers that the first
             # parameter has priority on the second
