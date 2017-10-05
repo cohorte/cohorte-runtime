@@ -375,7 +375,7 @@ class BootConfigParser(object):
             except:
                 pass
             
-        else:
+        if isolate_conf is not None:
             # Merge the configurations: this method considers that the first
             # parameter has priority on the second
             configuration = common.merge_object(isolate_conf,
