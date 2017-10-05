@@ -32,20 +32,21 @@ Modifications:
 """
 
 # Python standard library
-import cohorte
-import cohorte.repositories
 import logging
 import os
-import pelix.framework
-from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
-    Invalidate, Property, Requires
-import pelix.shell
 import sys
 import threading
 import time
 
+import cohorte
+import cohorte.repositories
+import cohorte.version
 import herald
 import jpype
+import pelix.framework
+from pelix.ipopo.decorators import ComponentFactory, Provides, Validate, \
+    Invalidate, Property, Requires
+import pelix.shell
 
 
 # iPOPO Decorators
@@ -53,10 +54,8 @@ import jpype
 # Herald
 # JPype (Java bridge)
 # ------------------------------------------------------------------------------
-
 # Bundle version
-import cohorte.version
-__version__=cohorte.version.__version__
+__version__ = cohorte.version.__version__
 
 # ------------------------------------------------------------------------------
 
@@ -505,7 +504,8 @@ class JavaOsgiLoader(object):
             # Prepare the JVM properties definitions
             for key, value in self._setup_vm_properties(properties).items():
                 java_args.append(self._java.make_jvm_property(key, value))
-
+                
+            _logger.info("java argument {}".format(java_args))
             self._java.start(None, *java_args)
         else:
             # Add the JAR to the class path
@@ -612,6 +612,8 @@ class JavaOsgiLoader(object):
         if not configuration:
             raise KeyError("A configuration is required to load a "
                            "Java OSGi isolate")
+            
+        _logger.debug("configuration {0}".format(configuration))
 
         # Parse the configuration (boot-like part) -> Might raise error
         java_config = self._config.load_boot_dict(configuration)
@@ -641,6 +643,7 @@ class JavaOsgiLoader(object):
             classpath.append(herald_event_jar.file)
         else:
             raise Exception("Herald Event API bundle is missing")
+
 
         # Start the JVM
         _logger.debug("Starting JVM...")
