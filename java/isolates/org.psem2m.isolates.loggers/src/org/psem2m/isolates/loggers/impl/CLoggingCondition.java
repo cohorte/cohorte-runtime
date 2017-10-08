@@ -27,7 +27,7 @@ import org.psem2m.utilities.json.JSONObject;
  *
  * <pre>
  * if (isLoggingConditionDebugOn(ISubSystemA.class){
- * 
+ *
  *     logActivityDebug(this, "myMethod", "My message with an arg [%s]", aArg);
  * }
  * </pre>
@@ -75,7 +75,7 @@ public class CLoggingCondition implements ILoggingCondition {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.psem2m.utilities.IXDescriber#addDescriptionInBuffer(java.lang.Appendable
 	 * )
@@ -116,7 +116,7 @@ public class CLoggingCondition implements ILoggingCondition {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.psem2m.isolates.loggers.ILoggingCondition#getLevel()
 	 */
 	@Override
@@ -126,7 +126,7 @@ public class CLoggingCondition implements ILoggingCondition {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.psem2m.isolates.loggers.ILoggingCondition#isOn(java.util.logging.
 	 * Level)
@@ -139,13 +139,13 @@ public class CLoggingCondition implements ILoggingCondition {
 		if (wCurrentLevel == Level.OFF) {
 			return false;
 		}
-
-		return wCurrentLevel.intValue() >= aLevel.intValue();
+		// eg FINE (500) <= INFO (800)
+		return wCurrentLevel.intValue() <= aLevel.intValue();
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see
 	 * org.psem2m.isolates.loggers.ILoggingCondition#setConditionLevel(java.
 	 * util.logging.Level)
@@ -165,7 +165,7 @@ public class CLoggingCondition implements ILoggingCondition {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.psem2m.utilities.IXDescriber#toDescription()
 	 */
 	@Override
@@ -175,7 +175,7 @@ public class CLoggingCondition implements ILoggingCondition {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.psem2m.isolates.loggers.ILoggingCondition#toJson()
 	 */
 	@Override
