@@ -205,69 +205,72 @@ iPOJO-Components: instance { $component="psem2m-loggers-channels-facto
  simulate" $return="java.lang.String" $arguments="{java.lang.String[]}
  " $names="{aArgs}" }method { $name="logCurrentChannelDescription" $ar
  guments="{java.lang.StringBuilder,org.psem2m.isolates.loggers.ILogCha
- nnelSvc}" $names="{aSB,aLogChannel}" }method { $name="randomWithRange
- " $return="int" $arguments="{int,int}" $names="{min,max}" }method { $
- name="setMemoChannelId" $arguments="{java.lang.String}" $names="{aMem
- oChannelId}" }method { $name="validate" }}}component { $name="psem2m-
- logging-condition-commands-Factory" $classname="org.psem2m.isolates.l
- oggers.shell.CCpntLoggingConditionCommands" provides { $specification
- s="{org.psem2m.isolates.loggers.shell.CCpntLoggingConditionCommands}"
-  property { $name="osgi.command.function" $field="pCommands" $value="
- {lcolist,lcoclean,lcofile,lcofiles,lconew,lcoremove}" }property { $na
- me="osgi.command.scope" $field="pScope" $value="logconditions" }}requ
- ires { $field="pLogger" }requires { $field="pLoggingConditions" }requ
- ires { $field="pLoggingConditionsManager" }requires { $field="pThread
- Context" }callback { $transition="invalidate" $method="invalidate" }c
- allback { $transition="validate" $method="validate" }manipulation { $
- classname="org.psem2m.isolates.loggers.shell.CCpntLoggingConditionCom
- mands" $super="org.psem2m.isolates.loggers.shell.CAbstractCommands" f
- ield { $name="pCommands" $type="java.lang.String[]" }field { $name="p
- Logger" $type="org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $
- name="pLoggingConditions" $type="org.psem2m.isolates.loggers.ILogging
- Conditions" }field { $name="pLoggingConditionsManager" $type="org.pse
- m2m.isolates.loggers.ILoggingConditionsManager" }field { $name="pMemo
- ConditionsId" $type="java.lang.String" }field { $name="pScope" $type=
- "java.lang.String" }field { $name="pThreadContext" $type="org.psem2m.
- isolates.loggers.shell.IThreadContext" }method { $name="checkConditio
- nsIdInArg0" $return="java.lang.String" $arguments="{java.lang.String[
- ]}" $names="{aArgs}" }method { $name="getMemoConditionsId" $return="j
- ava.lang.String" }method { $name="hasMemoConditionsId" $return="boole
- an" }method { $name="invalidate" }method { $name="lcoclean" $return="
- java.lang.String" $arguments="{java.lang.String[]}" $names="{aArgs}" 
- }method { $name="lcofile" $return="java.lang.String" $arguments="{jav
- a.lang.String[]}" $names="{aArgs}" }method { $name="lcofiles" $return
- ="java.lang.String" $arguments="{java.lang.String[]}" $names="{aArgs}
- " }method { $name="lcolist" $return="java.lang.String" $arguments="{j
- ava.lang.String[]}" $names="{aArgs}" }method { $name="lconew" $return
- ="java.lang.String" $arguments="{java.lang.String[]}" $names="{aArgs}
- " }method { $name="lcoremove" $return="java.lang.String" $arguments="
- {java.lang.String[]}" $names="{aArgs}" }method { $name="logCurrentCon
- ditionsDescription" $arguments="{java.lang.StringBuilder,org.psem2m.i
- solates.loggers.ILoggingConditions}" $names="{aSB,aLoggingConditions}
- " }method { $name="setMemoConditionsId" $arguments="{java.lang.String
- }" $names="{aMemoConditionsId}" }method { $name="validate" }}}compone
- nt { $name="psem2m-loggers-channels-commands-threadcontext-Factory" $
- classname="org.psem2m.isolates.loggers.shell.CCpntThreadContext" prov
- ides { $specifications="{org.psem2m.isolates.loggers.shell.IThreadCon
- text}" }requires { $field="pLogger" }requires { $field="pPlatformDirs
- Svc" }callback { $transition="validate" $method="validate" }manipulat
- ion { $classname="org.psem2m.isolates.loggers.shell.CCpntThreadContex
- t" interface { $name="org.psem2m.isolates.loggers.shell.IThreadContex
- t" }field { $name="pLogger" $type="org.psem2m.isolates.base.IIsolateL
- oggerSvc" }field { $name="pPlatformDirsSvc" $type="org.psem2m.isolate
- s.services.dirs.IPlatformDirsSvc" }method { $name="getDebugChannel" $
- return="org.psem2m.isolates.loggers.ILogChannelSvc" }method { $name="
- hasDebugChannel" $return="boolean" }method { $name="setDebugChannel" 
- $arguments="{org.psem2m.isolates.loggers.ILogChannelSvc}" $names="{aL
- ogChannelSvc}" }method { $name="validate" }}}component { $name="psem2
- m-loggers-channels-commands-simulator-Factory" $classname="org.psem2m
- .isolates.loggers.shell.CCpntThreadContextTester" provides { $specifi
- cations="{org.psem2m.isolates.loggers.shell.CCpntThreadContextTester}
- " }requires { $field="pLogger" }requires { $field="pThreadContext" }m
- anipulation { $classname="org.psem2m.isolates.loggers.shell.CCpntThre
- adContextTester" field { $name="pLogger" $type="org.psem2m.isolates.b
- ase.IIsolateLoggerSvc" }field { $name="pThreadContext" $type="org.pse
- m2m.isolates.loggers.shell.IThreadContext" }method { $name="myMethod"
-  }method { $name="retreiveLogger" $return="org.psem2m.utilities.loggi
- ng.IActivityLogger" }}}
+ nnelSvc}" $names="{aSB,aLogChannel}" }method { $name="logErrorInSB" $
+ arguments="{java.lang.StringBuilder,java.lang.Throwable}" $names="{aS
+ B,e}" }method { $name="randomWithRange" $return="int" $arguments="{in
+ t,int}" $names="{min,max}" }method { $name="setMemoChannelId" $argume
+ nts="{java.lang.String}" $names="{aMemoChannelId}" }method { $name="v
+ alidate" }}}component { $name="psem2m-logging-condition-commands-Fact
+ ory" $classname="org.psem2m.isolates.loggers.shell.CCpntLoggingCondit
+ ionCommands" provides { $specifications="{org.psem2m.isolates.loggers
+ .shell.CCpntLoggingConditionCommands}" property { $name="osgi.command
+ .function" $field="pCommands" $value="{lcolist,lcoclean,lcofile,lcofi
+ les,lconew,lcoremove}" }property { $name="osgi.command.scope" $field=
+ "pScope" $value="logconditions" }}requires { $field="pLogger" }requir
+ es { $field="pLoggingConditions" }requires { $field="pLoggingConditio
+ nsManager" }requires { $field="pThreadContext" }callback { $transitio
+ n="invalidate" $method="invalidate" }callback { $transition="validate
+ " $method="validate" }manipulation { $classname="org.psem2m.isolates.
+ loggers.shell.CCpntLoggingConditionCommands" $super="org.psem2m.isola
+ tes.loggers.shell.CAbstractCommands" field { $name="pCommands" $type=
+ "java.lang.String[]" }field { $name="pLogger" $type="org.psem2m.isola
+ tes.base.IIsolateLoggerSvc" }field { $name="pLoggingConditions" $type
+ ="org.psem2m.isolates.loggers.ILoggingConditions" }field { $name="pLo
+ ggingConditionsManager" $type="org.psem2m.isolates.loggers.ILoggingCo
+ nditionsManager" }field { $name="pMemoConditionsId" $type="java.lang.
+ String" }field { $name="pScope" $type="java.lang.String" }field { $na
+ me="pThreadContext" $type="org.psem2m.isolates.loggers.shell.IThreadC
+ ontext" }method { $name="checkConditionsIdInArg0" $return="java.lang.
+ String" $arguments="{java.lang.String[]}" $names="{aArgs}" }method { 
+ $name="getMemoConditionsId" $return="java.lang.String" }method { $nam
+ e="hasMemoConditionsId" $return="boolean" }method { $name="invalidate
+ " }method { $name="lcoclean" $return="java.lang.String" $arguments="{
+ java.lang.String[]}" $names="{aArgs}" }method { $name="lcofile" $retu
+ rn="java.lang.String" $arguments="{java.lang.String[]}" $names="{aArg
+ s}" }method { $name="lcofiles" $return="java.lang.String" $arguments=
+ "{java.lang.String[]}" $names="{aArgs}" }method { $name="lcolist" $re
+ turn="java.lang.String" $arguments="{java.lang.String[]}" $names="{aA
+ rgs}" }method { $name="lconew" $return="java.lang.String" $arguments=
+ "{java.lang.String[]}" $names="{aArgs}" }method { $name="lcoremove" $
+ return="java.lang.String" $arguments="{java.lang.String[]}" $names="{
+ aArgs}" }method { $name="logCurrentConditionsDescription" $arguments=
+ "{java.lang.StringBuilder,org.psem2m.isolates.loggers.ILoggingConditi
+ ons}" $names="{aSB,aLoggingConditions}" }method { $name="logErrorInSB
+ " $arguments="{java.lang.StringBuilder,java.lang.Throwable}" $names="
+ {aSB,e}" }method { $name="setMemoConditionsId" $arguments="{java.lang
+ .String}" $names="{aMemoConditionsId}" }method { $name="validate" }}}
+ component { $name="psem2m-loggers-channels-commands-threadcontext-Fac
+ tory" $classname="org.psem2m.isolates.loggers.shell.CCpntThreadContex
+ t" provides { $specifications="{org.psem2m.isolates.loggers.shell.ITh
+ readContext}" }requires { $field="pLogger" }requires { $field="pPlatf
+ ormDirsSvc" }callback { $transition="validate" $method="validate" }ma
+ nipulation { $classname="org.psem2m.isolates.loggers.shell.CCpntThrea
+ dContext" interface { $name="org.psem2m.isolates.loggers.shell.IThrea
+ dContext" }field { $name="pLogger" $type="org.psem2m.isolates.base.II
+ solateLoggerSvc" }field { $name="pPlatformDirsSvc" $type="org.psem2m.
+ isolates.services.dirs.IPlatformDirsSvc" }method { $name="getDebugCha
+ nnel" $return="org.psem2m.isolates.loggers.ILogChannelSvc" }method { 
+ $name="hasDebugChannel" $return="boolean" }method { $name="setDebugCh
+ annel" $arguments="{org.psem2m.isolates.loggers.ILogChannelSvc}" $nam
+ es="{aLogChannelSvc}" }method { $name="validate" }}}component { $name
+ ="psem2m-loggers-channels-commands-simulator-Factory" $classname="org
+ .psem2m.isolates.loggers.shell.CCpntThreadContextTester" provides { $
+ specifications="{org.psem2m.isolates.loggers.shell.CCpntThreadContext
+ Tester}" }requires { $field="pLogger" }requires { $field="pThreadCont
+ ext" }manipulation { $classname="org.psem2m.isolates.loggers.shell.CC
+ pntThreadContextTester" field { $name="pLogger" $type="org.psem2m.iso
+ lates.base.IIsolateLoggerSvc" }field { $name="pThreadContext" $type="
+ org.psem2m.isolates.loggers.shell.IThreadContext" }method { $name="my
+ Method" }method { $name="retreiveLogger" $return="org.psem2m.utilitie
+ s.logging.IActivityLogger" }}}
 

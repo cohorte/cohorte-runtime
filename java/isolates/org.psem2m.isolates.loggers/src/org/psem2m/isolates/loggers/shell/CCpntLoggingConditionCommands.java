@@ -114,7 +114,7 @@ public class CCpntLoggingConditionCommands extends CAbstractCommands {
 					wConditionsId, wNbDeletedFile);
 
 		} catch (Exception | Error e) {
-			wSB.append("\n###\n").append(CXException.eCauseMessagesInString(e));
+			logErrorInSB(wSB, e);
 		}
 
 		return wSB.toString();
@@ -144,7 +144,7 @@ public class CCpntLoggingConditionCommands extends CAbstractCommands {
 					wConditionsId, wFile);
 
 		} catch (Exception | Error e) {
-			wSB.append("\n###\n").append(CXException.eCauseMessagesInString(e));
+			logErrorInSB(wSB, e);
 		}
 
 		return wSB.toString();
@@ -174,7 +174,7 @@ public class CCpntLoggingConditionCommands extends CAbstractCommands {
 			}
 
 		} catch (Exception | Error e) {
-			wSB.append("\n###\n").append(CXException.eCauseMessagesInString(e));
+			logErrorInSB(wSB, e);
 		}
 
 		return wSB.toString();
@@ -203,7 +203,7 @@ public class CCpntLoggingConditionCommands extends CAbstractCommands {
 			}
 
 		} catch (Exception | Error e) {
-			wSB.append("\n###\n").append(CXException.eCauseMessagesInString(e));
+			logErrorInSB(wSB, e);
 		}
 
 		return wSB.toString();
@@ -258,7 +258,7 @@ public class CCpntLoggingConditionCommands extends CAbstractCommands {
 			}
 
 		} catch (Exception | Error e) {
-			wSB.append("\n###\n").append(CXException.eCauseMessagesInString(e));
+			logErrorInSB(wSB, e);
 		}
 
 		return wSB.toString();
@@ -288,7 +288,7 @@ public class CCpntLoggingConditionCommands extends CAbstractCommands {
 					wConditionsId, wRemoved);
 
 		} catch (Exception | Error e) {
-			wSB.append("\n###\n").append(CXException.eCauseMessagesInString(e));
+			logErrorInSB(wSB, e);
 		}
 
 		return wSB.toString();
@@ -303,6 +303,16 @@ public class CCpntLoggingConditionCommands extends CAbstractCommands {
 
 		addLineInSB(aSB, " + Current log conditions[%s]: %s",
 				aLoggingConditions.getId(), aLoggingConditions.toDescription());
+	}
+
+	/**
+	 * @param aSB
+	 * @param e
+	 */
+	private void logErrorInSB(final StringBuilder aSB, final Throwable e) {
+		aSB.append(String.format("\n###\nERROR: %s",
+				CXException.eCauseMessagesInString(e)));
+
 	}
 
 	/**

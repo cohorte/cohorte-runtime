@@ -126,7 +126,7 @@ public class CCpntLogChannelCommands extends CAbstractCommands {
 					wChannelId, wNbDeletedFile);
 
 		} catch (Exception | Error e) {
-			wSB.append("\n###\n").append(CXException.eCauseMessagesInString(e));
+			logErrorInSB(wSB, e);
 		}
 
 		return wSB.toString();
@@ -165,7 +165,7 @@ public class CCpntLogChannelCommands extends CAbstractCommands {
 					wChannelId, wLogFile.getName(), wLogFile.isFile());
 
 		} catch (Exception | Error e) {
-			wSB.append("\n###\n").append(CXException.eCauseMessagesInString(e));
+			logErrorInSB(wSB, e);
 		}
 
 		return wSB.toString();
@@ -200,7 +200,7 @@ public class CCpntLogChannelCommands extends CAbstractCommands {
 				wIdx++;
 			}
 		} catch (Exception | Error e) {
-			wSB.append("\n###\n").append(CXException.eCauseMessagesInString(e));
+			logErrorInSB(wSB, e);
 		}
 
 		return wSB.toString();
@@ -229,7 +229,7 @@ public class CCpntLogChannelCommands extends CAbstractCommands {
 			}
 
 		} catch (Exception | Error e) {
-			wSB.append("\n###\n").append(CXException.eCauseMessagesInString(e));
+			logErrorInSB(wSB, e);
 		}
 
 		return wSB.toString();
@@ -280,7 +280,7 @@ public class CCpntLogChannelCommands extends CAbstractCommands {
 					wIdx, wNbParagraphs, wSize);
 
 		} catch (Exception | Error e) {
-			wSB.append("\n###\n").append(CXException.eCauseMessagesInString(e));
+			logErrorInSB(wSB, e);
 		}
 
 		return wSB.toString();
@@ -304,7 +304,7 @@ public class CCpntLogChannelCommands extends CAbstractCommands {
 			logCurrentChannelDescription(wSB, wLogChannel);
 
 		} catch (Exception | Error e) {
-			wSB.append("\n###\n").append(CXException.eCauseMessagesInString(e));
+			logErrorInSB(wSB, e);
 		}
 
 		return wSB.toString();
@@ -333,7 +333,7 @@ public class CCpntLogChannelCommands extends CAbstractCommands {
 					wRemoved);
 
 		} catch (Exception | Error e) {
-			wSB.append("\n###\n").append(CXException.eCauseMessagesInString(e));
+			logErrorInSB(wSB, e);
 		}
 
 		return wSB.toString();
@@ -360,7 +360,7 @@ public class CCpntLogChannelCommands extends CAbstractCommands {
 			pThreadContextTester.myMethod();
 
 		} catch (Exception | Error e) {
-			wSB.append("\n###\n").append(CXException.eInString(e));
+			logErrorInSB(wSB, e);
 		}
 
 		return wSB.toString();
@@ -375,6 +375,16 @@ public class CCpntLogChannelCommands extends CAbstractCommands {
 
 		addLineInSB(aSB, " + Current log channel[%s]: %s", aLogChannel.getId(),
 				aLogChannel.toDescription());
+	}
+
+	/**
+	 * @param aSB
+	 * @param e
+	 */
+	private void logErrorInSB(final StringBuilder aSB, final Throwable e) {
+		aSB.append(String.format("\n###\nERROR: %s",
+				CXException.eCauseMessagesInString(e)));
+
 	}
 
 	private int randomWithRange(int min, int max) {

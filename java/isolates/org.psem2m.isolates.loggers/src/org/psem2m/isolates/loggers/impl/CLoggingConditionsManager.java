@@ -109,7 +109,7 @@ public class CLoggingConditionsManager implements ILoggingConditions,
 			if (wIdx > 0) {
 				wSB.append(',');
 			}
-			CXStringUtils.appendFormatStrInBuff(wSB, "(%02)=[%s]", wIdx, wEntry
+			CXStringUtils.appendFormatStrInBuff(wSB, "(%2d)=[%s]", wIdx, wEntry
 					.getValue().toDescription());
 
 			wIdx++;
