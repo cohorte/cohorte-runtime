@@ -26,27 +26,25 @@ Python modules repository
 # Standard library
 import ast
 import imp
+import json
 import logging
 import os
 
-# ######### added by: Bassem D.
-import json
-# #########
-
-# Pelix
+import cohorte
+import cohorte.repositories
+from cohorte.repositories.beans import Artifact, Version
+import cohorte.version
 from pelix.ipopo.decorators import ComponentFactory, Provides, Property, \
     Invalidate, Validate
 from pelix.utilities import is_string
 
+
+# ######### added by: Bassem D.
+# #########
+# Pelix
 # Repository beans
-import cohorte
-import cohorte.repositories
-from cohorte.repositories.beans import Artifact, Version
-
 # ------------------------------------------------------------------------------
-
 # Bundle version
-import cohorte.version
 __version__=cohorte.version.__version__
 
 # ------------------------------------------------------------------------------
@@ -187,7 +185,7 @@ def _extract_module_info(filename, module_name, is_package):
     :raise ValueError: Unreadable file
     """
     try:
-        with open(filename) as filep:
+        with open(filename,="utf-8") as filep:
             source = filep.read()
     except (OSError, IOError) as ex:
         raise ValueError("Error reading {0}: {1}".format(filename, ex))

@@ -28,20 +28,19 @@ import ast
 import logging
 import threading
 
-# Pelix
-from pelix.utilities import is_string
-from pelix.ipopo.decorators import ComponentFactory, Provides, Invalidate, \
-    Property, Requires, Validate
-
-# Repository beans
 import cohorte.repositories
 from cohorte.repositories.beans import Factory
-
-# ------------------------------------------------------------------------------
-
-# Bundle version
 import cohorte.version
-__version__=cohorte.version.__version__
+from pelix.ipopo.decorators import ComponentFactory, Provides, Invalidate, \
+    Property, Requires, Validate
+from pelix.utilities import is_string
+
+
+# Pelix
+# Repository beans
+# ------------------------------------------------------------------------------
+# Bundle version
+__version__ = cohorte.version.__version__
 
 # ------------------------------------------------------------------------------
 
@@ -151,7 +150,7 @@ def _extract_module_factories(filename):
     """
     visitor = ComponentFactoryVisitor()
     try:
-        with open(filename) as filep:
+        with open(filename, encoding="utf-8") as filep:
             source = filep.read()
     except (OSError, IOError) as ex:
         raise ValueError("Error reading {0}: {1}".format(filename, ex))
