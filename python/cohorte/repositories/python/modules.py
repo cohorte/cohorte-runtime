@@ -45,7 +45,7 @@ from pelix.utilities import is_string
 # Repository beans
 # ------------------------------------------------------------------------------
 # Bundle version
-__version__=cohorte.version.__version__
+__version__ = cohorte.version.__version__
 
 # ------------------------------------------------------------------------------
 
@@ -185,7 +185,7 @@ def _extract_module_info(filename, module_name, is_package):
     :raise ValueError: Unreadable file
     """
     try:
-        with open(filename,="utf-8") as filep:
+        with open(filename, encoding="utf-8") as filep:
             source = filep.read()
     except (OSError, IOError) as ex:
         raise ValueError("Error reading {0}: {1}".format(filename, ex))
@@ -293,7 +293,7 @@ class PythonModuleRepository(object):
         # Drop extension
         filename = os.path.splitext(filename)[0]
         name_parts = filename.split(os.path.sep)
-        is_package = name_parts[len(name_parts)-1] == "__init__"
+        is_package = name_parts[len(name_parts) - 1] == "__init__"
         if is_package:
             name_parts = name_parts[:-1]
         return ".".join(name_parts), is_package
@@ -562,7 +562,7 @@ class PythonModuleRepository(object):
 
                         for directory in cache["directories"]:
                             self._directory_package[directory["dir_name"]] \
-                                = directory["pkg_name"]
+ = directory["pkg_name"]
 
                         return True
             except (IOError, ValueError):
