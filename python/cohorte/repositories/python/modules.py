@@ -185,10 +185,17 @@ def _extract_module_info(filename, module_name, is_package):
     :raise ValueError: Unreadable file
     """
     try:
-        with open(filename, encoding="utf-8") as filep:
+        with open(filename,encoding="utf8") as filep:
             source = filep.read()
-    except (OSError, IOError) as ex:
-        raise ValueError("Error reading {0}: {1}".format(filename, ex))
+    except (OSError, IOError,TypeError) as ex:
+        try:
+            import io
+            with io.open(filename,encoding="utf8") as filep:
+                source = filep.read()
+        except (OSError, IOError) as ex2:
+            _logger.exception(ex2)
+            raise ValueError("Error reading {0}: {1}".format(filename, ex))
+
 
     visitor = AstVisitor(module_name, is_package)
     try:
