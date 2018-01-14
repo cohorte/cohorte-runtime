@@ -100,8 +100,7 @@ import org.psem2m.utilities.logging.IActivityLoggerJul;
 @Component(name = "cohorte-isolate-base-activator-factory", factoryMethod = "getSingleton")
 @Instantiate(name = "cohorte-isolate-base-activator")
 @Provides(specifications = { IIsolateBaseActivator.class })
-public class CIsolateBaseActivator implements BundleActivator,
-		IIsolateBaseActivator, IXDescriber {
+public class CIsolateBaseActivator implements BundleActivator, IIsolateBaseActivator, IXDescriber {
 
 	/**
 	 * Service Infos bean
@@ -117,8 +116,7 @@ public class CIsolateBaseActivator implements BundleActivator,
 		/** the registration info of the service **/
 		private final ServiceRegistration<?> pServiceRegistration;
 
-		public CServiceInfos(final ServiceRegistration<?> aServiceRegistration,
-				final String aServiceName) {
+		public CServiceInfos(final ServiceRegistration<?> aServiceRegistration, final String aServiceName) {
 
 			pServiceRegistration = aServiceRegistration;
 			pServiceName = aServiceName;
@@ -190,14 +188,14 @@ public class CIsolateBaseActivator implements BundleActivator,
 	private CPlatformDirsSvc pPlatformDirsSvc;
 
 	/** OSGi services registration */
-	private final List<CServiceInfos> pRegisteredServicesInfos = new ArrayList<CServiceInfos>();
+	private final List<CServiceInfos> pRegisteredServicesInfos = new ArrayList<>();
 
 	/** The service listener */
 	private ServiceListener pRegistrationListener = null;
 
 	/**
-	 * do nothing ! This Activator is instanciated by the Osgi framework, the
-	 * first metod to be called is the method "start()"
+	 * do nothing ! This Activator is instanciated by the Osgi framework, the first
+	 * metod to be called is the method "start()"
 	 */
 	public CIsolateBaseActivator() {
 
@@ -215,15 +213,11 @@ public class CIsolateBaseActivator implements BundleActivator,
 	@Override
 	public Appendable addDescriptionInBuffer(Appendable aBuffer) {
 
-		CXStringUtils.appendKeyValInBuff(aBuffer, "hasIsolateLoggerChannel",
-				this.hasIsolateLoggerChannel());
-		CXStringUtils.appendKeyValInBuff(aBuffer, "hasIsolateLoggerSvc",
-				hasIsolateLoggerSvc());
-		CXStringUtils.appendKeyValInBuff(aBuffer, "hasLogInternal",
-				hasLogInternal());
+		CXStringUtils.appendKeyValInBuff(aBuffer, "hasIsolateLoggerChannel", this.hasIsolateLoggerChannel());
+		CXStringUtils.appendKeyValInBuff(aBuffer, "hasIsolateLoggerSvc", hasIsolateLoggerSvc());
+		CXStringUtils.appendKeyValInBuff(aBuffer, "hasLogInternal", hasLogInternal());
 		if (hasLogInternal()) {
-			CXStringUtils.appendKeyValInBuff(aBuffer, "LogInternalSize",
-					pLogInternal.size());
+			CXStringUtils.appendKeyValInBuff(aBuffer, "LogInternalSize", pLogInternal.size());
 		}
 		return aBuffer;
 	}
@@ -233,8 +227,7 @@ public class CIsolateBaseActivator implements BundleActivator,
 	 * @param aFormat
 	 * @param aArgs
 	 */
-	private void addLineInReport(final StringBuilder aReport,
-			final String aFormat, final Object... aArgs) {
+	private void addLineInReport(final StringBuilder aReport, final String aFormat, final Object... aArgs) {
 		aReport.append(String.format('\n' + aFormat, aArgs));
 	}
 
@@ -278,14 +271,12 @@ public class CIsolateBaseActivator implements BundleActivator,
 	/*
 	 * (non-Javadoc)
 	 *
-	 * @see
-	 * org.psem2m.isolates.base.IIsolateBaseActivator#getIsolateLoggerChannel()
+	 * @see org.psem2m.isolates.base.IIsolateBaseActivator#getIsolateLoggerChannel()
 	 */
 	@Override
 	public CIsolateLoggerChannel getIsolateLoggerChannel() {
 
-		return hasIsolateLoggerChannel() ? (CIsolateLoggerChannel) pActivityLogger
-				: null;
+		return hasIsolateLoggerChannel() ? (CIsolateLoggerChannel) pActivityLogger : null;
 	}
 
 	/**
@@ -344,12 +335,10 @@ public class CIsolateBaseActivator implements BundleActivator,
 	 * @throws Exception
 	 *             An error occurred while preparing the underlying logger
 	 */
-	public CLogReaderServiceFactory getLogReaderServiceFactory()
-			throws Exception {
+	public CLogReaderServiceFactory getLogReaderServiceFactory() throws Exception {
 
 		if (pLogReaderServiceFactory == null) {
-			pLogReaderServiceFactory = new CLogReaderServiceFactory(
-					getLogInternal());
+			pLogReaderServiceFactory = new CLogReaderServiceFactory(getLogInternal());
 		}
 
 		return pLogReaderServiceFactory;
@@ -392,8 +381,7 @@ public class CIsolateBaseActivator implements BundleActivator,
 	/*
 	 * (non-Javadoc)
 	 *
-	 * @see
-	 * org.psem2m.isolates.base.IIsolateBaseActivator#hasIsolateLoggerChannel()
+	 * @see org.psem2m.isolates.base.IIsolateBaseActivator#hasIsolateLoggerChannel()
 	 */
 	@Override
 	public boolean hasIsolateLoggerChannel() {
@@ -425,20 +413,15 @@ public class CIsolateBaseActivator implements BundleActivator,
 
 		String wIsolateName = UNKNOWN_ISOLATE_NAME;
 
-		final String wStr = aBundleContext
-				.getProperty(IPlatformProperties.PROP_ISOLATE_NAME);
+		final String wStr = aBundleContext.getProperty(IPlatformProperties.PROP_ISOLATE_NAME);
 
 		if (wStr == null) {
-			addLineInReport(
-					wReport,
-					"ERROR: The system property [%s] is not available : verify the isolate launcher",
+			addLineInReport(wReport, "ERROR: The system property [%s] is not available : verify the isolate launcher",
 					IPlatformProperties.PROP_ISOLATE_NAME);
 		}
 		//
 		else if (wStr.isEmpty()) {
-			addLineInReport(
-					wReport,
-					"ERROR: The system property [%s] is not empty : verify the isolate launcher",
+			addLineInReport(wReport, "ERROR: The system property [%s] is not empty : verify the isolate launcher",
 					IPlatformProperties.PROP_ISOLATE_NAME);
 
 		}
@@ -446,8 +429,8 @@ public class CIsolateBaseActivator implements BundleActivator,
 		else {
 			wIsolateName = wStr;
 
-			addLineInReport(wReport, "The system property [%s] contains [%s]",
-					IPlatformProperties.PROP_ISOLATE_NAME, wIsolateName);
+			addLineInReport(wReport, "The system property [%s] contains [%s]", IPlatformProperties.PROP_ISOLATE_NAME,
+					wIsolateName);
 		}
 
 		try {
@@ -461,36 +444,25 @@ public class CIsolateBaseActivator implements BundleActivator,
 			// jvm)
 			final String wLoggerName = IIsolateLoggerSvc.ISOLATE_LOGGER_NAME;
 
-			addLineInReport(wReport, "The name of the logger : [%s]",
-					wLoggerName);
+			addLineInReport(wReport, "The name of the logger : [%s]", wLoggerName);
 
-			final String wLogStoragePath = aBundleContext
-					.getProperty(IPlatformProperties.PROP_ISOLATE_LOG_STORAGE);
+			final String wLogStoragePath = aBundleContext.getProperty(IPlatformProperties.PROP_ISOLATE_LOG_STORAGE);
 
 			if (wLogStoragePath != null) {
 				if (wLogStoragePath.isEmpty()) {
-					addLineInReport(wReport,
-							"ERROR: The system property [%s] is empty",
+					addLineInReport(wReport, "ERROR: The system property [%s] is empty",
 							IPlatformProperties.PROP_ISOLATE_LOG_STORAGE);
 				} else {
-					addLineInReport(wReport,
-							"The system property [%s] contains [%s]",
-							IPlatformProperties.PROP_ISOLATE_LOG_STORAGE,
-							wLogStoragePath);
+					addLineInReport(wReport, "The system property [%s] contains [%s]",
+							IPlatformProperties.PROP_ISOLATE_LOG_STORAGE, wLogStoragePath);
 
 					final File wDir = new File(wLogStoragePath);
 					if (!wDir.exists()) {
-						addLineInReport(
-								wReport,
-								"ERROR: The given log storage path [%s] doesn't exist",
-								wDir);
+						addLineInReport(wReport, "ERROR: The given log storage path [%s] doesn't exist", wDir);
 					}
 					//
 					else if (!wDir.isDirectory()) {
-						addLineInReport(
-								wReport,
-								"ERROR: The given log storage path [%s] isn't a directory",
-								wDir);
+						addLineInReport(wReport, "ERROR: The given log storage path [%s] isn't a directory", wDir);
 
 					}
 					// The given log storage path is an existing directory
@@ -500,8 +472,7 @@ public class CIsolateBaseActivator implements BundleActivator,
 				}
 			}
 
-			addLineInReport(wReport, "The log storage path : [%s]",
-					wLogStorageDir.getAbsolutePath());
+			addLineInReport(wReport, "The log storage path : [%s]", wLogStorageDir.getAbsolutePath());
 
 			// the FilePathPattern of the logger
 			final StringBuilder wSB = new StringBuilder();
@@ -515,9 +486,8 @@ public class CIsolateBaseActivator implements BundleActivator,
 			final String wFilePathPattern = wSB.toString();
 
 			// level ALL by default !
-			pActivityLogger = new CIsolateLoggerChannel(wLoggerName,
-					wFilePathPattern, IActivityLoggerBase.ALL, LOG_FILES_SIZE,
-					LOG_FILES_COUNT);
+			pActivityLogger = new CIsolateLoggerChannel(wLoggerName, wFilePathPattern, IActivityLoggerBase.ALL,
+					LOG_FILES_SIZE, LOG_FILES_COUNT);
 
 			addLineInReport(wReport, "ActivityLogger opened : %s",
 					((CIsolateLoggerChannel) pActivityLogger).toDescription());
@@ -526,15 +496,12 @@ public class CIsolateBaseActivator implements BundleActivator,
 			pActivityLogger = CActivityLoggerBasicConsole.getInstance();
 			pActivityLogger.getJulLogger().setLevel(Level.ALL);
 
-			addLineInReport(wReport,
-					"ERROR: Can't instanciate a CIsolateLoggerChannel : %s",
-					CXException.eInString(e));
+			addLineInReport(wReport, "ERROR: Can't instanciate a CIsolateLoggerChannel : %s", CXException.eInString(e));
 		}
 
 		// Logs the report, the java context and the environment context
-		pActivityLogger
-				.logInfo(this, "initLogger", "Initialized:%s %s %s", wReport,
-						CXJvmUtils.getJavaContext(), CXOSUtils.getEnvContext());
+		pActivityLogger.logInfo(this, "initLogger", "Initialized:%s %s %s", wReport, CXJvmUtils.getJavaContext(),
+				CXOSUtils.getEnvContext());
 	}
 
 	/**
@@ -546,8 +513,7 @@ public class CIsolateBaseActivator implements BundleActivator,
 	 * @param aService
 	 * @throws Exception
 	 */
-	private void logServiceRegistration(final String aServiceName,
-			final Object aServiceImpl) {
+	private void logServiceRegistration(final String aServiceName, final Object aServiceImpl) {
 		logServiceRegistration(aServiceName, aServiceImpl, null);
 	}
 
@@ -560,13 +526,12 @@ public class CIsolateBaseActivator implements BundleActivator,
 	 * @param aServiceImpl
 	 * @param aProps
 	 */
-	private void logServiceRegistration(final String aServiceName,
-			final Object aServiceImpl, final Dictionary<String, Object> aProps) {
+	private void logServiceRegistration(final String aServiceName, final Object aServiceImpl,
+			final Dictionary<String, Object> aProps) {
 
-		getLogger().logInfo(this, "logServiceRegistration",
-				"Service=[%s] Implem.=[%s] Registered %s", aServiceName,
-				aServiceImpl,
-				(aProps != null) ? CXDictionary.toString(aProps) : "");
+		// MOD_OG_1.0.17 Enhancement of the logging of the service registration
+		getLogger().logInfo(this, "logServiceRegistration", "[%-80s] Registered > Impl=[%-80s]  %s", aServiceName,
+				aServiceImpl, (aProps != null) ? CXDictionary.toString(aProps) : "");
 
 	}
 
@@ -579,29 +544,31 @@ public class CIsolateBaseActivator implements BundleActivator,
 	 */
 	private void logServiceUnregistration(final String aServiceName) {
 
-		getLogger().logInfo(this, "logServiceUnregistration",
-				"Service=[%s] Unregistered", aServiceName);
+		getLogger().logInfo(this, "logServiceUnregistration", "[%-80s] Unregistered", aServiceName);
 	}
 
 	/**
 	 * @param aBundleContext
 	 */
-	private void putInPlaceRegistrationListener(
-			final BundleContext aBundleContext) {
+	private void putInPlaceRegistrationListener(final BundleContext aBundleContext) {
 
 		pRegistrationListener = new ServiceListener() {
 
 			@Override
 			public void serviceChanged(final ServiceEvent aServiceEvent) {
 
-				final ServiceReference<?> wServiceReference = aServiceEvent
-						.getServiceReference();
+				final ServiceReference<?> wServiceReference = aServiceEvent.getServiceReference();
 
-				final String[] types = (String[]) wServiceReference
-						.getProperty(Constants.OBJECTCLASS);
+				final String[] types = (String[]) wServiceReference.getProperty(Constants.OBJECTCLASS);
 
-				final String wServiceClass = types != null ? Arrays
-						.toString(types) : "<null>";
+				// MOD_OG_1.0.17 Enhancement of the logging of the service registration
+				String wServiceClass;
+				if (types != null) {
+					wServiceClass = Arrays.toString(types);
+					wServiceClass = CXStringUtils.removeChars("[]", wServiceClass);
+				} else {
+					wServiceClass = "no service class";
+				}
 
 				// FIXME class loader dead lock
 				// see:
@@ -618,8 +585,7 @@ public class CIsolateBaseActivator implements BundleActivator,
 
 				switch (aServiceEvent.getType()) {
 				case ServiceEvent.REGISTERED: {
-					final Object wServiceImpl = aBundleContext
-							.getService(wServiceReference);
+					final Object wServiceImpl = aBundleContext.getService(wServiceReference);
 					logServiceRegistration(wServiceClass, wServiceImpl);
 					break;
 				}
@@ -639,8 +605,7 @@ public class CIsolateBaseActivator implements BundleActivator,
 			aBundleContext.addServiceListener(pRegistrationListener, null);
 
 		} catch (final InvalidSyntaxException e) {
-			getLogger().logSevere(this, "putInPlaceRegistrationListener",
-					"Can't register the service listener.", e);
+			getLogger().logSevere(this, "putInPlaceRegistrationListener", "Can't register the service listener.", e);
 		}
 	}
 
@@ -648,23 +613,19 @@ public class CIsolateBaseActivator implements BundleActivator,
 	 * @param aServiceInterface
 	 * @param aService
 	 */
-	private <S> void registerOneService(final BundleContext aBundleContext,
-			final Class<S> aServiceInterface, final S aService,
-			final Dictionary<String, Object> aProps) {
+	private <S> void registerOneService(final BundleContext aBundleContext, final Class<S> aServiceInterface,
+			final S aService, final Dictionary<String, Object> aProps) {
 
 		try {
-			final ServiceRegistration<S> registration = aBundleContext
-					.registerService(aServiceInterface, aService, aProps);
-			pRegisteredServicesInfos.add(new CServiceInfos(registration,
-					aServiceInterface.getName()));
-
-			logServiceRegistration(aServiceInterface.getName(), aService,
+			final ServiceRegistration<S> registration = aBundleContext.registerService(aServiceInterface, aService,
 					aProps);
+			pRegisteredServicesInfos.add(new CServiceInfos(registration, aServiceInterface.getName()));
+
+			logServiceRegistration(aServiceInterface.getName(), aService, aProps);
 
 		} catch (final Exception e) {
 
-			getLogger().logSevere(this, "registerOneService",
-					"Can't register the service [%s]. %s.", aServiceInterface,
+			getLogger().logSevere(this, "registerOneService", "Can't register the service [%s]. %s.", aServiceInterface,
 					e);
 		}
 	}
@@ -673,25 +634,19 @@ public class CIsolateBaseActivator implements BundleActivator,
 	 * @param aServiceInterface
 	 * @param aService
 	 */
-	private <S> void registerOneServiceFactory(
-			final BundleContext aBundleContext,
-			final Class<S> aServiceInterface,
-			final ServiceFactory<S> aServiceFactory,
-			final Dictionary<String, ?> aProps) {
+	private <S> void registerOneServiceFactory(final BundleContext aBundleContext, final Class<S> aServiceInterface,
+			final ServiceFactory<S> aServiceFactory, final Dictionary<String, ?> aProps) {
 
 		try {
-			final ServiceRegistration<?> registration = aBundleContext
-					.registerService(aServiceInterface.getName(),
-							aServiceFactory, aProps);
-			pRegisteredServicesInfos.add(new CServiceInfos(registration,
-					aServiceInterface.getName()));
+			final ServiceRegistration<?> registration = aBundleContext.registerService(aServiceInterface.getName(),
+					aServiceFactory, aProps);
+			pRegisteredServicesInfos.add(new CServiceInfos(registration, aServiceInterface.getName()));
 			logServiceRegistration(aServiceInterface.getName(), aServiceFactory);
 
 		} catch (final Exception e) {
 
-			getLogger().logSevere(this, "registerOneServiceFactory",
-					"Can't register the service [%s]. %s.", aServiceInterface,
-					e);
+			getLogger().logSevere(this, "registerOneServiceFactory", "Can't register the service [%s]. %s.",
+					aServiceInterface, e);
 		}
 	}
 
@@ -704,12 +659,8 @@ public class CIsolateBaseActivator implements BundleActivator,
 			try {
 				aBundleContext.removeServiceListener(pRegistrationListener);
 			} catch (final Exception e) {
-				getLogger()
-						.logSevere(
-								this,
-								"removeServiceLogger",
-								"Can't remove the listener of all the service registering and unregistering",
-								e);
+				getLogger().logSevere(this, "removeServiceLogger",
+						"Can't remove the listener of all the service registering and unregistering", e);
 			}
 		}
 	}
@@ -718,16 +669,14 @@ public class CIsolateBaseActivator implements BundleActivator,
 	 * (non-Javadoc)
 	 *
 	 * @see
-	 * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
-	 * )
+	 * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext )
 	 */
 	@Override
 	public void start(final BundleContext aBundleContext) {
 
 		final Bundle wBundle = aBundleContext.getBundle();
-		System.out.printf("%50s | Bundle=[%50s][%s] starting\n",
-				"CBundleBaseActivator.start()", wBundle.getSymbolicName(),
-				wBundle.getVersion());
+		System.out.printf("%50s | Bundle=[%50s][%s] starting\n", "CBundleBaseActivator.start()",
+				wBundle.getSymbolicName(), wBundle.getVersion());
 
 		// Store the bundle context
 		pBundleContext = aBundleContext;
@@ -738,23 +687,22 @@ public class CIsolateBaseActivator implements BundleActivator,
 				((CPlatformDirsSvc) getPlatformDirs()).toDescription());
 
 		/**
-		 * OSGi Ranking policy : The best way of prioritizing OSGi services to
-		 * use SERVICE_RANKING service property.
+		 * OSGi Ranking policy : The best way of prioritizing OSGi services to use
+		 * SERVICE_RANKING service property.
 		 *
-		 * A service with a ranking of Integer.MAX_VALUE is very likely to be
-		 * returned as the default service
+		 * A service with a ranking of Integer.MAX_VALUE is very likely to be returned
+		 * as the default service
 		 *
 		 * <ul>
 		 * <li>SERVICE_DESCRIPTION "service.description"
 		 * <li>SERVICE_RANKING "service.ranking"
 		 * </ul>
 		 *
-		 * @see https
-		 *      ://osgi.org/javadoc/r4v42/org/osgi/framework/Constants.html
+		 * @see https ://osgi.org/javadoc/r4v42/org/osgi/framework/Constants.html
 		 *      #SERVICE_RANKING
 		 */
 
-		final Dictionary<String, Object> wProps = new Hashtable<String, Object>();
+		final Dictionary<String, Object> wProps = new Hashtable<>();
 		wProps.put(SERVICE_DESCRIPTION, "cohorte");
 		// the default service
 		wProps.put(SERVICE_RANKING, Integer.MAX_VALUE);
@@ -766,33 +714,21 @@ public class CIsolateBaseActivator implements BundleActivator,
 		wProps.put(IRemoteServicesConstants.PROP_EXPORT_REJECT, true);
 
 		// Register THE platform directories service
-		registerOneService(aBundleContext, IPlatformDirsSvc.class,
-				getPlatformDirs(), wProps);
+		registerOneService(aBundleContext, IPlatformDirsSvc.class, getPlatformDirs(), wProps);
 
 		try {
 			// Register our own LogService service factory
-			registerOneServiceFactory(aBundleContext, LogService.class,
-					getLogServiceFactory(), wProps);
+			registerOneServiceFactory(aBundleContext, LogService.class, getLogServiceFactory(), wProps);
 
 		} catch (final Exception e) {
-			getLogger()
-					.logSevere(
-							this,
-							"start",
-							"Can't get the LogServiceFactory and register it as 'LogService'",
-							e);
+			getLogger().logSevere(this, "start", "Can't get the LogServiceFactory and register it as 'LogService'", e);
 		}
 		try {
 			// Register our own LogReader service factory
-			registerOneServiceFactory(aBundleContext, LogReaderService.class,
-					getLogReaderServiceFactory(), wProps);
+			registerOneServiceFactory(aBundleContext, LogReaderService.class, getLogReaderServiceFactory(), wProps);
 		} catch (final Exception e) {
-			getLogger()
-					.logSevere(
-							this,
-							"start",
-							"Can't get the LogReaderServiceFactory and register it as 'LogReaderService'",
-							e);
+			getLogger().logSevere(this, "start",
+					"Can't get the LogReaderServiceFactory and register it as 'LogReaderService'", e);
 		}
 		try {
 			// MOD_OG 1.0.14
@@ -801,12 +737,11 @@ public class CIsolateBaseActivator implements BundleActivator,
 			/*
 			 * Register THE isolate logger service as IIsolateLoggerSvc.
 			 * 
-			 * Note: the CIsolateLoggerSvc instance wrapps the
-			 * IsolateLoggerChannel created during the first call to the method
-			 * "getLogger()" at the begining of the method start().
+			 * Note: the CIsolateLoggerSvc instance wrapps the IsolateLoggerChannel created
+			 * during the first call to the method "getLogger()" at the begining of the
+			 * method start().
 			 */
-			registerOneService(aBundleContext, IIsolateLoggerSvc.class,
-					wIsolateLogger, wProps);
+			registerOneService(aBundleContext, IIsolateLoggerSvc.class, wIsolateLogger, wProps);
 
 			/*
 			 * MOD_OG 1.0.14
@@ -814,38 +749,29 @@ public class CIsolateBaseActivator implements BundleActivator,
 			 * Register THE isolate logger service as
 			 * IActivityLoggerJul("julname"="org.chohorte.isolate.logger.svc")
 			 *
-			 * ATTENTION This name of the property "julname" is used in the
-			 * bundle "org.cohorte.slf4j-OCIL"
+			 * ATTENTION This name of the property "julname" is used in the bundle
+			 * "org.cohorte.slf4j-OCIL"
 			 *
 			 * <pre>
 			 *
-			 * @Requires(filter="(julname=org.chohorte.isolate.logger.sv)")
-			 * </pre>
+			 * @Requires(filter="(julname=org.chohorte.isolate.logger.sv)") </pre>
 			 *
 			 * @see org.slf4j.impl.CCpntOcilLoggerFactory
 			 */
-			final Dictionary<String, Object> wPropsBis = CXDictionary
-					.cloneDictionary(wProps);
+			final Dictionary<String, Object> wPropsBis = CXDictionary.cloneDictionary(wProps);
 			wPropsBis.put("julname", IIsolateLoggerSvc.ISOLATE_LOGGER_NAME);
-			registerOneService(aBundleContext, IActivityLoggerJul.class,
-					wIsolateLogger, wPropsBis);
+			registerOneService(aBundleContext, IActivityLoggerJul.class, wIsolateLogger, wPropsBis);
 
 		} catch (final Exception e) {
-			getLogger()
-					.logSevere(
-							this,
-							"start",
-							"Can't get the IsolateLoggerSvc and register it as 'IIsolateLoggerSvc'",
-							e);
+			getLogger().logSevere(this, "start",
+					"Can't get the IsolateLoggerSvc and register it as 'IIsolateLoggerSvc'", e);
 		}
 
 		// Register THE service file finder
-		registerOneService(aBundleContext, IFileFinderSvc.class,
-				getFileFinder(), wProps);
+		registerOneService(aBundleContext, IFileFinderSvc.class, getFileFinder(), wProps);
 
 		// Register THE service bundle finder
-		registerOneService(aBundleContext, IBundleFinderSvc.class,
-				getBundleFinder(), wProps);
+		registerOneService(aBundleContext, IBundleFinderSvc.class, getBundleFinder(), wProps);
 
 		// put in place a listner witch logs each service registration and
 		// unregistration
@@ -893,9 +819,8 @@ public class CIsolateBaseActivator implements BundleActivator,
 
 		pBundleContext = null;
 
-		System.out.printf("%50s | Bundle=[%50s] stopped\n",
-				"CBundleBaseActivator.stop()", aBundleContext.getBundle()
-						.getSymbolicName());
+		System.out.printf("%50s | Bundle=[%50s] stopped\n", "CBundleBaseActivator.stop()",
+				aBundleContext.getBundle().getSymbolicName());
 	}
 
 	/*
