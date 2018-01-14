@@ -3,7 +3,7 @@ Bundle-Activator: org.psem2m.isolates.base.internal.CIsolateBaseActiva
  tor
 Bundle-ManifestVersion: 2
 Bundle-Name: COHORTE :: Base Services
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-SymbolicName: org.psem2m.isolates.base
 Bundle-Vendor: COHORTE Technologies
 Bundle-Version: 1.2.0.qualifier
@@ -24,167 +24,195 @@ Import-Package: org.apache.felix.ipojo, org.apache.felix.ipojo.annotat
 Service-Component: OSGI-INF/CBundleBaseActivator.xml
 iPOJO-Components: instance { $name="cohorte-isolate-base-admin-agent-j
  ava" $component="cohorte-isolate-base-admin-agent-java-factory" }inst
- ance { $name="cohorte-isolate-base-activator" $component="cohorte-iso
- late-base-activator-factory" }instance { $name="cohorte-isolate-base-
- logger-gogocommand" $component="cohorte-isolate-base-logger-gogocomma
- nd-factory" }component { $name="cohorte-isolate-base-admin-agent-java
- -factory" $classname="org.psem2m.isolates.base.admin.CAdminAgent" req
- uires { $field="pArchs" $specification="org.apache.felix.ipojo.archit
- ecture.Architecture" $optional="true" }requires { $field="pDirectory"
-  }requires { $field="pFactories" $specification="org.apache.felix.ipo
- jo.Factory" $optional="true" }requires { $field="pHerald" }requires {
-  $field="pLogger" }requires { $field="pLoggerAdmin" }callback { $tran
- sition="invalidate" $method="invalidate" }callback { $transition="val
- idate" $method="validate" }manipulation { $classname="org.psem2m.isol
- ates.base.admin.CAdminAgent" interface { $name="org.psem2m.isolates.b
- ase.admin.IAdminAgent" }interface { $name="org.cohorte.herald.IMessag
- eListener" }field { $name="pArchs" $type="java.util.List" }field { $n
- ame="pBundleContext" $type="org.osgi.framework.BundleContext" }field 
- { $name="pDirectory" $type="org.cohorte.herald.IDirectory" }field { $
- name="pFactories" $type="java.util.List" }field { $name="pHerald" $ty
- pe="org.cohorte.herald.IHerald" }field { $name="pLogger" $type="org.p
- sem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pLoggerAdmin" 
- $type="org.psem2m.isolates.base.IIsolateLoggerAdmin" }method { $name=
- "getBundleDetail" $return="java.lang.String" $arguments="{int}" $name
- s="{aBundleNumber}" }method { $name="getBundles" $return="java.lang.S
- tring" }method { $name="getBundleStateAsString" $return="java.lang.St
- ring" $arguments="{int}" $names="{aState}" }method { $name="getCompon
- entInstanceDetail" $return="java.lang.String" $arguments="{java.lang.
- String}" $names="{aInstanceName}" }method { $name="getComponentInstan
- ces" $return="java.lang.String" }method { $name="getFactories" $retur
- n="java.lang.String" }method { $name="getFactoryDetail" $return="java
- .lang.String" $arguments="{java.lang.String}" $names="{aFactoryName}"
-  }method { $name="getInstanceStateAsString" $return="java.lang.String
- " $arguments="{int}" $names="{aState}" }method { $name="getIsolateAcc
- esses" $return="java.lang.String" }method { $name="getIsolateDetail" 
- $return="java.lang.String" }method { $name="getIsolateDirectory" $ret
- urn="java.lang.Object" }method { $name="getIsolateLog" $return="java.
- lang.String" $arguments="{java.lang.String}" $names="{aLogId}" }metho
- d { $name="getIsolateLogs" $return="java.lang.String" }method { $name
- ="getServices" $return="java.lang.String" }method { $name="getThreads
- " $return="java.lang.String" }method { $name="heraldMessage" $argumen
- ts="{org.cohorte.herald.IHerald,org.cohorte.herald.MessageReceived}" 
- $names="{aHerald,aMessage}" }method { $name="invalidate" }method { $n
- ame="setIsolateLogsLevel" $return="java.lang.String" $arguments="{jav
- a.lang.String}" $names="{aLogLevel}" }method { $name="validate" }}}co
- mponent { $name="cohorte-isolate-base-activator-factory" $factory-met
- hod="getSingleton" $classname="org.psem2m.isolates.base.internal.CIso
- lateBaseActivator" provides { $specifications="{org.psem2m.isolates.b
- ase.IIsolateBaseActivator}" }manipulation { $classname="org.psem2m.is
- olates.base.internal.CIsolateBaseActivator" interface { $name="org.os
- gi.framework.BundleActivator" }interface { $name="org.psem2m.isolates
- .base.IIsolateBaseActivator" }interface { $name="org.psem2m.utilities
- .IXDescriber" }field { $name="pActivityLogger" $type="org.psem2m.util
- ities.logging.IActivityLoggerJul" }field { $name="pBundleContext" $ty
- pe="org.osgi.framework.BundleContext" }field { $name="pBundleFinderSv
- c" $type="org.psem2m.isolates.base.bundles.impl.CBundleFinderSvc" }fi
- eld { $name="pFileFinderSvc" $type="org.psem2m.isolates.base.dirs.imp
- l.CFileFinderSvc" }field { $name="pIsolateLoggerSvc" $type="org.psem2
- m.isolates.base.internal.CIsolateLoggerSvc" }field { $name="pLogInter
- nal" $type="org.psem2m.isolates.base.internal.CLogInternal" }field { 
- $name="pLogReaderServiceFactory" $type="org.psem2m.isolates.base.inte
- rnal.CLogReaderServiceFactory" }field { $name="pLogServiceFactory" $t
- ype="org.psem2m.isolates.base.internal.CLogServiceFactory" }field { $
- name="pPlatformDirsSvc" $type="org.psem2m.isolates.base.dirs.impl.CPl
- atformDirsSvc" }field { $name="pRegisteredServicesInfos" $type="java.
- util.List" }field { $name="pRegistrationListener" $type="org.osgi.fra
- mework.ServiceListener" }method { $name="getSingleton" $return="org.p
- sem2m.isolates.base.internal.CIsolateBaseActivator" }method { $name="
- addDescriptionInBuffer" $return="java.lang.Appendable" $arguments="{j
- ava.lang.Appendable}" $names="{aBuffer}" }method { $name="addLineInRe
- port" $arguments="{java.lang.StringBuilder,java.lang.String,java.lang
- .Object[]}" $names="{aReport,aFormat,aArgs}" }method { $name="destroy
- Logger" }method { $name="getBundleFinder" $return="org.psem2m.isolate
- s.base.bundles.IBundleFinderSvc" }method { $name="getFileFinder" $ret
- urn="org.psem2m.isolates.services.dirs.IFileFinderSvc" }method { $nam
- e="getIsolateLoggerChannel" $return="org.psem2m.isolates.base.interna
- l.CIsolateLoggerChannel" }method { $name="getIsolateLoggerSvc" $retur
- n="org.psem2m.isolates.base.internal.CIsolateLoggerSvc" }method { $na
- me="getLogger" $return="org.psem2m.utilities.logging.IActivityLoggerJ
- ul" }method { $name="getLogInternal" $return="org.psem2m.isolates.bas
- e.internal.CLogInternal" }method { $name="getLogReaderServiceFactory"
-  $return="org.psem2m.isolates.base.internal.CLogReaderServiceFactory"
-  }method { $name="getLogServiceFactory" $return="org.psem2m.isolates.
- base.internal.CLogServiceFactory" }method { $name="getPlatformDirs" $
- return="org.psem2m.isolates.services.dirs.IPlatformDirsSvc" }method {
-  $name="hasIsolateLoggerChannel" $return="boolean" }method { $name="h
- asIsolateLoggerSvc" $return="boolean" }method { $name="hasLogInternal
- " $return="boolean" }method { $name="initIsolateLoggerChannel" $argum
+ ance { $name="cohorte-isolate-base-jullogger-gogocommand" $component=
+ "cohorte-isolate-base-jullogger-gogocommand-factory" }instance { $nam
+ e="cohorte-isolate-base-activator" $component="cohorte-isolate-base-a
+ ctivator-factory" }instance { $name="cohorte-isolate-base-isolatelogg
+ er-gogocommand" $component="cohorte-isolate-base-isolatelogger-gogoco
+ mmand-factory" }component { $name="cohorte-isolate-base-admin-agent-j
+ ava-factory" $classname="org.psem2m.isolates.base.admin.CAdminAgent" 
+ requires { $field="pArchs" $specification="org.apache.felix.ipojo.arc
+ hitecture.Architecture" $optional="true" }requires { $field="pDirecto
+ ry" }requires { $field="pFactories" $specification="org.apache.felix.
+ ipojo.Factory" $optional="true" }requires { $field="pHerald" }require
+ s { $field="pLogger" }requires { $field="pLoggerAdmin" }callback { $t
+ ransition="invalidate" $method="invalidate" }callback { $transition="
+ validate" $method="validate" }manipulation { $classname="org.psem2m.i
+ solates.base.admin.CAdminAgent" interface { $name="org.psem2m.isolate
+ s.base.admin.IAdminAgent" }interface { $name="org.cohorte.herald.IMes
+ sageListener" }field { $name="pArchs" $type="java.util.List" }field {
+  $name="pBundleContext" $type="org.osgi.framework.BundleContext" }fie
+ ld { $name="pDirectory" $type="org.cohorte.herald.IDirectory" }field 
+ { $name="pFactories" $type="java.util.List" }field { $name="pHerald" 
+ $type="org.cohorte.herald.IHerald" }field { $name="pLogger" $type="or
+ g.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pLoggerAdmi
+ n" $type="org.psem2m.isolates.base.IIsolateLoggerAdmin" }method { $na
+ me="getBundleDetail" $return="java.lang.String" $arguments="{int}" $n
+ ames="{aBundleNumber}" }method { $name="getBundles" $return="java.lan
+ g.String" }method { $name="getBundleStateAsString" $return="java.lang
+ .String" $arguments="{int}" $names="{aState}" }method { $name="getCom
+ ponentInstanceDetail" $return="java.lang.String" $arguments="{java.la
+ ng.String}" $names="{aInstanceName}" }method { $name="getComponentIns
+ tances" $return="java.lang.String" }method { $name="getFactories" $re
+ turn="java.lang.String" }method { $name="getFactoryDetail" $return="j
+ ava.lang.String" $arguments="{java.lang.String}" $names="{aFactoryNam
+ e}" }method { $name="getInstanceStateAsString" $return="java.lang.Str
+ ing" $arguments="{int}" $names="{aState}" }method { $name="getIsolate
+ Accesses" $return="java.lang.String" }method { $name="getIsolateDetai
+ l" $return="java.lang.String" }method { $name="getIsolateDirectory" $
+ return="java.lang.Object" }method { $name="getIsolateLog" $return="ja
+ va.lang.String" $arguments="{java.lang.String}" $names="{aLogId}" }me
+ thod { $name="getIsolateLogs" $return="java.lang.String" }method { $n
+ ame="getServices" $return="java.lang.String" }method { $name="getThre
+ ads" $return="java.lang.String" }method { $name="heraldMessage" $argu
+ ments="{org.cohorte.herald.IHerald,org.cohorte.herald.MessageReceived
+ }" $names="{aHerald,aMessage}" }method { $name="invalidate" }method {
+  $name="setIsolateLogsLevel" $return="java.lang.String" $arguments="{
+ java.lang.String}" $names="{aLogLevel}" }method { $name="validate" }}
+ }component { $name="cohorte-isolate-base-jullogger-gogocommand-factor
+ y" $classname="org.psem2m.isolates.base.internal.CCpntJulLoggerComman
+ d" provides { $specifications="{org.psem2m.isolates.base.IGoGoCommand
+ }" property { $name="osgi.command.function" $field="pCommands" $value
+ ="{julinfos,juldump,julsetLevel,julsetLevelAll}" }property { $name="o
+ sgi.command.scope" $field="pScope" $value="jullogger" }}requires { $f
+ ield="pLogger" }callback { $transition="invalidate" $method="invalida
+ te" }callback { $transition="validate" $method="validate" }manipulati
+ on { $classname="org.psem2m.isolates.base.internal.CCpntJulLoggerComm
+ and" $super="org.psem2m.isolates.base.CAbstractGoGoCommand" interface
+  { $name="org.psem2m.isolates.base.IGoGoCommand" }field { $name="pBun
+ dleContext" $type="org.osgi.framework.BundleContext" }field { $name="
+ pCommands" $type="java.lang.String[]" }field { $name="pLogger" $type=
+ "org.psem2m.isolates.base.IIsolateLoggerSvc" }field { $name="pScope" 
+ $type="java.lang.String" }method { $name="getCommands" $return="java.
+ lang.String[]" }method { $name="getJul" $return="java.util.logging.Lo
+ gger" $arguments="{java.lang.String}" $names="{aJulName}" }method { $
+ name="getLogger" $return="org.psem2m.isolates.base.IIsolateLoggerSvc"
+  }method { $name="invalidate" }method { $name="juldump" }method { $na
+ me="julinfos" $arguments="{java.lang.String[]}" $names="{aArgs}" }met
+ hod { $name="julsetLevel" $return="java.util.logging.Level" $argument
+ s="{java.lang.String,java.lang.String}" $names="{aJulName,aLevelName}
+ " }method { $name="julsetLevelAll" $arguments="{java.lang.String}" $n
+ ames="{aLevelName}" }method { $name="validate" }}}component { $name="
+ cohorte-isolate-base-activator-factory" $factory-method="getSingleton
+ " $classname="org.psem2m.isolates.base.internal.CIsolateBaseActivator
+ " provides { $specifications="{org.psem2m.isolates.base.IIsolateBaseA
+ ctivator}" }manipulation { $classname="org.psem2m.isolates.base.inter
+ nal.CIsolateBaseActivator" interface { $name="org.osgi.framework.Bund
+ leActivator" }interface { $name="org.psem2m.isolates.base.IIsolateBas
+ eActivator" }interface { $name="org.psem2m.utilities.IXDescriber" }fi
+ eld { $name="pActivityLogger" $type="org.psem2m.utilities.logging.IAc
+ tivityLoggerJul" }field { $name="pBundleContext" $type="org.osgi.fram
+ ework.BundleContext" }field { $name="pBundleFinderSvc" $type="org.pse
+ m2m.isolates.base.bundles.impl.CBundleFinderSvc" }field { $name="pFil
+ eFinderSvc" $type="org.psem2m.isolates.base.dirs.impl.CFileFinderSvc"
+  }field { $name="pIsolateLoggerSvc" $type="org.psem2m.isolates.base.i
+ nternal.CIsolateLoggerSvc" }field { $name="pLogInternal" $type="org.p
+ sem2m.isolates.base.internal.CLogInternal" }field { $name="pLogReader
+ ServiceFactory" $type="org.psem2m.isolates.base.internal.CLogReaderSe
+ rviceFactory" }field { $name="pLogServiceFactory" $type="org.psem2m.i
+ solates.base.internal.CLogServiceFactory" }field { $name="pPlatformDi
+ rsSvc" $type="org.psem2m.isolates.base.dirs.impl.CPlatformDirsSvc" }f
+ ield { $name="pRegisteredServicesInfos" $type="java.util.List" }field
+  { $name="pRegistrationListener" $type="org.osgi.framework.ServiceLis
+ tener" }method { $name="getSingleton" $return="org.psem2m.isolates.ba
+ se.internal.CIsolateBaseActivator" }method { $name="addDescriptionInB
+ uffer" $return="java.lang.Appendable" $arguments="{java.lang.Appendab
+ le}" $names="{aBuffer}" }method { $name="addLineInReport" $arguments=
+ "{java.lang.StringBuilder,java.lang.String,java.lang.Object[]}" $name
+ s="{aReport,aFormat,aArgs}" }method { $name="destroyLogger" }method {
+  $name="getBundleFinder" $return="org.psem2m.isolates.base.bundles.IB
+ undleFinderSvc" }method { $name="getFileFinder" $return="org.psem2m.i
+ solates.services.dirs.IFileFinderSvc" }method { $name="getIsolateLogg
+ erChannel" $return="org.psem2m.isolates.base.internal.CIsolateLoggerC
+ hannel" }method { $name="getIsolateLoggerSvc" $return="org.psem2m.iso
+ lates.base.internal.CIsolateLoggerSvc" }method { $name="getLogger" $r
+ eturn="org.psem2m.utilities.logging.IActivityLoggerJul" }method { $na
+ me="getLogInternal" $return="org.psem2m.isolates.base.internal.CLogIn
+ ternal" }method { $name="getLogReaderServiceFactory" $return="org.pse
+ m2m.isolates.base.internal.CLogReaderServiceFactory" }method { $name=
+ "getLogServiceFactory" $return="org.psem2m.isolates.base.internal.CLo
+ gServiceFactory" }method { $name="getPlatformDirs" $return="org.psem2
+ m.isolates.services.dirs.IPlatformDirsSvc" }method { $name="hasIsolat
+ eLoggerChannel" $return="boolean" }method { $name="hasIsolateLoggerSv
+ c" $return="boolean" }method { $name="hasLogInternal" $return="boolea
+ n" }method { $name="initIsolateLoggerChannel" $arguments="{org.osgi.f
+ ramework.BundleContext}" $names="{aBundleContext}" }method { $name="l
+ ogServiceRegistration" $arguments="{java.lang.String,java.lang.Object
+ }" $names="{aServiceName,aServiceImpl}" }method { $name="logServiceRe
+ gistration" $arguments="{java.lang.String,java.lang.Object,java.util.
+ Dictionary}" $names="{aServiceName,aServiceImpl,aProps}" }method { $n
+ ame="logServiceUnregistration" $arguments="{java.lang.String}" $names
+ ="{aServiceName}" }method { $name="putInPlaceRegistrationListener" $a
+ rguments="{org.osgi.framework.BundleContext}" $names="{aBundleContext
+ }" }method { $name="registerOneService" $arguments="{org.osgi.framewo
+ rk.BundleContext,java.lang.Class,java.lang.Object,java.util.Dictionar
+ y}" $names="{aBundleContext,aServiceInterface,aService,aProps}" }meth
+ od { $name="registerOneServiceFactory" $arguments="{org.osgi.framewor
+ k.BundleContext,java.lang.Class,org.osgi.framework.ServiceFactory,jav
+ a.util.Dictionary}" $names="{aBundleContext,aServiceInterface,aServic
+ eFactory,aProps}" }method { $name="removeRegistrationListener" $argum
  ents="{org.osgi.framework.BundleContext}" $names="{aBundleContext}" }
- method { $name="logServiceRegistration" $arguments="{java.lang.String
- ,java.lang.Object}" $names="{aServiceName,aServiceImpl}" }method { $n
- ame="logServiceRegistration" $arguments="{java.lang.String,java.lang.
- Object,java.util.Dictionary}" $names="{aServiceName,aServiceImpl,aPro
- ps}" }method { $name="logServiceUnregistration" $arguments="{java.lan
- g.String}" $names="{aServiceName}" }method { $name="putInPlaceRegistr
- ationListener" $arguments="{org.osgi.framework.BundleContext}" $names
- ="{aBundleContext}" }method { $name="registerOneService" $arguments="
- {org.osgi.framework.BundleContext,java.lang.Class,java.lang.Object,ja
- va.util.Dictionary}" $names="{aBundleContext,aServiceInterface,aServi
- ce,aProps}" }method { $name="registerOneServiceFactory" $arguments="{
- org.osgi.framework.BundleContext,java.lang.Class,org.osgi.framework.S
- erviceFactory,java.util.Dictionary}" $names="{aBundleContext,aService
- Interface,aServiceFactory,aProps}" }method { $name="removeRegistratio
- nListener" $arguments="{org.osgi.framework.BundleContext}" $names="{a
- BundleContext}" }method { $name="start" $arguments="{org.osgi.framewo
- rk.BundleContext}" $names="{aBundleContext}" }method { $name="stop" $
- arguments="{org.osgi.framework.BundleContext}" $names="{aBundleContex
- t}" }method { $name="toDescription" $return="java.lang.String" }inner
-  { $name="1" method { $name="serviceChanged" $arguments="{org.osgi.fr
- amework.ServiceEvent}" $names="{}" }}inner { $name="CServiceInfos" me
- thod { $name="getServiceName" $return="java.lang.String" }method { $n
- ame="getServiceRegistration" $return="org.osgi.framework.ServiceRegis
- tration" }}}}component { $name="cohorte-isolate-base-logger-gogocomma
- nd-factory" $classname="org.psem2m.isolates.base.internal.CIsolateLog
- gerGogoCommand" provides { $specifications="{org.psem2m.isolates.base
- .IIsolateLoggerAdmin,org.cohorte.herald.IMessageListener}" property {
-  $name="osgi.command.function" $field="pCommands" $value="{infos,lsdu
- mp,lstest,setLevel,setLevelAll}" }property { $name="herald.filters" $
- field="pFilters" $value="{cohorte/runtime/isolates/logger}" }property
-  { $name="osgi.command.scope" $field="pScope" $value="isolatelogger" 
- }}requires { $field="pHerald" }requires { $field="pInjectedLogService
- 1" }requires { $field="pInjectedLogService2" $filter="(service.descri
- ption=cohorte)" }requires { $field="pIsolateBaseActivator" }requires 
- { $field="pLogger" }callback { $transition="invalidate" $method="inva
- lidate" }callback { $transition="validate" $method="validate" }manipu
- lation { $classname="org.psem2m.isolates.base.internal.CIsolateLogger
- GogoCommand" interface { $name="org.psem2m.isolates.base.IIsolateLogg
- erAdmin" }interface { $name="org.cohorte.herald.IMessageListener" }fi
- eld { $name="pBundleContext" $type="org.osgi.framework.BundleContext"
-  }field { $name="pCommands" $type="java.lang.String[]" }field { $name
- ="pFilters" $type="java.lang.String[]" }field { $name="pHerald" $type
- ="org.cohorte.herald.IHerald" }field { $name="pInjectedLogService1" $
- type="org.osgi.service.log.LogService" }field { $name="pInjectedLogSe
- rvice2" $type="org.osgi.service.log.LogService" }field { $name="pIsol
- ateBaseActivator" $type="org.psem2m.isolates.base.IIsolateBaseActivat
- or" }field { $name="pLogger" $type="org.psem2m.isolates.base.IIsolate
- LoggerSvc" }field { $name="pScope" $type="java.lang.String" }method {
-  $name="addLine" $return="java.lang.StringBuilder" $arguments="{java.
- lang.StringBuilder,java.lang.String,java.lang.Object[]}" $names="{aSB
- ,aFormat,aArgs}" }method { $name="buildCommandMessage" $return="org.c
- ohorte.herald.Message" $arguments="{java.lang.String,java.lang.String
- []}" $names="{aCommandId,aArgs}" }method { $name="fireLoggerCommand" 
- $return="boolean" $arguments="{java.lang.String,org.cohorte.herald.Me
- ssage}" $names="{aGroupId,aMessage}" }method { $name="getIsolateLogge
- rChannel" $return="org.psem2m.isolates.base.internal.CIsolateLoggerCh
- annel" }method { $name="getLevel" $return="java.lang.String" }method 
- { $name="getLoggerInfos" $return="java.lang.String" $arguments="{java
- .lang.String}" $names="{aMimeType}" }method { $name="getValidCommandA
- rgs" $return="java.lang.String[]" $arguments="{org.psem2m.utilities.j
- son.JSONObject}" $names="{aCommand}" }method { $name="getValidCommand
- Id" $return="java.lang.String" $arguments="{org.psem2m.utilities.json
- .JSONObject}" $names="{aCommand}" }method { $name="heraldMessage" $ar
- guments="{org.cohorte.herald.IHerald,org.cohorte.herald.MessageReceiv
- ed}" $names="{aHerald,aMessage}" }method { $name="infos" $arguments="
- {java.lang.String[]}" $names="{aArgs}" }method { $name="invalidate" }
- method { $name="lsdump" }method { $name="lstest" }method { $name="pri
- ntConsole" $arguments="{java.lang.String,java.lang.Object[]}" $names=
- "{aFormat,aArgs}" }method { $name="setLevel" $return="java.lang.Strin
- g" $arguments="{java.lang.String}" $names="{aLevelName}" }method { $n
- ame="setLevelAll" $arguments="{java.lang.String}" $names="{aLevelName
- }" }method { $name="testlogInLogService" $arguments="{org.osgi.servic
- e.log.LogService}" $names="{aLogService}" }method { $name="validate" 
- }method { $name="validJSONObjectMember" $arguments="{org.psem2m.utili
- ties.json.JSONObject,java.lang.String,java.lang.String}" $names="{aOb
- ject,aWhat,aMember}" }}}
+ method { $name="start" $arguments="{org.osgi.framework.BundleContext}
+ " $names="{aBundleContext}" }method { $name="stop" $arguments="{org.o
+ sgi.framework.BundleContext}" $names="{aBundleContext}" }method { $na
+ me="toDescription" $return="java.lang.String" }inner { $name="1" meth
+ od { $name="serviceChanged" $arguments="{org.osgi.framework.ServiceEv
+ ent}" $names="{}" }}inner { $name="CServiceInfos" method { $name="get
+ ServiceName" $return="java.lang.String" }method { $name="getServiceRe
+ gistration" $return="org.osgi.framework.ServiceRegistration" }}}}comp
+ onent { $name="cohorte-isolate-base-isolatelogger-gogocommand-factory
+ " $classname="org.psem2m.isolates.base.internal.CIsolateLoggerGogoCom
+ mand" provides { $specifications="{org.psem2m.isolates.base.IIsolateL
+ oggerAdmin,org.cohorte.herald.IMessageListener,org.psem2m.isolates.ba
+ se.IGoGoCommand}" property { $name="osgi.command.function" $field="pC
+ ommands" $value="{infos,lsdump,lstest,setLevel,setLevelAll}" }propert
+ y { $name="herald.filters" $field="pFilters" $value="{cohorte/runtime
+ /isolates/logger}" }property { $name="osgi.command.scope" $field="pSc
+ ope" $value="isolatelogger" }}requires { $field="pHerald" }requires {
+  $field="pInjectedLogService1" }requires { $field="pInjectedLogServic
+ e2" $filter="(service.description=cohorte)" }requires { $field="pIsol
+ ateBaseActivator" }requires { $field="pLogger" }callback { $transitio
+ n="invalidate" $method="invalidate" }callback { $transition="validate
+ " $method="validate" }manipulation { $classname="org.psem2m.isolates.
+ base.internal.CIsolateLoggerGogoCommand" interface { $name="org.psem2
+ m.isolates.base.IIsolateLoggerAdmin" }interface { $name="org.cohorte.
+ herald.IMessageListener" }interface { $name="org.psem2m.isolates.base
+ .IGoGoCommand" }field { $name="pBundleContext" $type="org.osgi.framew
+ ork.BundleContext" }field { $name="pCommands" $type="java.lang.String
+ []" }field { $name="pFilters" $type="java.lang.String[]" }field { $na
+ me="pHerald" $type="org.cohorte.herald.IHerald" }field { $name="pInje
+ ctedLogService1" $type="org.osgi.service.log.LogService" }field { $na
+ me="pInjectedLogService2" $type="org.osgi.service.log.LogService" }fi
+ eld { $name="pIsolateBaseActivator" $type="org.psem2m.isolates.base.I
+ IsolateBaseActivator" }field { $name="pLogger" $type="org.psem2m.isol
+ ates.base.IIsolateLoggerSvc" }field { $name="pScope" $type="java.lang
+ .String" }method { $name="addLine" $return="java.lang.StringBuilder" 
+ $arguments="{java.lang.StringBuilder,java.lang.String,java.lang.Objec
+ t[]}" $names="{aSB,aFormat,aArgs}" }method { $name="buildCommandMessa
+ ge" $return="org.cohorte.herald.Message" $arguments="{java.lang.Strin
+ g,java.lang.String[]}" $names="{aCommandId,aArgs}" }method { $name="f
+ ireLoggerCommand" $return="boolean" $arguments="{java.lang.String,org
+ .cohorte.herald.Message}" $names="{aGroupId,aMessage}" }method { $nam
+ e="getCommands" $return="java.lang.String[]" }method { $name="getIsol
+ ateLoggerChannel" $return="org.psem2m.isolates.base.internal.CIsolate
+ LoggerChannel" }method { $name="getLevel" $return="java.lang.String" 
+ }method { $name="getLoggerInfos" $return="java.lang.String" $argument
+ s="{java.lang.String}" $names="{aMimeType}" }method { $name="getValid
+ CommandArgs" $return="java.lang.String[]" $arguments="{org.psem2m.uti
+ lities.json.JSONObject}" $names="{aCommand}" }method { $name="getVali
+ dCommandId" $return="java.lang.String" $arguments="{org.psem2m.utilit
+ ies.json.JSONObject}" $names="{aCommand}" }method { $name="heraldMess
+ age" $arguments="{org.cohorte.herald.IHerald,org.cohorte.herald.Messa
+ geReceived}" $names="{aHerald,aMessage}" }method { $name="infos" $arg
+ uments="{java.lang.String[]}" $names="{aArgs}" }method { $name="inval
+ idate" }method { $name="lsdump" }method { $name="lstest" }method { $n
+ ame="printConsole" $arguments="{java.lang.String,java.lang.Object[]}"
+  $names="{aFormat,aArgs}" }method { $name="setLevel" $return="java.la
+ ng.String" $arguments="{java.lang.String}" $names="{aLevelName}" }met
+ hod { $name="setLevelAll" $arguments="{java.lang.String}" $names="{aL
+ evelName}" }method { $name="testlogInLogService" $arguments="{org.osg
+ i.service.log.LogService}" $names="{aLogService}" }method { $name="va
+ lidate" }method { $name="validJSONObjectMember" $arguments="{org.psem
+ 2m.utilities.json.JSONObject,java.lang.String,java.lang.String}" $nam
+ es="{aObject,aWhat,aMember}" }}}
 

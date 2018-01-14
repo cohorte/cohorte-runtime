@@ -1,9 +1,49 @@
 Manifest-Version: 1.0
+Bundle-Activator: org.cohorte.shell.osgi.Activator
 Bundle-ManifestVersion: 2
 Bundle-Name: COHORTE :: Shell :: OSGi Commands
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-SymbolicName: org.cohorte.shell.osgi
-Bundle-Version: 1.2.0.qualifier
 Bundle-Vendor: COHORTE Technologies
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Import-Package: org.osgi.framework
-Bundle-Activator: org.cohorte.shell.osgi.Activator
+Bundle-Version: 1.2.0.qualifier
+Created-By: iPOJO 1.12.1
+Import-Package: org.apache.felix.ipojo;version="[1.12.1,2.0.0)", org.a
+ pache.felix.ipojo.architecture;version="[1.12.1,2.0.0)", org.apache.f
+ elix.service.command;status=provisional, org.osgi.framework, org.osgi
+ .service.cm;version=1.2, org.osgi.service.log;version=1.3, org.psem2m
+ .isolates.base, org.psem2m.utilities, org.psem2m.utilities.logging
+iPOJO-Components: instance { $name="cohorte-isolate-felixplus-gogocomm
+ and" $component="cohorte-isolate-felixplus-gogocommand-factory" }comp
+ onent { $name="cohorte-isolate-felixplus-gogocommand-factory" $classn
+ ame="org.cohorte.shell.osgi.CCpntFelixPlusCommands" provides { $speci
+ fications="{org.psem2m.isolates.base.IGoGoCommand}" property { $name=
+ "osgi.command.function" $field="pCommands" $value="{services,provider
+ s,service,references,getservice}" }property { $name="osgi.command.sco
+ pe" $field="pScope" $value="felix+" }}requires { $field="pLogger" }ca
+ llback { $transition="invalidate" $method="invalidate" }callback { $t
+ ransition="validate" $method="validate" }manipulation { $classname="o
+ rg.cohorte.shell.osgi.CCpntFelixPlusCommands" $super="org.psem2m.isol
+ ates.base.CAbstractGoGoCommand" interface { $name="org.psem2m.isolate
+ s.base.IGoGoCommand" }field { $name="pCommands" $type="java.lang.Stri
+ ng[]" }field { $name="pContext" $type="org.osgi.framework.BundleConte
+ xt" }field { $name="pLogger" $type="org.psem2m.isolates.base.IIsolate
+ LoggerSvc" }field { $name="pScope" $type="java.lang.String" }method {
+  $name="getCommands" $return="java.lang.String[]" }method { $name="ge
+ tLogger" $return="org.psem2m.isolates.base.IIsolateLoggerSvc" }method
+  { $name="getservice" $arguments="{int}" $names="{aServiceID}" }metho
+ d { $name="getservice" $arguments="{java.lang.String}" $names="{aSpec
+ ification}" }method { $name="invalidate" }method { $name="printRefere
+ nce" $arguments="{org.osgi.framework.ServiceReference}" $names="{aSer
+ viceReference}" }method { $name="printReferences" $return="java.lang.
+ String" $arguments="{org.osgi.framework.ServiceReference[]}" $names="
+ {aServiceReferences}" }method { $name="providers" $arguments="{java.l
+ ang.String}" $names="{aSpecification}" }method { $name="references" $
+ arguments="{java.lang.String}" $names="{aSpecification}" }method { $n
+ ame="service" $arguments="{int}" $names="{aServiceId}" }method { $nam
+ e="services" }method { $name="services" $arguments="{org.osgi.framewo
+ rk.Bundle}" $names="{aBundle}" }method { $name="validate" }inner { $n
+ ame="1" method { $name="compare" $return="int" $arguments="{org.osgi.
+ framework.ServiceReference,org.osgi.framework.ServiceReference}" $nam
+ es="{}" }method { $name="compare" $return="int" $arguments="{java.lan
+ g.Object,java.lang.Object}" $names="{}" }}}}
+
