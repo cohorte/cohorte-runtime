@@ -22,6 +22,7 @@ import org.cohorte.herald.NoTransport;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
+import org.psem2m.isolates.base.IGoGoCommand;
 import org.psem2m.isolates.base.IIsolateBaseActivator;
 import org.psem2m.isolates.base.IIsolateLoggerAdmin;
 import org.psem2m.isolates.base.IIsolateLoggerSvc;
@@ -34,12 +35,19 @@ import org.psem2m.utilities.json.JSONObject;
 
 /**
  * MOD_OG_20160906
+ * 
+ * MOD_OG_1.0.17 change component name and adopt IGogoCommand model
  *
  * Put in place the commands:
- * <ul>
- * <li>isolatelogger:infos</li>
- * <li>isolatelogger:setlevel</li>
- * </ul>
+ * 
+ * <pre>
+isolatelogger:infos
+isolatelogger:lsdump
+isolatelogger:lstest
+isolatelogger:setLevel
+isolatelogger:setLevelAll
+ * </pre>
+ * 
  * Heard the herald messages "isolatelogger/setlevel"
  *
  * @see http://kachel.biz/info/roots/usingGogo_en.html
@@ -51,24 +59,23 @@ import org.psem2m.utilities.json.JSONObject;
  * @author ogattaz
  *
  */
-@Component(name = "cohorte-isolate-base-logger-gogocommand-factory")
-@Instantiate(name = "cohorte-isolate-base-logger-gogocommand")
-@Provides(specifications = { IIsolateLoggerAdmin.class, IMessageListener.class })
-public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
-		IMessageListener {
+@Component(name = "cohorte-isolate-base-isolatelogger-gogocommand-factory")
+@Instantiate(name = "cohorte-isolate-base-isolatelogger-gogocommand")
+@Provides(specifications = { IIsolateLoggerAdmin.class, IMessageListener.class, IGoGoCommand.class })
+public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin, IMessageListener, IGoGoCommand {
 
 	private static final String COMMAND_INFOS = "infos";
 	/*
-	 * The Gogo commands name. ATTENTION : look at the name of the methods and
-	 * the declaration
+	 * The Gogo commands name. ATTENTION : look at the name of the methods and the
+	 * declaration
 	 */
 	private static final String COMMAND_LSDUMP = "lsdump";
 	private static final String COMMAND_LSTEST = "lstest";
 	private static final String COMMAND_SETLEVEL = "setLevel";
 	private static final String COMMAND_SETLEVELALL = "setLevelAll";
 
-	private static final String[] COMMANDS = { COMMAND_INFOS, COMMAND_LSDUMP,
-			COMMAND_LSTEST, COMMAND_SETLEVEL, COMMAND_SETLEVELALL };
+	private static final String[] COMMANDS = { COMMAND_INFOS, COMMAND_LSDUMP, COMMAND_LSTEST, COMMAND_SETLEVEL,
+			COMMAND_SETLEVELALL };
 
 	private static final String HERALD_GROUP_ALL = "all";
 
@@ -96,9 +103,8 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 	private IHerald pHerald;
 
 	/**
-	 * LogService injected by IPojo => OSGi Ranking policy => best Ranking =>
-	 * iPOJO get the service having the highest value in its SERVICE_RANKING
-	 * property.
+	 * LogService injected by IPojo => OSGi Ranking policy => best Ranking => iPOJO
+	 * get the service having the highest value in its SERVICE_RANKING property.
 	 *
 	 * @see the registration of the LogService factory in CIsolateBaseActivator
 	 * @see https ://osgi.org/javadoc/r4v42/org/osgi/framework/Constants.html
@@ -150,8 +156,7 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 	 * @param aArgs
 	 * @return
 	 */
-	private StringBuilder addLine(final StringBuilder aSB,
-			final String aFormat, final Object... aArgs) {
+	private StringBuilder addLine(final StringBuilder aSB, final String aFormat, final Object... aArgs) {
 		aSB.append('\n').append(String.format(aFormat, aArgs));
 		return aSB;
 	}
@@ -166,8 +171,7 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 	 * @return the herald message
 	 * @throws JSONException
 	 */
-	Message buildCommandMessage(final String aCommandId, final String... aArgs)
-			throws JSONException {
+	Message buildCommandMessage(final String aCommandId, final String... aArgs) throws JSONException {
 
 		JSONObject wCommand = new JSONObject();
 		wCommand.put(MEMBER_COMMANDID, aCommandId);
@@ -177,8 +181,7 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 		}
 		wCommand.put(MEMBER_COMMANDARGS, wArgs);
 
-		Message wMessage = new Message(
-				IIsolateLoggerAdmin.ISOLATES_LOGGER_MESSAGE);
+		Message wMessage = new Message(IIsolateLoggerAdmin.ISOLATES_LOGGER_MESSAGE);
 		wMessage.setContent(wCommand.toString(2));
 
 		return wMessage;
@@ -187,11 +190,9 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 	/**
 	 * @param aGroupId
 	 */
-	private boolean fireLoggerCommand(final String aGroupId,
-			final Message aMessage) {
+	private boolean fireLoggerCommand(final String aGroupId, final Message aMessage) {
 
-		pLogger.logInfo(this, "fireLoggerCommand", "group=[%s] Message:%s",
-				aGroupId, aMessage);
+		pLogger.logInfo(this, "fireLoggerCommand", "group=[%s] Message:%s", aGroupId, aMessage);
 
 		try {
 			pHerald.fireGroup("all", aMessage);
@@ -200,6 +201,16 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 			pLogger.logSevere(this, "fireLoggerCommand", "ERROR: %s", e);
 			return false;
 		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.psem2m.isolates.base.IGogoCommand#getCommands()
+	 */
+	@Override
+	public String[] getCommands() {
+		return pCommands;
 	}
 
 	/**
@@ -222,8 +233,7 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 
 	/**
 	 * @param aMimeType
-	 * @return
-	 * @throws
+	 * @return @throws
 	 */
 	@Override
 	public String getLoggerInfos(final String aMimeType) {
@@ -247,14 +257,13 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 	 * @return
 	 * @throws Exception
 	 */
-	private String[] getValidCommandArgs(final JSONObject aCommand)
-			throws Exception {
+	private String[] getValidCommandArgs(final JSONObject aCommand) throws Exception {
 
 		validJSONObjectMember(aCommand, "command", MEMBER_COMMANDARGS);
 
 		JSONArray wJSONArray = aCommand.getJSONArray(MEMBER_COMMANDARGS);
 		int wMax = wJSONArray.length();
-		List<String> wArgs = new ArrayList<String>();
+		List<String> wArgs = new ArrayList<>();
 		for (int wIdx = 0; wIdx < wMax; wIdx++) {
 			wArgs.add(String.valueOf(wJSONArray.get(wIdx)));
 		}
@@ -266,8 +275,7 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 	 * @return
 	 * @throws Exception
 	 */
-	private String getValidCommandId(final JSONObject aCommand)
-			throws Exception {
+	private String getValidCommandId(final JSONObject aCommand) throws Exception {
 
 		validJSONObjectMember(aCommand, "command", MEMBER_COMMANDID);
 
@@ -278,22 +286,20 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 				return wKnwonCommand;
 			}
 		}
-		throw new Exception(String.format(
-				"The command [%s] isn't a isolatelogger command. %s",
-				wCommandId, CXStringUtils.stringTableToString(pCommands)));
+		throw new Exception(String.format("The command [%s] isn't a isolatelogger command. %s", wCommandId,
+				CXStringUtils.stringTableToString(pCommands)));
 	}
 
 	/**
-	 * receive the message having the subject :
-	 * "cohorte/runtime/isolates/logger"
+	 * receive the message having the subject : "cohorte/runtime/isolates/logger"
 	 *
 	 * @see IIsolateLoggerSvc.ISOLATES_LOGGER_MESSAGE
 	 *
 	 *      These message must have a content
 	 *
-	 * <pre>
+	 *      <pre>
 	 *
-	 * </pre>
+	 *      </pre>
 	 *
 	 *
 	 *
@@ -301,19 +307,14 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 	 *      org.cohorte.herald.MessageReceived)
 	 */
 	@Override
-	public void heraldMessage(final IHerald aHerald,
-			final MessageReceived aMessage) throws HeraldException {
+	public void heraldMessage(final IHerald aHerald, final MessageReceived aMessage) throws HeraldException {
 
 		try {
 			String wSubject = aMessage.getSubject();
 			Object wContent = aMessage.getContent();
 			boolean wHasContent = wContent != null;
-			String wMessageData = (wContent instanceof String) ? (String) wContent
-					: null;
-			pLogger.logInfo(
-					this,
-					"heraldMessage",
-					"receiving a message: subject=[%s] HasContent=[%s] data=[%s]",
+			String wMessageData = (wContent instanceof String) ? (String) wContent : null;
+			pLogger.logInfo(this, "heraldMessage", "receiving a message: subject=[%s] HasContent=[%s] data=[%s]",
 					wSubject, wHasContent, wMessageData);
 
 			if (wMessageData == null) {
@@ -321,19 +322,15 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 					throw new Exception("The message has no content");
 				}
 				String wContentClassName = wContent.getClass().getSimpleName();
-				throw new Exception(
-						String.format(
-								"The content of the message is an instance of [%s] not a String",
-								wContentClassName));
+				throw new Exception(String.format("The content of the message is an instance of [%s] not a String",
+						wContentClassName));
 			}
 
 			JSONObject wCommand;
 			try {
 				wCommand = new JSONObject(wMessageData);
 			} catch (Exception e) {
-				throw new Exception(
-						"Unable to instanciate a JSONObject using the content of the message",
-						e);
+				throw new Exception("Unable to instanciate a JSONObject using the content of the message", e);
 
 			}
 
@@ -354,15 +351,13 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 				String[] wArgs = getValidCommandArgs(wCommand);
 
 				if (wArgs.length < 1) {
-					throw new Exception(
-							"Unable to launch the command setLevel, one argument needed");
+					throw new Exception("Unable to launch the command setLevel, one argument needed");
 				}
 				setLevel(wArgs[0]);
 
 			}
 			default:
-				pLogger.logSevere(this, "heraldMessage",
-						"ERROR: CommandId [%s] not supported", wCommandId);
+				pLogger.logSevere(this, "heraldMessage", "ERROR: CommandId [%s] not supported", wCommandId);
 			}
 
 		} catch (Exception | Error e) {
@@ -380,8 +375,8 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 		pLogger.logInfo(this, "infos", "dump logger infos");
 		StringBuilder wOut = new StringBuilder();
 		try {
-			String wMimeType = (aArgs.length > 0 && "application/json"
-					.contains(aArgs[0].toLowerCase())) ? "application/json"
+			String wMimeType = (aArgs.length > 0 && "application/json".contains(aArgs[0].toLowerCase()))
+					? "application/json"
 					: "text/plain";
 
 			wOut.append(getLoggerInfos(wMimeType));
@@ -428,8 +423,7 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 
 				addLine(wSB, "  + LogService: %s", wLogService.toString());
 
-				addLine(wSB, "  + Properties: %s",
-						wLogserviceRef.getPropertyKeys().length);
+				addLine(wSB, "  + Properties: %s", wLogserviceRef.getPropertyKeys().length);
 
 				for (String wKey : wLogserviceRef.getPropertyKeys()) {
 					Object wValue = wLogserviceRef.getProperty(wKey);
@@ -437,8 +431,7 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 					if (wValue != null && wValue.getClass().isArray()) {
 						addLine(wSB, "    - %s={", wKey);
 						for (Object wObj : (Object[]) wValue) {
-							addLine(wSB, "           [%s]",
-									String.valueOf(wObj));
+							addLine(wSB, "           [%s]", String.valueOf(wObj));
 						}
 						addLine(wSB, "           }");
 					}
@@ -507,12 +500,10 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 	 */
 	@Descriptor("Set the log level of the isolatelogger")
 	@Override
-	public String setLevel(
-			@Descriptor("the name of the level to set") final String aLevelName) {
+	public String setLevel(@Descriptor("the name of the level to set") final String aLevelName) {
 		// MOD_BD_20160919 return old log level
 		String wOldLevel = getLevel();
-		pLogger.logInfo(this, "setLevel",
-				"set the level to [%s], old level [%s]", aLevelName, wOldLevel);
+		pLogger.logInfo(this, "setLevel", "set the level to [%s], old level [%s]", aLevelName, wOldLevel);
 
 		try {
 			Level wLevelBefore = pLogger.getLevel();
@@ -521,9 +512,8 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 
 			Level wLevelAfter = pLogger.getLevel();
 
-			System.out.println(String.format(
-					"IsolateLogger's level set to=[%s] (before=[%s])",
-					wLevelAfter.getName(), wLevelBefore.getName()));
+			System.out.println(String.format("IsolateLogger's level set to=[%s] (before=[%s])", wLevelAfter.getName(),
+					wLevelBefore.getName()));
 
 		} catch (Exception | Error e) {
 			pLogger.logSevere(this, "setLevel", "ERROR: %s", e);
@@ -536,20 +526,16 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 	 */
 	@Descriptor("Set the log level of the all the isolateloggers")
 	@Override
-	public void setLevelAll(
-			@Descriptor("the name of the level to set") final String aLevelName) {
+	public void setLevelAll(@Descriptor("the name of the level to set") final String aLevelName) {
 
-		pLogger.logInfo(this, "setLevelAll",
-				"set the level of all the isolateloggers to [%s]", aLevelName);
+		pLogger.logInfo(this, "setLevelAll", "set the level of all the isolateloggers to [%s]", aLevelName);
 
 		try {
 			// dispatch the command to all other isolates
-			boolean wFired = fireLoggerCommand(HERALD_GROUP_ALL,
-					buildCommandMessage(COMMAND_SETLEVEL, aLevelName));
+			boolean wFired = fireLoggerCommand(HERALD_GROUP_ALL, buildCommandMessage(COMMAND_SETLEVEL, aLevelName));
 
-			System.out.println(String.format(
-					"Command [%s] fired (%s) to the group [%s]",
-					COMMAND_SETLEVEL, wFired, HERALD_GROUP_ALL));
+			System.out.println(String.format("Command [%s] fired (%s) to the group [%s]", COMMAND_SETLEVEL, wFired,
+					HERALD_GROUP_ALL));
 
 			setLevel(aLevelName);
 		} catch (Exception | Error e) {
@@ -564,8 +550,7 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 
 		printConsole("Test LogService in : %s", aLogService);
 
-		String wLine = String.format("$$$ testlog in [%s] (%s)", aLogService,
-				CXDateTime.getIso8601TimeStamp());
+		String wLine = String.format("$$$ testlog in [%s] (%s)", aLogService, CXDateTime.getIso8601TimeStamp());
 
 		aLogService.log(LogService.LOG_INFO, wLine);
 		aLogService.log(LogService.LOG_ERROR, wLine);
@@ -579,8 +564,7 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 	@Validate
 	public void validate() {
 
-		pLogger.logInfo(this, "validate", "validated Commands=[%s]",
-				CXStringUtils.stringTableToString(pCommands));
+		pLogger.logInfo(this, "validate", "validated Commands=[%s]", CXStringUtils.stringTableToString(pCommands));
 	}
 
 	/**
@@ -588,13 +572,11 @@ public class CIsolateLoggerGogoCommand implements IIsolateLoggerAdmin,
 	 * @param aMember
 	 * @throws Exception
 	 */
-	private void validJSONObjectMember(final JSONObject aObject,
-			final String aWhat, final String aMember) throws Exception {
+	private void validJSONObjectMember(final JSONObject aObject, final String aWhat, final String aMember)
+			throws Exception {
 
 		if (!aObject.has(aMember)) {
-			throw new Exception(String.format(
-					"The JSONObject '%s' doesn't have a member [%s]", aWhat,
-					aMember));
+			throw new Exception(String.format("The JSONObject '%s' doesn't have a member [%s]", aWhat, aMember));
 		}
 	}
 
