@@ -76,7 +76,8 @@ public abstract class CAbstractGoGoCommand {
 	 */
 	public void logTwiceSevere(final String aWhat, final Throwable aThrowable, final String format,
 			final Object... args) {
-		logTwice(Level.SEVERE, aWhat, format + "ERROR: %s", CXArray.appendOneObject(args, aThrowable));
+		logTwice(Level.SEVERE, aWhat, format + " ERROR: %s",
+				CXArray.appendOneObject(args, CXException.eInString(aThrowable)));
 	}
 
 	/**
