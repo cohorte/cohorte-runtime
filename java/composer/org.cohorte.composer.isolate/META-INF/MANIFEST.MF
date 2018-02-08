@@ -4,7 +4,7 @@ Bundle-Name: Cohorte :: Composer :: Isolate
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.cohorte.composer.isolate
 Bundle-Vendor: COHORTE Technologies
-Bundle-Version: 1.2.0.qualifier
+Bundle-Version: 1.2.0
 Created-By: iPOJO 1.10.1
 Import-Package: org.apache.felix.ipojo, org.apache.felix.ipojo.annotat
  ions, org.apache.felix.ipojo.architecture, org.apache.felix.ipojo.han

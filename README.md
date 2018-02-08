@@ -12,8 +12,8 @@ More details are available on [Cohorte Web Site](http://cohorte.github.io/).
 
 # About
 
-The Cohorte Project is an open source framework hosted on GitHub and sponsored by [isandlaTech](http://isandlatech.com).
-To help you developing your business applications using COHORTE, feel free to contact isandlaTech's support team at [contact@isandlatech.com](mailto:contact@isandlatech.com).
+The Cohorte Project is an open source framework hosted on GitHub and sponsored by [Cohorte Technologies](http://cohorte-technologies.com).
+To help you developing your business applications using COHORTE, feel free to contact isandlaTech's support team at [contact@isandlatech.com](mailto:contact@cohorte-technologies.com).
 
 # License
 

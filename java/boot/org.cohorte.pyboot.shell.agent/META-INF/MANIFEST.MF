@@ -4,7 +4,7 @@ Bundle-Name: COHORTE :: Python Bridge :: Shell Agent
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-SymbolicName: org.cohorte.pyboot.shell.agent
 Bundle-Vendor: COHORTE Technologies
-Bundle-Version: 1.2.0.qualifier
+Bundle-Version: 1.2.0
 Created-By: iPOJO  1.8.0
 Import-Package: org.apache.felix.ipojo, org.apache.felix.ipojo.archite
  cture, org.cohorte.herald, org.cohorte.pyboot.api, org.cohorte.shell,
