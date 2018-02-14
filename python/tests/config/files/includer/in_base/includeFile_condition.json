@@ -1,0 +1,6 @@
+[{
+	"$include":{
+		"path":["file://includeFile.json#allOf[*]"],
+		"condition":"'test' == '${condition_variable}'"
+	}	
+}]

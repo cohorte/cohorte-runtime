@@ -52,6 +52,9 @@ ENV_NAME = 'COHORTE_ISOLATE_NAME'
 ENV_UID = 'COHORTE_ISOLATE_UID'
 """ COHORTE Isolate UID environment variable """
 
+APP_ID = 'COHORTE_APP_ID'
+""" COHORTE Application ID environment variable """
+
 ENV_NODE_NAME = 'COHORTE_NODE_NAME'
 """ COHORTE Node name environment variable """
 
@@ -69,7 +72,6 @@ PROP_VERBOSE = 'cohorte.verbose'
 
 PROP_COLORED = 'cohorte.log.color'
 """ COHORTE logging color mode """
-
 
 PROP_ENV_STARTER = 'cohorte.forker.starter.environment'
 """ environment parmeter for isolate starter """

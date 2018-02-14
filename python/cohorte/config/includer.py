@@ -38,6 +38,7 @@ from cohorte.config import common
 import cohorte.version
 from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
     Validate, Invalidate, Requires
+from simpleeval import simple_eval
 
 try:
     # Python 3
@@ -58,6 +59,12 @@ __version__ = cohorte.version.__version__
 
 _logger = logging.getLogger(__name__)
 
+# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+#
+#   Expression parser and evaluator 
+# 
 # ------------------------------------------------------------------------------
 
 
@@ -105,7 +112,7 @@ class CResource(object):
                     tag_key = self.tag
                     if idx_obraces != -1:
                         tag_key = self.tag[:idx_obraces]
-
+                       
                     if not tag_key in json_obj.keys():
                         mess = "include property [{0}]  defined in file [{1}] doesn't exists in file [{2}]".format(
                             tag_key, self.resource_parent.filename, self.filename);
@@ -139,7 +146,7 @@ class CResource(object):
                                     first = int(idx[0])
                                 if idx[1].isdigit():
                                     last = int(idx[1])
-                                if last != None and fist != None:
+                                if last != None and first != None:
                                     tag_elem = ",".join([json.dumps(elem) for elem in arr_elem[first:last]])
                                 elif last != None:
                                     tag_elem = ",".join([json.dumps(elem) for elem in arr_elem[:last]])
@@ -239,8 +246,9 @@ class CResource(object):
         if self.query_idx != -1:
 
             # set query if exists
-            if self.tag_idx != -1:
+            if self.tag_idx != -1 and self.tag_idx > self.query_idx:
                 query = filename[self.query_idx + 1:self.tag_idx]
+           
             else:
                 query = filename[self.query_idx + 1:]
 
@@ -328,7 +336,10 @@ class CResource(object):
         if filename != None:
 
             res_file_name = None
-            if self.query_idx != -1:
+            if self.query_idx != -1 and self.tag_idx != -1:
+                end_idx = self.tag_idx if self.query_idx > self.tag_idx else self.query_idx
+                res_file_name = filename[self.protocol_idx:end_idx]
+            elif self.query_idx != -1 :
                 res_file_name = filename[self.protocol_idx:self.query_idx]
             elif self.tag_idx != -1:
                 res_file_name = filename[self.protocol_idx:self.tag_idx]
@@ -441,22 +452,36 @@ class FileIncluderAbs(object):
                         merge_content.append(arr)
 
                 if merge_content == None:
-                    raise IOError("{0} doesn't exists ".format(path))
+                    raise IOError("{0} doesn't exists ".format(filename))
 
         if not want_json:
             return json.dumps(merge_content)
         return merge_content
 
     def _get_include_path(self, json_match):
+        """ return the list of path to include """
         if isinstance(json_match, dict):
             paths = json_match["path"]
             if isinstance(paths, str):
                 paths = paths.split(";")
                 # TODO property to manage
+
         else:
             paths = json_match.split(";")
             _logger.debug("_revolveContent: paths {0}".format(paths))
         return paths
+
+    def _is_condition_include(self, json_match):
+        """ return true if a condition doesn't exists or if the condition is evaluation is true else false """
+        if isinstance(json_match, dict) and "condition" in json_match:
+            condition = json_match["condition"]
+            if condition != None and isinstance(condition, str):
+                return simple_eval(condition)
+            else:
+                return True  
+                # TODO property to manage
+
+        return True  
 
     def _get_include_match(self, matches):
         found_match = None
@@ -488,12 +513,15 @@ class FileIncluderAbs(object):
                     if match_json != None:
                         if "$include" in match_json.keys():
                             # match is { $include: "file:///path of a file"}
-                            for path in self._get_include_path(match_json["$include"]):
-                                _logger.debug("_revolveContent: $include - subContentPath {0}".format(path))
-
-                                sub_content = self._get_content(path, resource)
-                                sub_contents.append(sub_content)
-                            resolved_content = resolved_content.replace(found_match, str.join(",", sub_contents))
+                            # check condition property if it exists 
+                            include_matched = match_json["$include"]
+                            if(self._is_condition_include(include_matched)):
+                                for path in self._get_include_path(include_matched):
+                                    _logger.debug("_revolveContent: $include - subContentPath {0}".format(path))
+    
+                                    sub_content = self._get_content(path, resource)
+                                    sub_contents.append(sub_content)
+                                resolved_content = resolved_content.replace(found_match, str.join(",", sub_contents))
 
                 # apply regexp to remove content
                 for matches in self._merge.findall(resolved_content):

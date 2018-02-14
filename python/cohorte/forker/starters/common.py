@@ -25,12 +25,13 @@ Common code for isolate starters
 """
 
 # Standard library
+import os
+
 import cohorte
 import cohorte.forker
 import cohorte.utils
-import os
+import cohorte.version
 from pelix.ipopo.decorators import Requires, Validate, Invalidate
-
 
 try:
     # Python 3
@@ -48,10 +49,10 @@ except ImportError:
 # ------------------------------------------------------------------------------
 
 # Bundle version
-import cohorte.version
-__version__=cohorte.version.__version__
+__version__ = cohorte.version.__version__
 
 # ------------------------------------------------------------------------------
+
 
 @Requires('_environment', cohorte.forker.SERVICE_ENV_STARTER)
 @Requires('_watcher', cohorte.forker.SERVICE_WATCHER)
@@ -59,6 +60,7 @@ class CommonStarter(object):
     """
     Common code for starters
     """
+
     def __init__(self):
         """
         Sets up members
@@ -192,6 +194,9 @@ class CommonStarter(object):
         # ... isolate
         env[cohorte.ENV_UID] = configuration['uid']
         env[cohorte.ENV_NAME] = configuration['name']
+
+        # ---- add app-id
+        env[cohorte.APP_ID] = configuration['app-id']
 
         # ... node
         env[cohorte.ENV_NODE_UID] = configuration['node_uid']

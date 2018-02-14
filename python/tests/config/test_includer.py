@@ -25,16 +25,15 @@ COHORTE file include unit test
     limitations under the License.
 """
 
-from cohorte.config import finder as finder
-from cohorte.config import includer as includer
-from cohorte.config.includer import CBadResourceException
 import json
 import logging
 import os
 import unittest
 
+from cohorte.config import finder as finder
+from cohorte.config import includer as includer
 import  cohorte.config.common as common
-
+from cohorte.config.includer import CBadResourceException
 
 logging.basicConfig(level=logging.INFO)
 try:
@@ -48,7 +47,6 @@ except ImportError:
     
 # unit test 
 ##############@                
-
 
 test_cases_include = [
     ("my_composition.js", "my_composition"),
@@ -68,6 +66,8 @@ test_cases_include = [
     ("module_allMultiPath.json", "noCommentMutliPath") ,
     ("module_allMultiPathWildChar.json", "noCommentMutliPathWildChar") ,
     ("module_allMultiPathWildCharAndSubProp.json", "noCommentMutliPathWildCharAndProp") ,
+    ("module_conditional_include.json", "module_conditional_include") ,
+
     ("merged/java-*", "merge-java") ,
     ("merged/java-*;merged/composer/*", "merge-java-composer") 
 
@@ -86,6 +86,7 @@ test_cases_mergedict = [
         json.loads('{"a": {"b": {"b1": "b2", "b3": "b4"}}, "c": ["c3", "c4", "c1", "c2"], "d": {"d1": "d2"}}'))
 ]
 
+
 class testIncluder(unittest.TestCase):
 
     def setUp(self):
@@ -98,7 +99,6 @@ class testIncluder(unittest.TestCase):
         self.include = includer.FileIncluder()
         self.include._finder = self.finder
 
-
     def test_merge_dict(self):
         print("test_merge_dict")
         for js1, js2, expect in test_cases_mergedict:
@@ -107,7 +107,6 @@ class testIncluder(unittest.TestCase):
             print(json.dumps(result))
             self.assertEqual(json.dumps(result), json.dumps(expect))
             print("====>\t ok : queryString=[{0}]  stringToReplace=[{1}] result=[{2}]".format(js1, js2, result))
-
         
     def test_replace_var(self):
         print("test_replace_var")
@@ -135,11 +134,8 @@ class testIncluder(unittest.TestCase):
             content = self.include.get_content(file_in , True)
 
             result = json.dumps(content, indent=4, sort_keys=True)
-          
-
             self.assertEqual(result, expected_result, caseinfo)
             print("====>\t ok :case " + caseinfo)
-
    
 
 if __name__ == "__main__":  # call all test

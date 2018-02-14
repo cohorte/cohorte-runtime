@@ -1,0 +1,6 @@
+[{
+	"$include":{
+		"path":["file://includeFile_condition.json?condition_variable=test"],
+		"condition":"'test' == 'test'"
+	}	
+}]
