@@ -195,9 +195,7 @@ class CommonStarter(object):
         env[cohorte.ENV_UID] = configuration['uid']
         env[cohorte.ENV_NAME] = configuration['name']
 
-        # ---- add app-id
-        env[cohorte.APP_ID] = configuration['app-id']
-
+      
         # ... node
         env[cohorte.ENV_NODE_UID] = configuration['node_uid']
         env[cohorte.ENV_NODE_NAME] = configuration['node_name']
