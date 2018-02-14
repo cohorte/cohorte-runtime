@@ -253,7 +253,12 @@ class CResource(object):
                 query = filename[self.query_idx + 1:]
 
             self.params = urlparse.parse_qs(query)
-            _logger.info("replace params {0}".format(self.params))
+            _logger.info("replace params passed in query ={0}".format(self.params))
+
+            # add environment variable as parameter
+            for en_key in os.environ:
+                self.params[en_key] = os.environ[en_key]
+            _logger.debug("replace params passed in query ={0}".format(self.params))
 
         return filename
 
