@@ -16,12 +16,9 @@
 
 package org.cohorte.shell.osgi;
 
-import java.util.Dictionary;
-import java.util.Hashtable;
-
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 
 /**
  * Registers the OSGi utility commands
@@ -30,45 +27,56 @@ import org.osgi.framework.ServiceRegistration;
  */
 public class Activator implements BundleActivator {
 
-	/** The service registration */
-	private ServiceRegistration<OsgiCommands> pRegistration;
+	private static BundleContext sBundleContext;
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext
-	 * )
+	private static Activator sMe;
+
+	/**
+	 * @return
 	 */
-	@Override
-	public void start(final BundleContext aContext) {
+	public static BundleContext getContext() {
+		return sBundleContext;
+	}
 
-		// Prepare the object
-		final OsgiCommands osgiCommands = new OsgiCommands(aContext);
+	/**
+	 * @return
+	 */
+	public static Activator getSingleton() {
+		return sMe;
+	}
 
-		// Set up properties
-		final Dictionary<String, Object> properties = new Hashtable<String, Object>();
-		properties.put("osgi.command.scope", "cohorte");
-		properties.put("osgi.command.function", osgiCommands.getCommands());
-
-		// Register the service
-		pRegistration = aContext.registerService(OsgiCommands.class,
-				osgiCommands, properties);
+	/**
+	 *
+	 */
+	public Activator() {
+		super();
+		sMe = this;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
+	 * @see
+	 * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext )
+	 */
+	@Override
+	public void start(final BundleContext context) throws Exception {
+		sBundleContext = context;
+		final Bundle wBundle = context.getBundle();
+		System.out.printf("%50s | Bundle=[%50s][%s] started\n", "Activator.start()", wBundle.getSymbolicName(),
+				wBundle.getVersion());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 *
 	 * @see
 	 * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
 	 */
 	@Override
-	public void stop(final BundleContext aContext) {
+	public void stop(final BundleContext context) throws Exception {
+		System.out.printf("%50s | Bundle=[%50s] stopped\n", "Activator.stop()", context.getBundle().getSymbolicName());
 
-		// Unregister the service
-		if (pRegistration != null) {
-			pRegistration.unregister();
-			pRegistration = null;
-		}
+		sBundleContext = null;
 	}
 }
