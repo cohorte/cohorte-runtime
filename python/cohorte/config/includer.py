@@ -307,7 +307,7 @@ class CResource(object):
 
         for file in self._finder.find_rel(path, self.dirpath):
             content = self._read_contents_file(file)
-            if content != None and ("*" in path or len(contents) == 0):
+            if content != None :
                 contents.append("\n".join(content));
 
         if len(contents) > 0:
