@@ -27,15 +27,17 @@ this allow to split a composition file in severals file and get a full resolved 
 """
 
 # COHORTE constants
-import cohorte
-from cohorte.config import common
 import glob
 import json
 import logging
 import os
+import re
+
+import cohorte
+from cohorte.config import common
+import cohorte.version
 from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
     Validate, Invalidate, Requires
-import re
 
 try:
     # Python 3
@@ -50,18 +52,17 @@ except ImportError:
 # ------------------------------------------------------------------------------
 
 # Bundle version
-import cohorte.version
-__version__=cohorte.version.__version__
+__version__ = cohorte.version.__version__
 
 # ------------------------------------------------------------------------------
 
 _logger = logging.getLogger(__name__)
 
-
 # ------------------------------------------------------------------------------
 
 
 class CBadResourceException(Exception):
+
     def __init__(self, message):
         self._message = message
 
@@ -70,6 +71,7 @@ class CBadResourceException(Exception):
 
 
 class CResource(object):
+
     def get_tag(self):
         return self.tag
 
@@ -247,22 +249,14 @@ class CResource(object):
 
         return filename
 
-    def _read_contents_file(self):
-        """
-        if the path contain a wildChar we read o all files else only the first one (compatibilty with the current way to manage import)
-        return the contents of the files identified by the path
-        @return : a list of String
-        """
+    def _read_contents_file(self, a_file):
         contents = []
-        path = self.filename
-
-        self.read_files_name = []
-        for file in self._finder.find_rel(path, self.dirpath):
-            _logger.info("read file {0}".format(file))
-            lines = []
-            with open(file) as obj_file:
+        _logger.info("read file {0}".format(a_file))
+        lines = []
+        if a_file != None:
+            with open(a_file) as obj_file:
                 comment_line = False
-                self.read_files_name.append(file)
+                self.read_files_name.append(a_file)
                 for line in obj_file:
                     # remove /* */  comment, the // is manage by the regexp
                     # TODO manage "http://" /*
@@ -283,6 +277,25 @@ class CResource(object):
                     elif not comment_line:
                         lines.append(line)
                 contents.append("\n".join(lines));
+            if len(contents) > 0:
+                return contents
+        return None
+
+    def _read_contents_files(self):
+        """
+        if the path contain a wildChar we read o all files else only the first one (compatibilty with the current way to manage import)
+        return the contents of the files identified by the path
+        @return : a list of String
+        """
+        contents = []
+        path = self.filename
+
+        self.read_files_name = []
+
+        for file in self._finder.find_rel(path, self.dirpath):
+            content = self._read_contents_file(file)
+            if content != None and ("*" in path or len(contents) == 0):
+                contents.append("\n".join(content));
 
         if len(contents) > 0:
             return contents
@@ -295,7 +308,7 @@ class CResource(object):
         @return : a  list of String
         """
         if self.type == "file":
-            self.contents = self._read_contents_file()
+            self.contents = self._read_contents_files()
         else:
             # not manager
             self.content = None
@@ -437,7 +450,7 @@ class FileIncluderAbs(object):
     def _get_include_path(self, json_match):
         if isinstance(json_match, dict):
             paths = json_match["path"]
-            if isinstance(paths, basestring):
+            if isinstance(paths, str):
                 paths = paths.split(";")
                 # TODO property to manage
         else:
@@ -505,10 +518,10 @@ class FileIncluderAbs(object):
                             _logger.debug("_revolveContent: $merge - subContentPath {0}".format(path))
                             # merge this json with the current one
                             w_content = self._get_content(path, resource)
-                            if w_content!=None:
+                            if w_content != None:
                                 _logger.debug("_revolveContent: $merge - subContentPath not null {0}".format(path))
 
-                                to_merges = json.loads("[" +w_content + "]")
+                                to_merges = json.loads("[" + w_content + "]")
                                 for to_merge in to_merges:
                                     resolved_content = common.merge_object(resolved_content, to_merge)
                             else:
