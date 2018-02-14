@@ -257,7 +257,7 @@ class CResource(object):
 
             # add environment variable as parameter
             for en_key in os.environ:
-                self.params[en_key] = os.environ[en_key]
+                self.params[en_key] = [os.environ[en_key]]
             _logger.debug("replace params passed in query ={0}".format(self.params))
 
         return filename
