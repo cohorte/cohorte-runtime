@@ -52,7 +52,7 @@ ENV_NAME = 'COHORTE_ISOLATE_NAME'
 ENV_UID = 'COHORTE_ISOLATE_UID'
 """ COHORTE Isolate UID environment variable """
 
-APP_ID = 'APPLICATION_ID'
+APP_ID = 'APP_ID'
 """ COHORTE Application ID environment variable """
 
 ENV_NODE_NAME = 'COHORTE_NODE_NAME'

@@ -177,7 +177,7 @@ class BootConfigParser(object):
         """
         if not components:
             return []
-        return [self._parse_component(component) for component in components]
+        return [self._parse_component(component) for component in components if len(component.keys()) > 0 ]
 
     def _parse_isolate(self, json_object):
         """

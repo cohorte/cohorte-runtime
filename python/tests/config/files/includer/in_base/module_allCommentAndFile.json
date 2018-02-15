@@ -48,7 +48,7 @@
 		},
 		"deviceTest": { 
 			"$include" : {
-				"path" : "file://includeFile.json" ,
+				"path" : ["file://includeFile.json"],
 				"test" : true
 			}
 		},

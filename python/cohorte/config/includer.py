@@ -188,7 +188,7 @@ class CResource(object):
         self.filename = None
         # list of directory data and base (and home) where the file can be located
         self._finder = finder
-        self.params = None
+        self.params = {}
         self.type = "file"
         # contain the subpath of the directory not an absolute path
         self.dirpath = None
@@ -237,6 +237,14 @@ class CResource(object):
 
         return filename
 
+    def _init_param_run_config(self, a_json_config, a_current_path=""):
+        if isinstance(a_json_config, dict):
+            for key in a_json_config.keys():
+                self._init_param_run_config(a_json_config[key], a_current_path + "." + key if a_current_path != "" else key)
+        else:
+            _logger.debug("add run variable key={} value={}".format(a_current_path, a_json_config))
+            os.environ["run:{}".format(a_current_path)] = str(a_json_config)
+
     def _init_query(self, filename):
         """
         return the query string parameter key=value that can be in the url. the substring starts with '#' will be ignored
@@ -255,10 +263,17 @@ class CResource(object):
             self.params = urlparse.parse_qs(query)
             _logger.info("replace params passed in query ={0}".format(self.params))
 
-            # add environment variable as parameter
-            for en_key in os.environ:
-                self.params[en_key] = [os.environ[en_key]]
-            _logger.debug("replace params passed in query ={0}".format(self.params))
+        # add environment variable as parameter
+        for en_key in os.environ:
+            self.params[en_key] = [os.environ[en_key]]
+            self.params["env:" + en_key] = self.params[en_key]  # set env namespace 
+        
+        # create variable for namespace run 
+        if "run" in os.environ:
+            w_json = json.loads(os.environ["run"])
+            self._init_param_run_config(w_json)
+        
+        _logger.debug("replace params passed in query ={0}".format(self.params))
 
         return filename
 
@@ -304,12 +319,13 @@ class CResource(object):
         path = self.filename
 
         self.read_files_name = []
-
+        w_readed_file = []
         for file in self._finder.find_rel(path, self.dirpath):
             content = self._read_contents_file(file)
-            if content != None:
+            if content != None and not file in w_readed_file:
                 contents.append("\n".join(content));
-
+                w_readed_file.append(file)
+            
         if len(contents) > 0:
             return contents
         # no content found in list of directory
@@ -380,7 +396,7 @@ class FileIncluderAbs(object):
         self._check = re.compile("(.*//.*)", re.MULTILINE)
         self._check_slash = re.compile("(\".*//.*\")", re.MULTILINE)
         _simple_include = "((\\n)*\\{(\\n)*\\s*\"\\$include\"\\s*:(\\s*\"[^\\}]*\"\\s*)\\})"
-        _complex_include = "((\n)*\\{(\\s|\n|\t)*\"\\$include\"(\\s|\n|\t)*:(\\s|\n|\t)*\\{((\\s|\n|\t)*\"[^\\}]*\"(\\s|\n|\t)*:(\\s|\n|\t)*[^\\}]*(\\s|\n|\t)*,{0,1}(\\s|\n|\t)*)*\\}(\\s|\n|\t)*)\\}"
+        _complex_include = "((\n)*\\{(\\s|\n|\t)*\"\$include\"(\\s|\n|\t)*:(\\s|\n|\t)*\\{((\\s|\n|\t)*\"[^\\}]*\"(\\s|\n|\t)*:(\\s|\n|\t)*.*(\\s|\n|\t)*,{0,1}(\\s|\n|\t)*)*\\}(\\s|\n|\t)*)\\}"
         self._include = re.compile("(" + _simple_include + ")|(" + _complex_include + ")", re.MULTILINE)
         _simple_merge = "(,{0,1}(\n|\s|\t)*\"\$merge\"(\n|\s|\t)*:((\n|\s|\t)*\[(\n|\s|\t)*\"[^\}]*\"(\n|\s|\t)*\](\n|\s|\t)*,{0,1}))"
         self._merge = re.compile(_simple_merge, re.MULTILINE)
@@ -527,6 +543,14 @@ class FileIncluderAbs(object):
                                     sub_content = self._get_content(path, resource)
                                     sub_contents.append(sub_content)
                                 resolved_content = resolved_content.replace(found_match, str.join(",", sub_contents))
+                            else:
+                                if "{},".format(found_match) in resolved_content:
+                                    resolved_content = resolved_content.replace("{},".format(found_match), "")
+                                elif ",{}".format(found_match) in resolved_content:
+                                    resolved_content = resolved_content.replace(",{}".format(found_match), "")
+                                else:
+                                    resolved_content = resolved_content.replace(found_match, "{}")
+
 
                 # apply regexp to remove content
                 for matches in self._merge.findall(resolved_content):
@@ -553,7 +577,6 @@ class FileIncluderAbs(object):
                             w_content = self._get_content(path, resource)
                             if w_content != None:
                                 _logger.debug("_revolveContent: $merge - subContentPath not null {0}".format(path))
-
                                 to_merges = json.loads("[" + w_content + "]")
                                 for to_merge in to_merges:
                                     resolved_content = common.merge_object(resolved_content, to_merge)
