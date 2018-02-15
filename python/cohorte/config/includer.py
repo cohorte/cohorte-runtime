@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -- Content-Encoding: UTF-8 --
 """
-COHORTE file finder
+COHORTE file includer
 
 component that allow the resolve a file that contain multiple includes. 
 this allow to split a composition file in severals file and get a full resolved file 
@@ -198,6 +198,9 @@ class CResource(object):
         self.tag = None
         self.resource_parent = parent_resource;
         self._set_filename(filename, parent_resource)
+
+    def get_full_filename(self):
+        return self.dirpath +os.sep+ self.filename if self.dirpath != None else self.filename
 
     def _set_filename(self, filename, parent_resource=None):
         """
@@ -551,7 +554,6 @@ class FileIncluderAbs(object):
                                 else:
                                     resolved_content = resolved_content.replace(found_match, "{}")
 
-
                 # apply regexp to remove content
                 for matches in self._merge.findall(resolved_content):
                     found_match = self._get_include_match(matches)
@@ -581,7 +583,7 @@ class FileIncluderAbs(object):
                                 for to_merge in to_merges:
                                     resolved_content = common.merge_object(resolved_content, to_merge)
                             else:
-                                 _logger.debug("_revolveContent: $merge - subContentPath not null {0}".format(path))
+                                _logger.debug("_revolveContent: $merge - subContentPath not null {0}".format(path))
 
                         resolved_content = json.dumps(resolved_content)
 
@@ -590,6 +592,11 @@ class FileIncluderAbs(object):
 
             # check if the json is ok and reformat it for the correct application of the regexp
             resource.set_contents(resolved_contents)
+
+    def _check_no_import_files(self, a_filename, a_json):
+        """ check if the json contains import-file property and raise an excpetion if it's the case  """
+        if "import-files" in a_json:
+            raise CBadResourceException("file=[{}] has 'import-files' property, please check your composition file in conf".format(a_filename))
 
     def _remove_comment(self, resource):
         """
@@ -612,7 +619,10 @@ class FileIncluderAbs(object):
                             idx = match.find("/")
                             content_no_comment = content_no_comment.replace(match[idx:], "")
                 try:
-                    content_no_comment = json.dumps(json.loads(content_no_comment), indent=2)
+                    w_json_loaded = json.loads(content_no_comment)
+                    self._check_no_import_files(resource.get_full_filename(), w_json_loaded)
+                    # check if we have import-file as a property
+                    content_no_comment = json.dumps(w_json_loaded, indent=2)
                 except Exception as e:
                     raise CBadResourceException(
                         "not valid json for file {0}, Error {1}".format(resource.read_files_name[idx], e.__str__()))
