@@ -97,6 +97,7 @@ setup(
     install_requires=[
         'iPOPO >= 0.5.7',
         'Cohorte-Herald >= 1.0.0'
+	'simpleeval'
     ],
     extras_require={
         'java': ['JPype1-py3']
