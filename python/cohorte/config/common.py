@@ -57,7 +57,7 @@ def replace_vars(params, contents):
                             replace_content = replace_content.replace("\"${" + match + "}\"", params[match][0])
 
                     else:
-                        replace_content = replace_content.replace("\"${" + match + "}\"", params[match][0])
+                        replace_content = replace_content.replace("\"${" + match + "}\"", str(params[match][0])
                 else:
                     replace_content = replace_content.replace("${" + match + "}", "") 
             replace_contents.append(replace_content)
