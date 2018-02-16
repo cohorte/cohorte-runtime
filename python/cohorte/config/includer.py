@@ -200,7 +200,7 @@ class CResource(object):
         self._set_filename(filename, parent_resource)
 
     def get_full_filename(self):
-        return self.dirpath +os.sep+ self.filename if self.dirpath != None else self.filename
+        return self.dirpath + os.sep + self.filename if self.dirpath != None else self.filename
 
     def _set_filename(self, filename, parent_resource=None):
         """
@@ -246,7 +246,7 @@ class CResource(object):
                 self._init_param_run_config(a_json_config[key], a_current_path + "." + key if a_current_path != "" else key)
         else:
             _logger.debug("add run variable key={} value={}".format(a_current_path, a_json_config))
-            os.environ["run:{}".format(a_current_path)] = str(a_json_config)
+            self.params["run:{}".format(a_current_path)] = str(a_json_config)
 
     def _init_query(self, filename):
         """
@@ -269,7 +269,8 @@ class CResource(object):
         # add environment variable as parameter
         for en_key in os.environ:
             self.params[en_key] = [os.environ[en_key]]
-            self.params["env:" + en_key] = self.params[en_key]  # set env namespace 
+            if not en_key.startswith("run:"):
+                self.params["env:" + en_key] = self.params[en_key]  # set env namespace 
         
         # create variable for namespace run 
         if "run" in os.environ:
