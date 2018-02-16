@@ -246,7 +246,7 @@ class CResource(object):
                 self._init_param_run_config(a_json_config[key], a_current_path + "." + key if a_current_path != "" else key)
         else:
             _logger.debug("add run variable key={} value={}".format(a_current_path, a_json_config))
-            self.params["run:{}".format(a_current_path)] = str(a_json_config)
+            self.params["run:{}".format(a_current_path)] = [a_json_config]
 
     def _init_query(self, filename):
         """
