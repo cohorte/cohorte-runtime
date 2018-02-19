@@ -27,12 +27,10 @@ COHORTE config utilities
 import logging
 import re
 
-
 _logger = logging.getLogger(__name__)
 
-
-
 regexp_replace_var = re.compile("\\$\\{(.+?)\\}", re.MULTILINE)
+
 
 def replace_vars(params, contents):
     """
@@ -49,8 +47,9 @@ def replace_vars(params, contents):
         for content in contents:
             replace_content = content
             for match in regexp_replace_var.findall(content):
+                _logger.debug("replace variable {} by {}".format(match, params[match][0]))
                 if match in params:
-                    if isinstance(params[match][0],str):
+                    if isinstance(params[match][0], str):
                         if not params[match][0].isdigit():
                             replace_content = replace_content.replace("${" + match + "}", params[match][0])
                         else:
@@ -62,6 +61,7 @@ def replace_vars(params, contents):
                     replace_content = replace_content.replace("${" + match + "}", "") 
             replace_contents.append(replace_content)
     return replace_contents
+
 
 def _find_equivalent(searched_dict, dicts_list):
     """
@@ -88,6 +88,7 @@ def _find_equivalent(searched_dict, dicts_list):
     
     # Found nothings
     return None
+
   
 def merge_object(local, imported):
     """
@@ -109,8 +110,6 @@ def merge_object(local, imported):
             # Get current value
             cur_value = local[key]
             cur_type = type(cur_value)
-
-         
 
             if cur_type is dict:
                 # Merge children
