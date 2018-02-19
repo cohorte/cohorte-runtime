@@ -54,10 +54,10 @@ def replace_vars(params, contents):
                         if not params[match][0].isdigit():
                             replace_content = replace_content.replace("${" + match + "}", params[match][0])
                         else:
-                            replace_content = replace_content.replace("\"${" + match + "}\"", params[match][0])
+                            replace_content = replace_content.replace("\"${" + match + "}\"", str(params[match][0]))
 
                     else:
-                        replace_content = replace_content.replace("\"${" + match + "}\"", str(params[match][0])
+                        replace_content = replace_content.replace("\"${" + match + "}\"", str(params[match][0]))
                 else:
                     replace_content = replace_content.replace("${" + match + "}", "") 
             replace_contents.append(replace_content)
@@ -86,7 +86,7 @@ def _find_equivalent(searched_dict, dicts_list):
                     # Found an item with the same ID
                     return other_item
     
-    # Found nothing
+    # Found nothings
     return None
   
 def merge_object(local, imported):

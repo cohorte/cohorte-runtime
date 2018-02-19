@@ -481,6 +481,7 @@ class FileIncluderAbs(object):
 
         if not want_json:
             return json.dumps(merge_content)
+        _logger.debug("content=[{}]".format(json.dumps(merge_content)))
         return merge_content
 
     def _get_include_path(self, json_match):

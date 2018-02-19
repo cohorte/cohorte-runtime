@@ -56,6 +56,7 @@ def boot_load(context, boot_config):
             context.install_bundle(bundle.name).start()
         except pelix.framework.BundleException as ex:
             if bundle.optional:
+                logger.exception(ex)
                 # The error can be ignored
                 logger.info("Error installing bundle '%s': %s",
                             bundle.name, ex)
