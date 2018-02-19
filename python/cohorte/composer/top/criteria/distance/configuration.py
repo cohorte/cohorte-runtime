@@ -71,13 +71,13 @@ class ConfigurationCriterion(object):
             # Return the indicated node
             return config.get('node')
 
-        except IOError:
+        except Exception:
             # Ignore I/O error: the isolate has no specific configuration   
             try:
                 config = self._configuration.read("isolate_{0}.js".format(isolate_name),
                                                   False)
                 # Return the indicated node
-                return config.get('node')
+                return config.get('node') if not config else None
             except:
                 pass
 
