@@ -47,8 +47,10 @@ def replace_vars(params, contents):
         for content in contents:
             replace_content = content
             for match in regexp_replace_var.findall(content):
-                _logger.debug("replace variable {} by {}".format(match, params[match][0]))
+                _logger.debug("found variable {} ".format(match))
                 if match in params:
+                    _logger.debug("replace variable {} by {}".format(match, params[match][0]))
+
                     if isinstance(params[match][0], str):
                         if not params[match][0].isdigit():
                             replace_content = replace_content.replace("${" + match + "}", params[match][0])
