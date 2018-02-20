@@ -48,18 +48,14 @@ def replace_vars(params, contents):
             replace_content = content
             for match in regexp_replace_var.findall(content):
                 if match in params:
-                    w_param = params[match][0]
-                    if w_param != None:
-                        w_param = w_param.replace("\"", "").replace("\'", "").replace("\\", "\\\\")
+                    w_param = params[match][0].__str__()
                     _logger.debug("match variable {} , replace by {}".format(match, w_param))
-                    if isinstance(params[match][0], str):
-                        if not params[match][0].isdigit():
-                            replace_content = replace_content.replace("${" + match + "}", w_param)
-                        else:
-                            replace_content = replace_content.replace("\"${" + match + "}\"", str(w_param))
-
+                    if not params[match][0].isdigit():
+                        w_param = w_param.replace("\"", "").replace("\'", "").replace("\\", "\\\\")
+                        replace_content = replace_content.replace("${" + match + "}", w_param)
                     else:
-                        replace_content = replace_content.replace("\"${" + match + "}\"", str(w_param))
+                        replace_content = replace_content.replace("\"${" + match + "}\"", w_param)
+                    
                 else:
                     replace_content = replace_content.replace("${" + match + "}", "") 
             _logger.debug("replace_content={}".format(replace_content))

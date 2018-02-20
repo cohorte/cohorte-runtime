@@ -568,15 +568,14 @@ class FileIncluderAbs(object):
                                     _logger.debug("_revolveContent: $include - subContentPath {0}".format(path))
     
                                     sub_content = self._get_content(path, resource)
-                                    sub_contents.append(sub_content)
-                                resolved_content = resolved_content.replace(found_match, str.join(",", sub_contents))
-                            else:
-                                if "{},".format(found_match) in resolved_content:
-                                    resolved_content = resolved_content.replace("{},".format(found_match), "")
-                                elif ",{}".format(found_match) in resolved_content:
-                                    resolved_content = resolved_content.replace(",{}".format(found_match), "")
+                                    if sub_content != None and sub_content != "":
+                                        sub_contents.append(sub_content)
+                                if len(sub_contents) > 0 :
+                                    resolved_content = resolved_content.replace(found_match, str.join(",", sub_contents))
                                 else:
                                     resolved_content = resolved_content.replace(found_match, "{}")
+                            else:
+                                resolved_content = resolved_content.replace(found_match, "{}")
 
                 # apply regexp to remove content
                 for matches in self._merge.findall(resolved_content):
@@ -602,7 +601,7 @@ class FileIncluderAbs(object):
                             # merge this json with the current one
                             w_content = self._get_content(path, resource)
                             if w_content != None:
-                                _logger.debug("_revolveContent: $merge - subContentPath not null {0}".format(path))
+                                _logger.debug("_revolveContent: $merge - subContentPath not null {0}, content={1}".format(path, w_content))
                                 to_merges = json.loads("[" + w_content + "]")
                                 for to_merge in to_merges:
                                     resolved_content = common.merge_object(resolved_content, to_merge)

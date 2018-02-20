@@ -35,7 +35,6 @@ import cohorte.version
 from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
     Requires
 
-
 # iPOPO Decorators
 # COHORTE constants
 # ------------------------------------------------------------------------------
@@ -98,6 +97,7 @@ class BootConfigParser(object):
     """
     Boot configuration parser
     """
+
     def __init__(self):
         """
         Sets up the members
@@ -141,7 +141,7 @@ class BootConfigParser(object):
         if not bundles:
             return []
 
-        return [self._parse_bundle(bundle) for bundle in bundles]
+        return [self._parse_bundle(bundle) for bundle in bundles if len(bundle.keys()) > 0 ]
 
     @staticmethod
     def _parse_component(json_object):
