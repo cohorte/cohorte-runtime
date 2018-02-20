@@ -2,12 +2,7 @@
  * Start configuration for the monitor (Java configuration read by Python)
  */
 {
-	/*
-	 * Common files
-	 */
-	"import-files" : [ "java-common.js", "java-common-remote.js",
-			"java-common-http.js", "herald/java-core.js",
-			"herald/java-transport.js" ],
+	
 
 	/*
 	 * Java bundles

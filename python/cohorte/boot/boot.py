@@ -25,18 +25,18 @@ COHORTE Python bootstrap
 
 # Python standard library
 import argparse
-import cohorte
 import logging
 import os
-import pelix.framework
-from pelix.ipopo.constants import get_ipopo_svc_ref
 from pprint import pformat
 import sys
 import threading
 import traceback
 
+import cohorte
 import cohorte.boot.constants as constants
-
+import cohorte.version
+import pelix.framework
+from pelix.ipopo.constants import get_ipopo_svc_ref
 
 # Ensure that the content of PYTHONPATH has priority over other paths
 # This is necessary on Windows, where packages installed in 'develop' mode
@@ -61,8 +61,7 @@ except KeyError:
 # ------------------------------------------------------------------------------
 
 # Bundle version
-import cohorte.version
-__version__=cohorte.version.__version__
+__version__ = cohorte.version.__version__
 
 # ------------------------------------------------------------------------------
 
@@ -285,6 +284,7 @@ def _run_framework(framework, state_updater_url, fail_on_pdb):
         framework.stop()
         _logger.debug("Framework stopped.")
     except Exception as ex:
+        _logger.exception(ex)
         _logger.error('Error running the isolate: %s', ex)
         if fail_on_pdb:
             # Start PDB to debug the exception
@@ -555,12 +555,10 @@ def main(args=None):
 
     parser.add_argument("--version", action="version",
                         version="Cohorte bootstrap {0}".format(__version__))
-    
   
     parser.add_argument('--env', action='append', dest="env_isolate_param")
     # Parse arguments
     args = parser.parse_args(args)
-    
     
     # Set up the logger
     configure_logger(args.logfile, args.debug, args.verbose, args.color)
@@ -578,7 +576,6 @@ def main(args=None):
                             cohorte.PROP_COLORED: args.color,
                             cohorte.PROP_HOME: home,
                             cohorte.PROP_BASE: base}
-
 
     # TODO add envs property if it's passed in order to be retrieve by environmentParameter component 
     if args.env_isolate_param:
@@ -630,6 +627,7 @@ def main(args=None):
 
         sys.excepthook = pm_exception
     else:
+
         def log_exception(ex_cls, ex, traceb):
             """
             Logs an unhandled exception
@@ -649,6 +647,7 @@ def main(args=None):
         return 1
 
 # ------------------------------------------------------------------------------
+
 
 if __name__ == "__main__":
     sys.exit(main())

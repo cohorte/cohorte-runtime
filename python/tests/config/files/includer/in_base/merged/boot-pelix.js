@@ -2,10 +2,7 @@
  * Boot configuration for Pelix isolates
  */
 {
-	/**
-	 * Import the common configuration for Python isolates
-	 */
-	"import-files" : "boot-common-py.js",
+	
 
 	/**
 	 * Isolate bundles

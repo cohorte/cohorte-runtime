@@ -1,7 +1,6 @@
 
 /* WARNING!: do not edit, this file is generated automatically by cohorte-start-node command. */
 {
-	"import-files" : [ "boot-forker.js" ],
 	"composition" : [
 	{
 		"name" : "pelix-http-service",

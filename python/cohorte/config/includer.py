@@ -135,7 +135,7 @@ class CResource(object):
                                     raise CBadResourceException(
                                         "include : Bad index expect=[{0}] size=[{1}]".format(idx, len(arr_elem)))
                                 else:
-                                    tag_elem = json.dumps(arr_elem[idx], indent=2)
+                                    tag_elem = json.dumps(arr_elem[idx])
                             elif range_idx == "*":
                                 tag_elem = ",".join([json.dumps(elem) for elem in arr_elem])
                             else:
@@ -399,9 +399,9 @@ class FileIncluderAbs(object):
         # regexp that manage multiline comment and // comment
         self._check = re.compile("(.*//.*)", re.MULTILINE)
         self._check_slash = re.compile("(\".*//.*\")", re.MULTILINE)
-        _simple_include = "((\\n)*\\{(\\n)*\\s*\"\\$include\"\\s*:(\\s*\"[^\\}]*\"\\s*)\\})"
-        _complex_include = "((\n)*\\{(\\s|\n|\t)*\"\$include\"(\\s|\n|\t)*:(\\s|\n|\t)*\\{((\\s|\n|\t)*\"[^\\}]*\"(\\s|\n|\t)*:(\\s|\n|\t)*.*(\\s|\n|\t)*,{0,1}(\\s|\n|\t)*)*\\}(\\s|\n|\t)*)\\}"
-        self._include = re.compile("(" + _simple_include + ")|(" + _complex_include + ")", re.MULTILINE)
+        # _simple_include = "((\\n)*\\{(\\n)*\\s*\"\\$include\"\\s*:(\\s*\"[^\\}]*\"\\s*)\\})"
+        # _complex_include = "((\n)*\\{(\\s|\n|\t)*\"\$include\"(\\s|\n|\t)*:(\\s|\n|\t)*\\{((\\s|\n|\t)*\"[^\\}]*\"(\\s|\n|\t)*:(\\s|\n|\t)*.*(\\s|\n|\t)*,{0,1}(\\s|\n|\t)*)*\\}(\\s|\n|\t)*)\\}"
+        # self._include = re.compile("(" + _simple_include + ")|(" + _complex_include + ")", re.MULTILINE)
         _simple_merge = "(,{0,1}(\n|\s|\t)*\"\$merge\"(\n|\s|\t)*:((\n|\s|\t)*\[(\n|\s|\t)*\"[^\}]*\"(\n|\s|\t)*\](\n|\s|\t)*,{0,1}))"
         self._merge = re.compile(_simple_merge, re.MULTILINE)
 
@@ -517,6 +517,25 @@ class FileIncluderAbs(object):
                 break
         return found_match
 
+    def _find_match_include(self, a_json):
+        w_res = []
+
+        if isinstance(a_json, dict) :
+            if "$include" in a_json.keys():
+                return [a_json]
+            else:
+                for a_sub_json in a_json.values():
+                    w_sub_res = self._find_match_include(a_sub_json)
+                    if w_sub_res:
+                        w_res.extend(w_sub_res)
+        elif isinstance(a_json, list):
+            for a_elem in a_json:
+                w_sub_res = self._find_match_include(a_elem)
+                if w_sub_res:
+                    w_res.extend(w_sub_res)
+          
+        return w_res
+
     def _resolve_content(self, resource):
         """
         return a resolve content with all include file content
@@ -529,13 +548,16 @@ class FileIncluderAbs(object):
             for content in contents:
                 resolved_content = content
                 # apply regexp to remove content
-                for matches in self._include.findall(resolved_content):
-                    found_match = self._get_include_match(matches)
+                # load str as json and find all $include match 
+                resolved_json = json.loads(resolved_content)
+                for found_match in self._find_match_include(resolved_json):
+                    # found_match = self._get_include_match(matches)
 
                     _logger.debug("_revolveContent: match found {0}".format(found_match))
                     sub_contents = []
-                    # load json to get the path and resolve it
-                    match_json = json.loads(found_match)
+                    # match_json = json.loads(found_match)
+                    match_json = found_match
+                    found_match = json.dumps(found_match)
                     if match_json != None:
                         if "$include" in match_json.keys():
                             # match is { $include: "file:///path of a file"}
@@ -624,7 +646,7 @@ class FileIncluderAbs(object):
                     w_json_loaded = json.loads(content_no_comment)
                     self._check_no_import_files(resource.get_full_filename(), w_json_loaded)
                     # check if we have import-file as a property
-                    content_no_comment = json.dumps(w_json_loaded, indent=2)
+                    content_no_comment = json.dumps(w_json_loaded)
                 except Exception as e:
                     raise CBadResourceException(
                         "not valid json for file {0}, Error {1}".format(resource.read_files_name[idx], e.__str__()))

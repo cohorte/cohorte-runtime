@@ -2,8 +2,7 @@
  * Boot configuration for Java isolates
  */
 {
-	/* Common Python stack */
-	"import-files" : "boot-common.js",
+
 
 	/*
 	 * Bundles

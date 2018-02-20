@@ -10,5 +10,4 @@
 	} ],
 
 	// Import the common component configuration
-	"import-files" : "all-xmpp.js"
 }

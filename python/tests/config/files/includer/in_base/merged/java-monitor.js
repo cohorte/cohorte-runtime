@@ -2,11 +2,7 @@
  * Start configuration for the monitor (Java configuration read by Python)
  */
 {
-	/*
-	 * OSGi stuffs
-	 */
-	"import-files" : [ "java-osgi.js", "java-common-ui.js" ],
-
+	
 	/*
 	 * Java bundles
 	 */

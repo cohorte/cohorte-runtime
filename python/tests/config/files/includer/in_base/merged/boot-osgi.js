@@ -2,10 +2,7 @@
  * Boot configuration for the monitor
  */
 {
-	/*
-	 * Import the common configuration for Java isolates
-	 */
-	"import-files" : "boot-java.js",
+	
 
 	/*
 	 * Bundles

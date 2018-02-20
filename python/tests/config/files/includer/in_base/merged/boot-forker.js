@@ -2,12 +2,7 @@
  * Boot configuration for Forkers
  */
 {
-	/*
-	 * Import the common configuration for Python isolates, and the Node
-	 * Composer
-	 */
-	"import-files" : [ "boot-common-py.js", "python-common-http.js",
-			"composer/python-node.js" ],
+	
 
 	"bundles" : [
 	/*

@@ -27,12 +27,10 @@ COHORTE config utilities
 import logging
 import re
 
-
 _logger = logging.getLogger(__name__)
 
-
-
 regexp_replace_var = re.compile("\\$\\{(.+?)\\}", re.MULTILINE)
+
 
 def replace_vars(params, contents):
     """
@@ -50,18 +48,24 @@ def replace_vars(params, contents):
             replace_content = content
             for match in regexp_replace_var.findall(content):
                 if match in params:
-                    if isinstance(params[match][0],str):
+                    w_param = params[match][0]
+                    if w_param != None:
+                        w_param = w_param.replace("\"", "").replace("\'", "").replace("\\", "\\\\")
+                    _logger.debug("match variable {} , replace by {}".format(match, w_param))
+                    if isinstance(params[match][0], str):
                         if not params[match][0].isdigit():
-                            replace_content = replace_content.replace("${" + match + "}", params[match][0])
+                            replace_content = replace_content.replace("${" + match + "}", w_param)
                         else:
-                            replace_content = replace_content.replace("\"${" + match + "}\"", str(params[match][0]))
+                            replace_content = replace_content.replace("\"${" + match + "}\"", str(w_param))
 
                     else:
-                        replace_content = replace_content.replace("\"${" + match + "}\"", str(params[match][0]))
+                        replace_content = replace_content.replace("\"${" + match + "}\"", str(w_param))
                 else:
                     replace_content = replace_content.replace("${" + match + "}", "") 
+            _logger.debug("replace_content={}".format(replace_content))
             replace_contents.append(replace_content)
     return replace_contents
+
 
 def _find_equivalent(searched_dict, dicts_list):
     """
@@ -88,6 +92,7 @@ def _find_equivalent(searched_dict, dicts_list):
     
     # Found nothings
     return None
+
   
 def merge_object(local, imported):
     """
@@ -109,8 +114,6 @@ def merge_object(local, imported):
             # Get current value
             cur_value = local[key]
             cur_type = type(cur_value)
-
-         
 
             if cur_type is dict:
                 # Merge children

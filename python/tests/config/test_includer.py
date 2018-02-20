@@ -63,7 +63,7 @@ test_cases_include = [
     # ("module_slashStarComment.json", "noComment"),
     # ("module_allComment.json", "noComment"),
     # ("module_testDef.json", "testDef"),
-    ("module_allCommentAndFile.json", "noComment2"),
+    # ("module_allCommentAndFile.json", "noComment2"),
     ("module_allMultiPath.json", "noCommentMutliPath") ,
     ("module_allMultiPathWildChar.json", "noCommentMutliPathWildChar") ,
     ("module_allMultiPathWildCharAndSubProp.json", "noCommentMutliPathWildCharAndProp") ,
@@ -135,7 +135,7 @@ class testIncluder(unittest.TestCase):
                 content = self.include.get_content(file_in , True)
         
                 result = json.dumps(content, indent=4, sort_keys=True)
-              
+                # print(result)
                 self.assertEqual(result, expected_result, caseinfo)
                 _logger.info("====>\t ok :case " + caseinfo)
 

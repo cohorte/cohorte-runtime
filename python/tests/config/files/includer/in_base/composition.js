@@ -4,7 +4,6 @@
     "root": {
     	
     	/* import here (in root) the content of the root json objects contained in the files */
-    	"import-files" : [ ],
     	
         "name": "CohorteIotPack-composition",
         
