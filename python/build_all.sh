@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEVPI_URL='http://nrm.cohorte.tech/repository/devpi'
+DEVPI_URL='http://forge.cohorte.tech:7080/'
 devpi_index='cohorte'
 devpi_user=$1
 devpi_password=$2
