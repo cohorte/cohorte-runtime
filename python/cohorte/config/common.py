@@ -50,7 +50,7 @@ def replace_vars(params, contents):
                 if match in params:
                     w_param = params[match][0].__str__()
                     _logger.debug("match variable {} , replace by {}".format(match, w_param))
-                    if not params[match][0].isdigit():
+                    if not w_param.isdigit():
                         w_param = w_param.replace("\"", "").replace("\'", "").replace("\\", "\\\\")
                         replace_content = replace_content.replace("${" + match + "}", w_param)
                     else:
