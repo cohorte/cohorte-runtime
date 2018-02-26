@@ -38,7 +38,10 @@ from cohorte.config import common
 import cohorte.version
 from pelix.ipopo.decorators import ComponentFactory, Provides, Instantiate, \
     Validate, Invalidate, Requires
-from simpleeval import simple_eval
+try:    
+    from simpleeval import simple_eval
+except :
+    pass
 
 try:
     # Python 3
@@ -501,7 +504,7 @@ class FileIncluderAbs(object):
         """ return true if a condition doesn't exists or if the condition is evaluation is true else false """
         if isinstance(json_match, dict) and "condition" in json_match:
             condition = json_match["condition"]
-            if condition != None and isinstance(condition, str):
+            if condition != None and isinstance(condition, str) and simple_eval != None:
                 return simple_eval(condition)
             else:
                 return True  
