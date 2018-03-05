@@ -25,18 +25,17 @@ provide the env paremter to set for all isolate
     limitations under the License.
 """
 # Standard library
-import cohorte
 import logging
+
+import cohorte
+import cohorte.version
 from pelix.ipopo.decorators import ComponentFactory, Requires, Provides, \
     Property, Instantiate, Validate, Invalidate
 
-
 # Pelix framework
 # ------------------------------------------------------------------------------
-
 # Bundle version
-import cohorte.version
-__version__=cohorte.version.__version__
+__version__ = cohorte.version.__version__
 
 # ------------------------------------------------------------------------------
 
@@ -70,7 +69,6 @@ class EnvironmentStarter(object):
             if len(split) == 2:
                 return (split[0], split[1])
             
-            
         return None
         
     @Validate
@@ -81,12 +79,12 @@ class EnvironmentStarter(object):
         if envs != None:
             for envs_str in envs:
                 if envs_str.find(";") != -1:
-                   # several env properties
-                   for env_str in envs_str.split(";"):
-                       res = self._extract_env(env_str)
-                       if res != None:
-                           name, value = res
-                           self._envs[name] = value
+                    # several env properties
+                    for env_str in envs_str.split(";"):
+                        res = self._extract_env(env_str)
+                        if res != None:
+                            name, value = res
+                            self._envs[name] = value
             
                 else:
                     # only one 
@@ -98,5 +96,4 @@ class EnvironmentStarter(object):
     @Invalidate
     def invalidate(self, context):
         self._envs = None
-
     

@@ -175,7 +175,10 @@ class CommonStarter(object):
         """
         # Process environment
         env = os.environ.copy()
-
+        # delete node configuration to not use the same pelix shell and http port for the isolate
+        for key in env.keys():
+            if "node" in key:
+                del env[key]
         # add environment variable 
         env_starter = self._environment.get_envs()
         if env_starter != None:
@@ -194,7 +197,6 @@ class CommonStarter(object):
         # ... isolate
         env[cohorte.ENV_UID] = configuration['uid']
         env[cohorte.ENV_NAME] = configuration['name']
-
       
         # ... node
         env[cohorte.ENV_NODE_UID] = configuration['node_uid']
