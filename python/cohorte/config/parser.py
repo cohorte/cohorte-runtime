@@ -243,6 +243,8 @@ class BootConfigParser(object):
             new_compo.extend(_recursive_namedtuple_convert(composition))
 
         # Return the configuration dictionary
+        _logger.debug("_prepare_configuration configuration = {}".format(configuration))   
+
         return configuration
 
     @staticmethod
@@ -368,8 +370,9 @@ class BootConfigParser(object):
             # Try to load the isolate-specific configuration
             # without logging "file not found" errors
             isolate_conf = self.read(name + ".js", False)
-           
-        except IOError:
+            if isolate_conf == None:
+                isolate_conf = self.read("isolate_" + name + ".js", False)
+        except Exception:
             try:
                 isolate_conf = self.read("isolate_" + name + ".js", False)
             except Exception as e:
@@ -382,6 +385,7 @@ class BootConfigParser(object):
             # parameter has priority on the second
             configuration = common.merge_object(isolate_conf,
                                                       configuration)
+            
         _logger.debug("isolate configuration = {}".format(configuration))   
         # Extend with the boot configuration
         return self._prepare_configuration(uid, name, kind,
