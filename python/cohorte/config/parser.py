@@ -372,15 +372,17 @@ class BootConfigParser(object):
         except IOError:
             try:
                 isolate_conf = self.read("isolate_" + name + ".js", False)
-            except:
-                pass
+            except Exception as e:
+                _logger.error("can't load isolate_config=[{}]".format(name))
+                _logger.exception(e)
+                raise e
             
         if isolate_conf is not None:
             # Merge the configurations: this method considers that the first
             # parameter has priority on the second
             configuration = common.merge_object(isolate_conf,
                                                       configuration)
-
+        _logger.debug("isolate configuration = {}".format(configuration))   
         # Extend with the boot configuration
         return self._prepare_configuration(uid, name, kind,
                                            bundles, composition, configuration)

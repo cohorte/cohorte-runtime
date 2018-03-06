@@ -37,19 +37,17 @@ import json
 import logging
 import threading
 
-# Pelix framework
+import cohorte
+import cohorte.version
+import pelix.http
 from pelix.ipopo.decorators import ComponentFactory, Invalidate, Property, \
     Provides
-import pelix.http
 
+# Pelix framework
 # COHORTE constants
-import cohorte
-
 # ------------------------------------------------------------------------------
-
 # Bundle version
-import cohorte.version
-__version__=cohorte.version.__version__
+__version__ = cohorte.version.__version__
 
 # ------------------------------------------------------------------------------
 
@@ -69,6 +67,7 @@ class ConfigBroker(object):
     """
     The configuration broker servlet
     """
+
     def __init__(self):
         """
         Sets up members
@@ -135,6 +134,8 @@ class ConfigBroker(object):
             # Get the associated configuration
             json_config = self._configurations.get(uid)
 
+        _logger.debug("get isolate configuration {}".format(json_config))
+
         if json_config:
             # Send the found configuration
             response.send_content(200, json_config, MIME_TYPE_JSON)
@@ -197,6 +198,7 @@ class ConfigBroker(object):
             # Invalid parameters
             raise ValueError("Can't store an invalid configuration")
 
+        _logger.debug("store isolate {} configuration {}".format(uid, dict_config))
         with self.__config_lock:
             # Store the configuration as a JSON string
             self._configurations[uid] = json.dumps(dict_config)
