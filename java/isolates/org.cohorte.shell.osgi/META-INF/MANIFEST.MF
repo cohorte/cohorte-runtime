@@ -5,7 +5,7 @@ Bundle-Name: COHORTE :: Shell :: OSGi Commands
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-SymbolicName: org.cohorte.shell.osgi
 Bundle-Vendor: COHORTE Technologies
-Bundle-Version: 1.2.0
+Bundle-Version: 1.2.1
 Created-By: iPOJO 1.12.1
 Import-Package: org.apache.felix.ipojo;version="[1.12.1,2.0.0)", org.a
  pache.felix.ipojo.architecture;version="[1.12.1,2.0.0)", org.apache.f

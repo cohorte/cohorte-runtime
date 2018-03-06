@@ -5,7 +5,7 @@ Bundle-Name: Slf4j-OCIL
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-SymbolicName: org.cohorte.slf4j-OCIL
 Bundle-Vendor: COHORTE
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.2.1
 Created-By: iPOJO 1.12.1
 Export-Package: org.cohorte.isolates.slf4j_ocil,org.slf4j.impl;version
  ="1.6.0"

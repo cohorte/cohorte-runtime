@@ -4,7 +4,7 @@ Bundle-Name: COHORTE :: Remote Shell
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.cohorte.shell.remote
 Bundle-Vendor: COHORTE Technologies
-Bundle-Version: 1.2.0
+Bundle-Version: 1.2.1
 Created-By: iPOJO  1.8.0
 Import-Package: org.apache.felix.ipojo, org.apache.felix.ipojo.archite
  cture, org.apache.felix.service.command;status=provisional, org.cohor

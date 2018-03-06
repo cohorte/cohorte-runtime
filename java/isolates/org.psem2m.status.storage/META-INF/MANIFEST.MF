@@ -4,7 +4,7 @@ Bundle-Name: PSEM2M :: Status Storage Factory
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.psem2m.status.storage
 Bundle-Vendor: COHORTE Technologies
-Bundle-Version: 1.2.0
+Bundle-Version: 1.2.1
 Created-By: iPOJO  1.8.0
 Export-Package: org.psem2m.status.storage
 Import-Package: org.apache.felix.ipojo, org.apache.felix.ipojo.archite

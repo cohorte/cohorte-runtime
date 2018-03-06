@@ -4,7 +4,7 @@ Bundle-Name: COHORTE :: Python Bridge :: API
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-SymbolicName: org.cohorte.pyboot.api
 Bundle-Vendor: COHORTE Technologies
-Bundle-Version: 1.2.0
+Bundle-Version: 1.2.1
 Created-By: iPOJO  1.8.0
 Export-Package: org.cohorte.pyboot.api
 
