@@ -1,3 +1,10 @@
+Changes from 1.2.0 to 1.2.1 (released on Match 6th, 2018)
+------------------------------------------------------------
+
+** Improvements
+    * Composition node with condition
+
+
 Changes from 1.1.0 to 1.2.0 (released on February 8th, 2018)
 ------------------------------------------------------------
 
@@ -7,11 +14,11 @@ Changes from 1.1.0 to 1.2.0 (released on February 8th, 2018)
 ** Improvements
     * Compositions files management
     * Passing common parameters to all isolates of one node
-    * Avoid Starting a node as subprocess  
+    * Avoid Starting a node as subprocess
     * Having a centric version management of python sub-modules
     * Ui looper in python isolate
     * isolate configuration fil starts with isolate_
-     
+
 ** Bug Fix
     * Fix python modules loading problem in utf8
     * Fix encoding problem while loading repository
@@ -20,7 +27,7 @@ Changes form 1.0.3 to 1.1.0
 ---------------------------
 
 ** New Features
-    * Local Discovery 
+    * Local Discovery
 
 ** Improvements
     * Adding Forker's HTTP Port to OSGi java framework properties
@@ -50,7 +57,7 @@ Changes form 1.0.0 to 1.0.1
 ** Improvements
     * add "iPOJO Isolates" to cohorte-debug servlet
     * Using Cohorte-Utilities 1.0.3
-    
+
 ** Bug Fix
     * AttributeError exception when stoping a node [isandlaTech/cohorte-platforms#35] (1)
     * Protecting cohorte agent at invalidation from exception caused by Herald which could have no transport bound.
