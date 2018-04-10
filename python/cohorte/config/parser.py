@@ -141,7 +141,7 @@ class BootConfigParser(object):
         if not bundles:
             return []
 
-        return [self._parse_bundle(bundle) for bundle in bundles if bundle != None and len(bundle.keys()) > 0  and "name" in bundle.keys()]
+        return [self._parse_bundle(bundle) for bundle in bundles if len(bundle.keys()) > 0  and "name" in bundle.keys()]
 
     @staticmethod
     def _parse_component(json_object):
