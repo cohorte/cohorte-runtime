@@ -34,17 +34,38 @@
 		</profile>
 	</profiles>
 	
+	<repositories>
+		<repository>
+		   	<id>cohorte_p2</id>
+            <name>Cohorte p2 Repository</name>
+            <url>http://nexus:8081/repository/cohorte-p2-1.3.1/</url>
+            <layout>default</layout>
+		</repository>
+		<repository>
+		   	<id>cohorte.releases</id>
+            <name>Cohorte Releases Repository</name>
+            <url>http://nexus:8081/repository/cohorte-releases/</url>
+            <layout>default</layout>
+		</repository>
+		<repository>
+		   	<id>cohorte.snapshots</id>
+            <name>Cohorte snapshot Repository</name>
+            <url>http://nexus:8081/repository/cohorte-snapshots/</url>
+            <layout>default</layout>
+		</repository>
+	</repositories>
+	
 	<distributionManagement>
         <repository>
             <id>cohorte-nexus</id>
             <name>Cohorte Releases Repository</name>
-            <url>http://nrm.cohorte.tech/repository/cohorte-releases/</url>
+            <url>http://nexus:8081/repository/cohorte-releases/</url>
             <layout>default</layout>
         </repository>
         <snapshotRepository>
             <id>cohorte-nexus</id>
             <name>Cohorte Snapshots Repository</name>
-            <url>http://nrm.cohorte.tech/repository/cohorte-snapshots/</url>
+            <url>http://nexus:8081/repository/cohorte-snapshots/</url>
             <uniqueVersion>true</uniqueVersion>
             <layout>default</layout>
         </snapshotRepository>
