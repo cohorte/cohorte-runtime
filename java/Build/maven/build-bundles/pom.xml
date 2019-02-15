@@ -181,13 +181,13 @@
         </repository>  -->
 		<repository>
         	<id>felix-p2</id>
-        	<url>http://nexus:8081/repository/felix-p2/5.4.0</url>
+        	<url>https://nrm.cohorte.tech/repository/felix-p2/5.4.0</url>
         	<layout>p2</layout>        
         </repository>	
 		<repository>
 			<id>cohorte.snapshots</id>
 			<name>Cohorte Snapshot Repository</name>
-			<url>http://nexus:8081/repository/cohorte-snapshots</url>
+			<url>https://nrm.cohorte.tech/repository/cohorte-snapshots</url>
 			<releases>
 				<enabled>false</enabled>
 			</releases>
@@ -198,7 +198,7 @@
 		<repository>
 			<id>cohorte.releases</id>
 			<name>Cohorte Releases Repository</name>
-			<url>http://nexus:8081/repository/cohorte-releases</url>
+			<url>https://nrm.cohorte.tech/repository/cohorte-releases</url>
 			<releases>
 				<enabled>true</enabled>
 			</releases>
