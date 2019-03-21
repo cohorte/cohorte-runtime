@@ -14,7 +14,7 @@ PATH=$WORKSPACE/$VENV_NAME/bin:$PATH
 . $VENV_NAME/bin/activate
 
 # Install test and deployment tools
-pip install --force --upgrade pip==1.5.6 setuptools || return 2
+pip install --force --upgrade pip==8.1.2 setuptools || return 2
 pip install --upgrade wheel || return 2
 pip install --upgrade nose || return 2
 pip install --upgrade devpi-client || return 2
